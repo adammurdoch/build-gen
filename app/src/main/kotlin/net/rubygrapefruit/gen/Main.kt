@@ -3,6 +3,7 @@ package net.rubygrapefruit.gen
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.prompts.Prompter
 import net.rubygrapefruit.platform.terminal.Terminals
+import java.io.File
 
 
 fun main(args: Array<String>) {
@@ -13,13 +14,14 @@ fun main(args: Array<String>) {
     }
     val prompter = Prompter(terminals)
     val layout = prompter.select("Select build tree structure", BuildTreeTemplate.values())
-    val builder = BuildTreeBuilder()
+    val builder = BuildTreeBuilder(File("build/test").absoluteFile.toPath())
     layout.applyTo(builder)
     val buildTree = builder.build()
 
     println()
     for (build in buildTree.builds) {
-        println("- generate ${build.displayName} into ${build.rootDir}")
+        println("- generate ${build.displayName}")
+        println("  - root dir: ${build.rootDir}")
         for (plugin in build.requiresPlugins) {
             println("  - uses plugin ${plugin.id} from ${plugin.producedBy.displayName}")
         }
@@ -28,36 +30,12 @@ fun main(args: Array<String>) {
         }
     }
     println()
+
+    val generator = BuildTreeGenerator(BuildGenerator())
+    generator.generate(buildTree)
 }
 
 
 fun <T> Prompter.select(prompt: String, values: Array<T>): T {
     return values.get(select(prompt, values.map { it.toString() }, 0))
-}
-
-enum class BuildTreeTemplate(val display: String) {
-    MainBuildOnly("single build") {
-        override fun applyTo(builder: BuildTreeBuilder) {
-        }
-    },
-    BuildSrc("build with buildSrc") {
-        override fun applyTo(builder: BuildTreeBuilder) {
-            builder.addBuildSrc()
-        }
-    },
-    BuildLogicChildBuild("build logic in child build") {
-        override fun applyTo(builder: BuildTreeBuilder) {
-            builder.addBuildLogicBuild()
-        }
-    },
-    BuildLogicChildBuildAndBuildSrc("build logic in buildSrc and child build") {
-        override fun applyTo(builder: BuildTreeBuilder) {
-            builder.addBuildSrc()
-            builder.addBuildLogicBuild()
-        }
-    };
-
-    override fun toString() = display
-
-    abstract fun applyTo(builder: BuildTreeBuilder)
 }
