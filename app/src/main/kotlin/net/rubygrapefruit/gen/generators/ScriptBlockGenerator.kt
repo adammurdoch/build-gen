@@ -4,4 +4,6 @@ interface ScriptBlockGenerator {
     fun property(name: String, value: String)
 
     fun block(name: String, body: ScriptBlockGenerator.() -> Unit)
+
+    fun namedItem(name: String, body: ScriptBlockGenerator.() -> Unit)
 }

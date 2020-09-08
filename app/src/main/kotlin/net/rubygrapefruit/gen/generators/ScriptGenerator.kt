@@ -46,13 +46,21 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
         }
     }
 
-    private open class HasBlockContents : ScriptBlockGenerator {
+    private open inner class HasBlockContents : ScriptBlockGenerator {
         private val elements = mutableListOf<BlockElement>()
 
         override fun block(name: String, body: ScriptBlockGenerator.() -> Unit) {
             val block = NestedBlock(name)
             body(block)
             elements.add(block)
+        }
+
+        override fun namedItem(name: String, body: ScriptBlockGenerator.() -> Unit) {
+            if (dsl == DslLanguage.KotlinDsl) {
+                block("create(\"${name}\")", body)
+            } else {
+                block(name, body)
+            }
         }
 
         override fun property(name: String, value: String) {
@@ -66,7 +74,7 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
         }
     }
 
-    private class NestedBlock(val name: String) : HasBlockContents(), BlockElement {
+    private inner class NestedBlock(val name: String) : HasBlockContents(), BlockElement {
         override fun renderContents(writer: PrintWriter, prefix: String) {
             writer.print(prefix)
             writer.print(name)
@@ -77,7 +85,7 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
         }
     }
 
-    private class BuildScriptBuilderImpl(val writer: PrintWriter) : HasBlockContents(), BuildScriptBuilder {
+    private inner class BuildScriptBuilderImpl(val writer: PrintWriter) : HasBlockContents(), BuildScriptBuilder {
         private val plugins = mutableListOf<String>()
 
         override fun plugin(id: String) {

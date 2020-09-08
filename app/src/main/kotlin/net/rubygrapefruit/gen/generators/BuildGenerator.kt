@@ -19,7 +19,7 @@ class BuildGenerator(private val scriptGenerator: ScriptGenerator, private val s
                 block("gradlePlugin") {
                     block("plugins") {
                         build.producesPlugins.forEachIndexed { index, plugin ->
-                            block("plugin$index") {
+                            namedItem("plugin$index") {
                                 property("id", plugin.id)
                                 property("implementationClass", plugin.implementationClass.name)
                             }

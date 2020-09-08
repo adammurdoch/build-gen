@@ -22,6 +22,7 @@ fun main(args: Array<String>) {
     val buildTree = builder.build()
 
     println()
+    println("Generating build")
     println("- DSL: ${dsl}")
     for (build in buildTree.builds) {
         println("- generate ${build.displayName}")
