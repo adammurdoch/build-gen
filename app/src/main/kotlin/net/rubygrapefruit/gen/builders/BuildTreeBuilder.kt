@@ -1,9 +1,6 @@
 package net.rubygrapefruit.gen.builders
 
-import net.rubygrapefruit.gen.specs.BuildSpec
-import net.rubygrapefruit.gen.specs.BuildTreeSpec
-import net.rubygrapefruit.gen.specs.PluginProductionSpec
-import net.rubygrapefruit.gen.specs.PluginUseSpec
+import net.rubygrapefruit.gen.specs.*
 import java.nio.file.Path
 
 class BuildTreeBuilder(private val rootDir: Path) {
@@ -40,7 +37,7 @@ class BuildTreeBuilder(private val rootDir: Path) {
 
     private class PluginSpec(
             override val id: String,
-            override val implementationClass: String,
+            override val implementationClass: JvmClassName,
             override val producedBy: BuildSpec
     ) : PluginProductionSpec, PluginUseSpec
 
@@ -57,7 +54,7 @@ class BuildTreeBuilder(private val rootDir: Path) {
         }
 
         fun produces(id: String, implementationClass: String): PluginSpec {
-            val plugin = PluginSpec(id, implementationClass, this)
+            val plugin = PluginSpec(id, JvmClassName(implementationClass), this)
             producesPlugins.add(plugin)
             return plugin
         }

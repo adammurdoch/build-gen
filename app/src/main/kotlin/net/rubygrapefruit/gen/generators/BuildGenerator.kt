@@ -24,7 +24,7 @@ class BuildGenerator(private val scriptGenerator: ScriptGenerator, private val s
                         build.producesPlugins.forEachIndexed { index, plugin ->
                             block("plugin$index") {
                                 property("id", plugin.id)
-                                property("implementationClass", plugin.implementationClass)
+                                property("implementationClass", plugin.implementationClass.name)
                             }
                         }
                     }
@@ -34,6 +34,10 @@ class BuildGenerator(private val scriptGenerator: ScriptGenerator, private val s
 
         for (plugin in build.producesPlugins) {
             sourceFileGenerator.java(build.rootDir.resolve("src/main/java"), plugin.implementationClass) {
+                imports("org.gradle.api.Plugin")
+                imports("org.gradle.api.Project")
+                implements("Plugin<Project>")
+                method("public void apply(Project project) { System.out.println(\"apply ${plugin.id}\"); }")
             }
         }
     }
