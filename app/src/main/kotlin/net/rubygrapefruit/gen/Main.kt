@@ -1,10 +1,7 @@
 package net.rubygrapefruit.gen
 
 import net.rubygrapefruit.gen.builders.BuildTreeBuilder
-import net.rubygrapefruit.gen.generators.BuildGenerator
-import net.rubygrapefruit.gen.generators.BuildTreeGenerator
-import net.rubygrapefruit.gen.generators.DslLanguage
-import net.rubygrapefruit.gen.generators.ScriptGenerator
+import net.rubygrapefruit.gen.generators.*
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.prompts.Prompter
 import net.rubygrapefruit.platform.terminal.Terminals
@@ -29,7 +26,7 @@ fun main(args: Array<String>) {
     for (build in buildTree.builds) {
         println("- generate ${build.displayName}")
         println("  - root dir: ${build.rootDir}")
-        for (plugin in build.requiresPlugins) {
+        for (plugin in build.usesPlugins) {
             println("  - uses plugin ${plugin.id} from ${plugin.producedBy.displayName}")
         }
         for (plugin in build.producesPlugins) {
@@ -38,8 +35,9 @@ fun main(args: Array<String>) {
     }
     println()
 
-    val generator = BuildTreeGenerator(BuildGenerator(ScriptGenerator(dsl)))
-    generator.generate(buildTree)
+    val textFileGenerator = TextFileGenerator()
+    val buildTreeGenerator = BuildTreeGenerator(BuildGenerator(ScriptGenerator(dsl, textFileGenerator), SourceFileGenerator(textFileGenerator)))
+    buildTreeGenerator.generate(buildTree)
 }
 
 

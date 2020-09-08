@@ -3,26 +3,16 @@ package net.rubygrapefruit.gen.generators
 import java.io.PrintWriter
 import java.nio.file.Path
 
-class ScriptGenerator(private val dsl: DslLanguage) {
+class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerator: TextFileGenerator) {
     fun settings(dir: Path, body: SettingsScriptBuilder.() -> Unit) {
-        script(dir.resolve("settings.${dsl.extension}")) {
+        textFileGenerator.file(dir.resolve("settings.${dsl.extension}")) {
             SettingsScriptBuilderImpl(this).run(body)
         }
     }
 
     fun build(dir: Path, body: BuildScriptBuilder.() -> Unit) {
-        script(dir.resolve("build.${dsl.extension}")) {
+        textFileGenerator.file(dir.resolve("build.${dsl.extension}")) {
             BuildScriptBuilderImpl(this).run(body)
-        }
-    }
-
-    private fun script(file: Path, body: PrintWriter.() -> Unit) {
-        file.toFile().bufferedWriter().use {
-            PrintWriter(it).apply {
-                println("// GENERATED FILE")
-                body(this)
-                println()
-            }.also { it.flush() }
         }
     }
 
