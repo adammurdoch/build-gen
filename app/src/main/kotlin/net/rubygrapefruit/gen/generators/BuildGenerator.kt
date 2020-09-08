@@ -7,15 +7,28 @@ class BuildGenerator(private val scriptGenerator: ScriptGenerator) {
     fun generate(build: BuildSpec) {
         Files.createDirectories(build.rootDir)
 
-        scriptGenerator.settings(build.rootDir.resolve("settings.gradle")) {
+        scriptGenerator.settings(build.rootDir) {
             for (childBuild in build.childBuilds) {
                 includeBuild(build.rootDir.relativize(childBuild.rootDir).toString())
             }
         }
 
-        scriptGenerator.build(build.rootDir.resolve("build.gradle")) {
+        scriptGenerator.build(build.rootDir) {
             for (plugin in build.requiresPlugins) {
                 plugin(plugin.id)
+            }
+            if (build.producesPlugins.isNotEmpty()) {
+                plugin("java-gradle-plugin")
+                block("gradlePlugin") {
+                    block("plugins") {
+                        build.producesPlugins.forEachIndexed { index, plugin ->
+                            block("plugin$index") {
+                                property("id", plugin.id)
+                                property("implementationClass", plugin.id)
+                            }
+                        }
+                    }
+                }
             }
         }
     }

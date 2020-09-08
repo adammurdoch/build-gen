@@ -3,6 +3,7 @@ package net.rubygrapefruit.gen
 import net.rubygrapefruit.gen.builders.BuildTreeBuilder
 import net.rubygrapefruit.gen.generators.BuildGenerator
 import net.rubygrapefruit.gen.generators.BuildTreeGenerator
+import net.rubygrapefruit.gen.generators.DslLanguage
 import net.rubygrapefruit.gen.generators.ScriptGenerator
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.prompts.Prompter
@@ -18,11 +19,13 @@ fun main(args: Array<String>) {
     }
     val prompter = Prompter(terminals)
     val layout = prompter.select("Select build tree structure", BuildTreeTemplate.values())
+    val dsl = prompter.select("Select DSL language", DslLanguage.values())
     val builder = BuildTreeBuilder(File("build/test").absoluteFile.toPath())
     layout.applyTo(builder)
     val buildTree = builder.build()
 
     println()
+    println("- DSL: ${dsl}")
     for (build in buildTree.builds) {
         println("- generate ${build.displayName}")
         println("  - root dir: ${build.rootDir}")
@@ -35,7 +38,7 @@ fun main(args: Array<String>) {
     }
     println()
 
-    val generator = BuildTreeGenerator(BuildGenerator(ScriptGenerator()))
+    val generator = BuildTreeGenerator(BuildGenerator(ScriptGenerator(dsl)))
     generator.generate(buildTree)
 }
 

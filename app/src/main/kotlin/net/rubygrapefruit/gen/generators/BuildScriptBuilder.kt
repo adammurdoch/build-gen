@@ -1,5 +1,5 @@
 package net.rubygrapefruit.gen.generators
 
-interface BuildScriptBuilder {
+interface BuildScriptBuilder: ScriptBlockGenerator {
     fun plugin(id: String)
 }
