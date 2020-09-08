@@ -19,6 +19,7 @@ class GeneratedDirectoryContentsSynchronizer {
         }
 
         for (file in previous) {
+            require(file.startsWith(rootDir))
             println("* remove ${file}")
             Files.deleteIfExists(file)
         }

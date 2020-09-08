@@ -11,6 +11,8 @@ class BuildTreeBuilder(private val rootDir: Path) {
         builds.add(mainBuild)
     }
 
+    var includeConfigurationCacheProblems = false
+
     fun addBuildSrc() {
         val build = BuildBuilder("buildSrc build", rootDir.resolve("buildSrc"))
         val plugin = build.produces("test.buildsrc.plugin", "test.buildsrc.PluginImpl")
@@ -41,7 +43,7 @@ class BuildTreeBuilder(private val rootDir: Path) {
             override val producedBy: BuildSpec
     ) : PluginProductionSpec, PluginUseSpec
 
-    private data class BuildBuilder(
+    private inner class BuildBuilder(
             override val displayName: String,
             override val rootDir: Path
     ) : BuildSpec {
@@ -52,6 +54,9 @@ class BuildTreeBuilder(private val rootDir: Path) {
         override fun toString(): String {
             return displayName
         }
+
+        override val includeConfigurationCacheProblems: Boolean
+            get() = this@BuildTreeBuilder.includeConfigurationCacheProblems
 
         fun produces(id: String, implementationClass: String): PluginSpec {
             val plugin = PluginSpec(id, JvmClassName(implementationClass), this)

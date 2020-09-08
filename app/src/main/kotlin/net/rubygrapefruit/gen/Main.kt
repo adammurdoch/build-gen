@@ -2,6 +2,8 @@ package net.rubygrapefruit.gen
 
 import net.rubygrapefruit.gen.builders.BuildTreeBuilder
 import net.rubygrapefruit.gen.generators.*
+import net.rubygrapefruit.gen.templates.BuildTreeTemplate
+import net.rubygrapefruit.gen.templates.Theme
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.prompts.Prompter
 import net.rubygrapefruit.platform.terminal.Terminals
@@ -16,13 +18,15 @@ fun main(args: Array<String>) {
     }
     val prompter = Prompter(terminals)
     val layout = prompter.select("Select build tree structure", BuildTreeTemplate.values())
+    val theme = prompter.select("Select theme", Theme.values())
     val dsl = prompter.select("Select DSL language", DslLanguage.values())
     val builder = BuildTreeBuilder(File("build/test").absoluteFile.toPath())
     layout.applyTo(builder)
+    theme.applyTo(builder)
     val buildTree = builder.build()
 
     println()
-    println("Generating build")
+    println("* generating build with the following settings:")
     println("- DSL: ${dsl}")
     for (build in buildTree.builds) {
         println("- generate ${build.displayName}")

@@ -27,6 +27,9 @@ class BuildGenerator(private val scriptGenerator: ScriptGenerator, private val s
                     }
                 }
             }
+            if (build.includeConfigurationCacheProblems) {
+                block("gradle.buildFinished")
+            }
         }
 
         for (plugin in build.producesPlugins) {

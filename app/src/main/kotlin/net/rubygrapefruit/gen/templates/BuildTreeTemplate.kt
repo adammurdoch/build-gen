@@ -1,4 +1,4 @@
-package net.rubygrapefruit.gen
+package net.rubygrapefruit.gen.templates
 
 import net.rubygrapefruit.gen.builders.BuildTreeBuilder
 
