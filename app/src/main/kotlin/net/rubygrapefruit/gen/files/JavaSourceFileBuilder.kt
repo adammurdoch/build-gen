@@ -1,4 +1,4 @@
-package net.rubygrapefruit.gen.generators
+package net.rubygrapefruit.gen.files
 
 interface JavaSourceFileBuilder {
     fun imports(name: String)
@@ -6,4 +6,6 @@ interface JavaSourceFileBuilder {
     fun implements(name: String)
 
     fun method(text: String)
+
+    fun complete()
 }

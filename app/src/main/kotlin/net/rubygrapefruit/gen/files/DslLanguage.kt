@@ -1,4 +1,4 @@
-package net.rubygrapefruit.gen.generators
+package net.rubygrapefruit.gen.files
 
 enum class DslLanguage(private val displayName: String, val extension: String) {
     GroovyDsl("Groovy DSL", "gradle"),

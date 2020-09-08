@@ -1,4 +1,4 @@
-package net.rubygrapefruit.gen.generators
+package net.rubygrapefruit.gen.files
 
 import java.nio.file.Path
 

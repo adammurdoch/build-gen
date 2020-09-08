@@ -1,44 +1,41 @@
 package net.rubygrapefruit.gen.generators
 
+import net.rubygrapefruit.gen.files.BuildScriptBuilder
+import net.rubygrapefruit.gen.files.ScriptGenerator
+import net.rubygrapefruit.gen.files.SettingsScriptBuilder
 import net.rubygrapefruit.gen.specs.BuildSpec
 
-class BuildGenerator(private val scriptGenerator: ScriptGenerator, private val sourceFileGenerator: SourceFileGenerator) : Generator<BuildSpec> {
-    override fun generate(build: BuildSpec) {
-        scriptGenerator.settings(build.rootDir) {
-            for (childBuild in build.childBuilds) {
-                includeBuild(build.rootDir.relativize(childBuild.rootDir).toString())
+class BuildGenerator(
+        private val scriptGenerator: ScriptGenerator,
+        private val generators: List<Generator<BuildGenerationContext>>
+) : Generator<BuildSpec> {
+    override fun generate(model: BuildSpec) {
+        val settings = scriptGenerator.settings(model.rootDir)
+        settings.apply {
+            for (childBuild in model.childBuilds) {
+                includeBuild(model.rootDir.relativize(childBuild.rootDir).toString())
             }
         }
 
-        scriptGenerator.build(build.rootDir) {
-            for (plugin in build.usesPlugins) {
+        val buildScript = scriptGenerator.build(model.rootDir)
+        buildScript.apply {
+            for (plugin in model.usesPlugins) {
                 plugin(plugin.id)
             }
-            if (build.producesPlugins.isNotEmpty()) {
-                plugin("java-gradle-plugin")
-                block("gradlePlugin") {
-                    block("plugins") {
-                        build.producesPlugins.forEachIndexed { index, plugin ->
-                            namedItem("plugin$index") {
-                                property("id", plugin.id)
-                                property("implementationClass", plugin.implementationClass.name)
-                            }
-                        }
-                    }
-                }
-            }
-            if (build.includeConfigurationCacheProblems) {
-                block("gradle.buildFinished")
-            }
         }
 
-        for (plugin in build.producesPlugins) {
-            sourceFileGenerator.java(build.rootDir.resolve("src/main/java"), plugin.implementationClass) {
-                imports("org.gradle.api.Plugin")
-                imports("org.gradle.api.Project")
-                implements("Plugin<Project>")
-                method("public void apply(Project project) { System.out.println(\"apply ${plugin.id}\"); }")
-            }
+        val context = BuildGenerationContextImpl(model, settings, buildScript)
+        for (generator in generators) {
+            generator.generate(context)
         }
+
+        buildScript.complete()
+        settings.complete()
     }
+
+    private class BuildGenerationContextImpl(
+            override val spec: BuildSpec,
+            override val settingsScript: SettingsScriptBuilder,
+            override val rootBuildScript: BuildScriptBuilder
+    ) : BuildGenerationContext
 }

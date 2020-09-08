@@ -1,35 +1,15 @@
-package net.rubygrapefruit.gen.generators
+package net.rubygrapefruit.gen.files
 
 import java.io.PrintWriter
 import java.nio.file.Path
 
 class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerator: TextFileGenerator) {
-    fun settings(dir: Path, body: SettingsScriptBuilder.() -> Unit) {
-        textFileGenerator.file(dir.resolve("settings.${dsl.extension}")) {
-            SettingsScriptBuilderImpl(this).run(body)
-        }
+    fun settings(dir: Path): SettingsScriptBuilder {
+        return SettingsScriptBuilderImpl(dir)
     }
 
-    fun build(dir: Path, body: BuildScriptBuilder.() -> Unit) {
-        textFileGenerator.file(dir.resolve("build.${dsl.extension}")) {
-            BuildScriptBuilderImpl(this).run(body)
-        }
-    }
-
-    private class SettingsScriptBuilderImpl(val writer: PrintWriter) : SettingsScriptBuilder {
-        private var includes = false
-
-        override fun includeBuild(path: String) {
-            if (!includes) {
-                writer.println()
-                includes = true
-            }
-            writer.println("includeBuild(\"$path\")")
-        }
-
-        fun run(body: SettingsScriptBuilder.() -> Unit) {
-            body(this)
-        }
+    fun build(dir: Path): BuildScriptBuilder {
+        return BuildScriptBuilderImpl(dir)
     }
 
     private interface BlockElement {
@@ -43,6 +23,13 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
             writer.print(" = \"")
             writer.print(value)
             writer.println("\"")
+        }
+    }
+
+    private class MethodImpl(val text: String) : BlockElement {
+        override fun renderContents(writer: PrintWriter, prefix: String) {
+            writer.print(prefix)
+            writer.println(text)
         }
     }
 
@@ -67,6 +54,10 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
             elements.add(PropertyImpl(name, value))
         }
 
+        override fun method(text: String) {
+            elements.add(MethodImpl(text))
+        }
+
         fun renderElements(writer: PrintWriter, prefix: String) {
             for (element in elements) {
                 element.renderContents(writer, prefix)
@@ -85,24 +76,44 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
         }
     }
 
-    private inner class BuildScriptBuilderImpl(val writer: PrintWriter) : HasBlockContents(), BuildScriptBuilder {
+    private inner class SettingsScriptBuilderImpl(val dir: Path) : HasBlockContents(), SettingsScriptBuilder {
+        private val includedBuilds = mutableListOf<String>()
+
+        override fun includeBuild(path: String) {
+            includedBuilds.add(path)
+        }
+
+        override fun complete() {
+            textFileGenerator.file(dir.resolve("settings.${dsl.extension}")) {
+                if (includedBuilds.isNotEmpty()) {
+                    for (path in includedBuilds) {
+                        println("includeBuild(\"$path\")")
+                    }
+                }
+                renderElements(this, "")
+            }
+        }
+    }
+
+    private inner class BuildScriptBuilderImpl(val dir: Path) : HasBlockContents(), BuildScriptBuilder {
         private val plugins = mutableListOf<String>()
 
         override fun plugin(id: String) {
             plugins.add(id)
         }
 
-        fun run(body: BuildScriptBuilder.() -> Unit) {
-            body(this)
-            if (plugins.isNotEmpty()) {
-                writer.println()
-                writer.println("plugins {")
-                for (plugin in plugins) {
-                    writer.println("    id(\"$plugin\")")
+        override fun complete() {
+            textFileGenerator.file(dir.resolve("build.${dsl.extension}")) {
+                if (plugins.isNotEmpty()) {
+                    println()
+                    println("plugins {")
+                    for (plugin in plugins) {
+                        println("    id(\"$plugin\")")
+                    }
+                    println("}")
                 }
-                writer.println("}")
+                renderElements(this, "")
             }
-            renderElements(writer, "")
         }
     }
 }

@@ -1,7 +1,11 @@
 package net.rubygrapefruit.gen
 
 import net.rubygrapefruit.gen.builders.BuildTreeBuilder
-import net.rubygrapefruit.gen.generators.*
+import net.rubygrapefruit.gen.files.*
+import net.rubygrapefruit.gen.generators.BuildGenerator
+import net.rubygrapefruit.gen.generators.BuildTreeGenerator
+import net.rubygrapefruit.gen.generators.ConfigurationCacheProblemGenerator
+import net.rubygrapefruit.gen.generators.PluginProducerGenerator
 import net.rubygrapefruit.gen.templates.BuildTreeTemplate
 import net.rubygrapefruit.gen.templates.Theme
 import net.rubygrapefruit.platform.Native
@@ -43,7 +47,10 @@ fun main(args: Array<String>) {
     val synchronizer = GeneratedDirectoryContentsSynchronizer()
     synchronizer.sync(buildTree.rootDir) { context ->
         val textFileGenerator = TextFileGenerator(context)
-        val buildTreeGenerator = BuildTreeGenerator(BuildGenerator(ScriptGenerator(dsl, textFileGenerator), SourceFileGenerator(textFileGenerator)))
+        val buildTreeGenerator = BuildTreeGenerator(BuildGenerator(
+                ScriptGenerator(dsl, textFileGenerator),
+                listOf(PluginProducerGenerator(SourceFileGenerator(textFileGenerator)), ConfigurationCacheProblemGenerator())
+        ))
         buildTreeGenerator.generate(buildTree)
     }
 }
