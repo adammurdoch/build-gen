@@ -20,6 +20,12 @@ fun main(args: Array<String>) {
     println()
     for (build in buildTree.builds) {
         println("- generate ${build.displayName} into ${build.rootDir}")
+        for (plugin in build.requiresPlugins) {
+            println("  - uses plugin ${plugin.id} from ${plugin.producedBy.displayName}")
+        }
+        for (plugin in build.producesPlugins) {
+            println("  - produces plugin ${plugin.id}")
+        }
     }
     println()
 }

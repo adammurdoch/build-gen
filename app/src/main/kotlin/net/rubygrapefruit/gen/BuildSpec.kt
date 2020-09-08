@@ -1,4 +1,8 @@
 package net.rubygrapefruit.gen
 
-class BuildSpec(val displayName: String, val rootDir: String) {
+interface BuildSpec {
+    val displayName: String
+    val rootDir: String
+    val requiresPlugins: List<PluginSpec>
+    val producesPlugins: List<PluginSpec>
 }
