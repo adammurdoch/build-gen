@@ -1,5 +1,7 @@
 package net.rubygrapefruit.gen
 
+import net.rubygrapefruit.gen.builders.BuildTreeBuilder
+
 enum class BuildTreeTemplate(val display: String) {
     MainBuildOnly("single build") {
         override fun applyTo(builder: BuildTreeBuilder) {

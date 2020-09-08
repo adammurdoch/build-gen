@@ -1,5 +1,9 @@
 package net.rubygrapefruit.gen
 
+import net.rubygrapefruit.gen.builders.BuildTreeBuilder
+import net.rubygrapefruit.gen.generators.BuildGenerator
+import net.rubygrapefruit.gen.generators.BuildTreeGenerator
+import net.rubygrapefruit.gen.generators.ScriptGenerator
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.prompts.Prompter
 import net.rubygrapefruit.platform.terminal.Terminals
@@ -31,7 +35,7 @@ fun main(args: Array<String>) {
     }
     println()
 
-    val generator = BuildTreeGenerator(BuildGenerator())
+    val generator = BuildTreeGenerator(BuildGenerator(ScriptGenerator()))
     generator.generate(buildTree)
 }
 

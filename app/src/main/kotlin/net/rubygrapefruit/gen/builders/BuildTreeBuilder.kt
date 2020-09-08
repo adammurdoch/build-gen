@@ -1,5 +1,8 @@
-package net.rubygrapefruit.gen
+package net.rubygrapefruit.gen.builders
 
+import net.rubygrapefruit.gen.PluginSpec
+import net.rubygrapefruit.gen.specs.BuildSpec
+import net.rubygrapefruit.gen.specs.BuildTreeSpec
 import java.nio.file.Path
 
 class BuildTreeBuilder(private val rootDir: Path) {

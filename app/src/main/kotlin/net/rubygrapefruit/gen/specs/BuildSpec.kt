@@ -1,5 +1,6 @@
-package net.rubygrapefruit.gen
+package net.rubygrapefruit.gen.specs
 
+import net.rubygrapefruit.gen.PluginSpec
 import java.nio.file.Path
 
 interface BuildSpec {
