@@ -4,17 +4,15 @@ import java.io.PrintWriter
 import java.nio.file.Path
 
 class ScriptGenerator {
-    fun settings(file: Path) {
+    fun settings(file: Path, body: SettingsScriptBuilder.() -> Unit) {
         script(file) {
+            SettingsScriptBuilderImpl(this).run(body)
         }
     }
 
     fun build(file: Path, body: BuildScriptBuilder.() -> Unit) {
         script(file) {
-            println()
-            println("plugins {")
-            body(BuildScriptBuilderImpl(this))
-            println("}")
+            BuildScriptBuilderImpl(this).run(body)
         }
     }
 
@@ -28,9 +26,39 @@ class ScriptGenerator {
         }
     }
 
+    private class SettingsScriptBuilderImpl(val writer: PrintWriter) : SettingsScriptBuilder {
+        private var includes = false
+
+        override fun includeBuild(path: String) {
+            if (!includes) {
+                writer.println()
+                includes = true
+            }
+            writer.println("includeBuild(\"$path\")")
+        }
+
+        fun run(body: SettingsScriptBuilder.() -> Unit) {
+            body(this)
+        }
+    }
+
     private class BuildScriptBuilderImpl(val writer: PrintWriter) : BuildScriptBuilder {
+        private var pluginsBlock = false
+
         override fun plugin(id: String) {
+            if (!pluginsBlock) {
+                writer.println()
+                writer.println("plugins {")
+                pluginsBlock = true
+            }
             writer.println("    id(\"$id\")")
+        }
+
+        fun run(body: BuildScriptBuilder.() -> Unit) {
+            body(this)
+            if (pluginsBlock) {
+                writer.println("}")
+            }
         }
     }
 }

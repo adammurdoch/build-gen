@@ -24,6 +24,7 @@ class BuildTreeBuilder(private val rootDir: Path) {
         val build = BuildBuilder("build logic build", rootDir.resolve("plugins"))
         val plugin = build.produces("test.plugins.plugin")
         mainBuild.requires(plugin)
+        mainBuild.childBuilds.add(build)
         builds.add(build)
     }
 
@@ -42,6 +43,7 @@ class BuildTreeBuilder(private val rootDir: Path) {
     ) : BuildSpec {
         override val producesPlugins = mutableListOf<PluginSpec>()
         override val requiresPlugins = mutableListOf<PluginSpec>()
+        override val childBuilds = mutableListOf<BuildSpec>()
 
         override fun toString(): String {
             return displayName
