@@ -1,12 +1,9 @@
 package net.rubygrapefruit.gen.generators
 
 import net.rubygrapefruit.gen.specs.BuildSpec
-import java.nio.file.Files
 
-class BuildGenerator(private val scriptGenerator: ScriptGenerator, private val sourceFileGenerator: SourceFileGenerator) {
-    fun generate(build: BuildSpec) {
-        Files.createDirectories(build.rootDir)
-
+class BuildGenerator(private val scriptGenerator: ScriptGenerator, private val sourceFileGenerator: SourceFileGenerator) : Generator<BuildSpec> {
+    override fun generate(build: BuildSpec) {
         scriptGenerator.settings(build.rootDir) {
             for (childBuild in build.childBuilds) {
                 includeBuild(build.rootDir.relativize(childBuild.rootDir).toString())

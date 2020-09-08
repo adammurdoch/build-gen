@@ -35,9 +35,12 @@ fun main(args: Array<String>) {
     }
     println()
 
-    val textFileGenerator = TextFileGenerator()
-    val buildTreeGenerator = BuildTreeGenerator(BuildGenerator(ScriptGenerator(dsl, textFileGenerator), SourceFileGenerator(textFileGenerator)))
-    buildTreeGenerator.generate(buildTree)
+    val synchronizer = GeneratedDirectoryContentsSynchronizer()
+    synchronizer.sync(buildTree.rootDir) { context ->
+        val textFileGenerator = TextFileGenerator(context)
+        val buildTreeGenerator = BuildTreeGenerator(BuildGenerator(ScriptGenerator(dsl, textFileGenerator), SourceFileGenerator(textFileGenerator)))
+        buildTreeGenerator.generate(buildTree)
+    }
 }
 
 
