@@ -19,7 +19,7 @@ class PluginProducerGenerator(
                         build.producesPlugins.forEachIndexed { index, plugin ->
                             namedItem("plugin$index") {
                                 property("id", plugin.id)
-                                property("implementationClass", plugin.implementationClass.name)
+                                property("implementationClass", plugin.pluginImplementationClass.name)
                             }
                         }
                     }
@@ -27,22 +27,35 @@ class PluginProducerGenerator(
             }
 
             for (plugin in build.producesPlugins) {
-                sourceFileGenerator.java(build.rootDir.resolve("src/main/java"), plugin.implementationClass).apply {
+                val pluginContext = PluginGenerationContextImpl(build, plugin)
+                for (generator in generators) {
+                    generator.generate(pluginContext)
+                }
+                sourceFileGenerator.java(build.rootDir.resolve("src/main/java"), plugin.taskImplementationClass).apply {
+                    imports("org.gradle.api.DefaultTask")
+                    imports("org.gradle.api.tasks.TaskAction")
+                    extends("DefaultTask")
+                    method("""
+                        @TaskAction
+                        public void run() {
+                        }
+                    """.trimIndent())
+                }.complete()
+                sourceFileGenerator.java(build.rootDir.resolve("src/main/java"), plugin.pluginImplementationClass).apply {
                     imports("org.gradle.api.Plugin")
                     imports("org.gradle.api.Project")
                     imports("org.gradle.api.tasks.TaskProvider")
                     implements("Plugin<Project>")
-                    val pluginContext = PluginGenerationContextImpl(build, plugin)
-                    for (generator in generators) {
-                        generator.generate(pluginContext)
-                    }
                     method("""
                         public void apply(Project project) {
-                            System.out.println("apply ${plugin.id}");
+                            System.out.println("apply `${plugin.id}`");
                             project.getPlugins().apply("lifecycle-base");
-                            TaskProvider<?> custom = project.getTasks().register("${plugin.taskName}");
+                            TaskProvider<?> worker = project.getTasks().register("${plugin.workerTaskName}", ${plugin.taskImplementationClass.simpleName}.class);
+                            TaskProvider<?> lifecycle = project.getTasks().register("${plugin.lifecycleTaskName}", t -> {
+                                t.dependsOn(worker);
+                            });
                             project.getTasks().named("assemble").configure(t -> {
-                                t.dependsOn(custom);
+                                t.dependsOn(lifecycle);
                             });
                             ${pluginContext.formatted}
                         }

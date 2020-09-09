@@ -1,6 +1,7 @@
 package net.rubygrapefruit.gen.files
 
 import net.rubygrapefruit.gen.specs.JvmClassName
+import java.io.PrintWriter
 import java.nio.file.Path
 
 class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
@@ -8,10 +9,20 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
         return JavaSourceFileBuilderImpl(srcDir, className)
     }
 
+    private class MethodImpl(val text: String) {
+        fun writeContext(writer: PrintWriter) {
+            for (line in text.trim().lines().filter { it.isNotBlank() }) {
+                writer.print("    ")
+                writer.println(line)
+            }
+        }
+    }
+
     private inner class JavaSourceFileBuilderImpl(val srcDir: Path, val className: JvmClassName) : JavaSourceFileBuilder {
         private val imports = mutableListOf<String>()
+        private var extends: String? = null
         private val implements = mutableListOf<String>()
-        private val methods = mutableListOf<String>()
+        private val methods = mutableListOf<MethodImpl>()
 
         override fun imports(name: String) {
             imports.add(name)
@@ -21,8 +32,12 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             implements.add(name)
         }
 
+        override fun extends(name: String) {
+            extends = name
+        }
+
         override fun method(text: String) {
-            methods.add(text)
+            methods.add(MethodImpl(text))
         }
 
         override fun complete() {
@@ -44,13 +59,17 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
                 println()
                 print("public class ")
                 print(className.simpleName)
+                extends?.let {
+                    print(" extends ")
+                    print(extends)
+                }
                 if (implements.isNotEmpty()) {
                     print(" implements ")
                     print(implements.joinToString(", "))
                 }
                 println(" {")
                 for (method in methods) {
-                    println(method)
+                    method.writeContext(this)
                 }
                 println("}")
             }

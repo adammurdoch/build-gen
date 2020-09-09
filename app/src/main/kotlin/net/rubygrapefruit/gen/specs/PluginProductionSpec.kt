@@ -2,6 +2,8 @@ package net.rubygrapefruit.gen.specs
 
 interface PluginProductionSpec {
     val id: String
-    val implementationClass: JvmClassName
-    val taskName: String
+    val pluginImplementationClass: JvmClassName
+    val taskImplementationClass: JvmClassName
+    val workerTaskName: String
+    val lifecycleTaskName: String
 }

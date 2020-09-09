@@ -1,6 +1,6 @@
 package net.rubygrapefruit.gen.specs
 
-class JvmClassName(val name: String) {
+data class JvmClassName(val name: String) {
     val packageName: String
         get() = name.substringBeforeLast(".")
 
