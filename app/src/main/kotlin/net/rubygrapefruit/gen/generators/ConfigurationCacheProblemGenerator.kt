@@ -18,6 +18,8 @@ class ConfigurationCacheProblemGenerator : BuildGenerator, PluginGenerator {
         if (context.build.includeConfigurationCacheProblems) {
             context.source.applyMethodBody("project.getGradle().buildFinished(r -> {});")
             context.source.applyMethodBody("System.getProperty(\"build.input\");")
+
+            context.source.taskMethodBody("getProject().getName();")
         }
     }
 }

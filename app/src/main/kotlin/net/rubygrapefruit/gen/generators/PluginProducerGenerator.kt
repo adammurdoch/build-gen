@@ -55,6 +55,7 @@ class PluginProducerGenerator(
                         @TaskAction
                         public void run() throws IOException {
                             Files.writeString(getOutputFile().get().getAsFile().toPath(), getMessage().get() + "\n");
+                            ${pluginContext.taskMethodContent}
                         }
                     """.trimIndent())
                 }.complete()
@@ -77,7 +78,7 @@ class PluginProducerGenerator(
                             project.getTasks().named("assemble").configure(t -> {
                                 t.dependsOn(lifecycle);
                             });
-                            ${pluginContext.formatted}
+                            ${pluginContext.applyMethodContent}
                         }
                     """.trimIndent())
                 }.complete()
@@ -89,16 +90,24 @@ class PluginProducerGenerator(
             override val build: BuildSpec,
             override val spec: PluginProductionSpec
     ) : PluginGenerationContext, PluginSourceBuilder {
-        private val content = mutableListOf<String>()
+        private val applyMethodBody = mutableListOf<String>()
+        private val taskMethodBody = mutableListOf<String>()
 
-        val formatted: String
-            get() = content.joinToString("\n")
+        val applyMethodContent: String
+            get() = applyMethodBody.joinToString("\n")
+
+        val taskMethodContent: String
+            get() = taskMethodBody.joinToString("\n")
 
         override val source: PluginSourceBuilder
             get() = this
 
         override fun applyMethodBody(text: String) {
-            content.add(text)
+            applyMethodBody.add(text)
+        }
+
+        override fun taskMethodBody(text: String) {
+            taskMethodBody.add(text)
         }
     }
 }
