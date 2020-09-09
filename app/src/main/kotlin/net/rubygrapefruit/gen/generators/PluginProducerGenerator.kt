@@ -4,6 +4,8 @@ import net.rubygrapefruit.gen.files.PluginSourceBuilder
 import net.rubygrapefruit.gen.files.SourceFileGenerator
 import net.rubygrapefruit.gen.specs.BuildSpec
 import net.rubygrapefruit.gen.specs.PluginProductionSpec
+import java.io.IOException
+import java.nio.file.Files
 
 class PluginProducerGenerator(
         private val sourceFileGenerator: SourceFileGenerator,
@@ -34,10 +36,25 @@ class PluginProducerGenerator(
                 sourceFileGenerator.java(build.rootDir.resolve("src/main/java"), plugin.taskImplementationClass).apply {
                     imports("org.gradle.api.DefaultTask")
                     imports("org.gradle.api.tasks.TaskAction")
+                    imports("org.gradle.api.tasks.Input")
+                    imports("org.gradle.api.tasks.OutputFile")
+                    imports("org.gradle.api.provider.Property")
+                    imports("org.gradle.api.file.RegularFileProperty")
+                    imports(Files::class.java.name)
+                    imports(IOException::class.java.name)
                     extends("DefaultTask")
+                    abstractMethod("""
+                        @Input
+                        public abstract Property<String> getMessage();
+                    """.trimIndent())
+                    abstractMethod("""
+                        @OutputFile
+                        public abstract RegularFileProperty getOutputFile();
+                    """.trimIndent())
                     method("""
                         @TaskAction
-                        public void run() {
+                        public void run() throws IOException {
+                            Files.writeString(getOutputFile().get().getAsFile().toPath(), getMessage().get() + "\n");
                         }
                     """.trimIndent())
                 }.complete()
@@ -50,7 +67,10 @@ class PluginProducerGenerator(
                         public void apply(Project project) {
                             System.out.println("apply `${plugin.id}`");
                             project.getPlugins().apply("lifecycle-base");
-                            TaskProvider<?> worker = project.getTasks().register("${plugin.workerTaskName}", ${plugin.taskImplementationClass.simpleName}.class);
+                            TaskProvider<?> worker = project.getTasks().register("${plugin.workerTaskName}", ${plugin.taskImplementationClass.simpleName}.class, t -> {
+                                t.getMessage().set("input");
+                                t.getOutputFile().set(project.getLayout().getBuildDirectory().file("${plugin.workerTaskName}.txt"));
+                            });
                             TaskProvider<?> lifecycle = project.getTasks().register("${plugin.lifecycleTaskName}", t -> {
                                 t.dependsOn(worker);
                             });

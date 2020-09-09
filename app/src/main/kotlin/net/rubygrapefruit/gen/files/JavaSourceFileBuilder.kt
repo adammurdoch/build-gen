@@ -7,6 +7,8 @@ interface JavaSourceFileBuilder {
 
     fun implements(name: String)
 
+    fun abstractMethod(text: String)
+
     fun method(text: String)
 
     fun complete()

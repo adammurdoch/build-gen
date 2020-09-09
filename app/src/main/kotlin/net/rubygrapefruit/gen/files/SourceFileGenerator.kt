@@ -21,6 +21,7 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
     private inner class JavaSourceFileBuilderImpl(val srcDir: Path, val className: JvmClassName) : JavaSourceFileBuilder {
         private val imports = mutableListOf<String>()
         private var extends: String? = null
+        private var isAbstract = false
         private val implements = mutableListOf<String>()
         private val methods = mutableListOf<MethodImpl>()
 
@@ -34,6 +35,11 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
 
         override fun extends(name: String) {
             extends = name
+        }
+
+        override fun abstractMethod(text: String) {
+            isAbstract = true
+            method(text)
         }
 
         override fun method(text: String) {
@@ -57,7 +63,11 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
                     }
                 }
                 println()
-                print("public class ")
+                print("public")
+                if (isAbstract) {
+                    print(" abstract")
+                }
+                print(" class ")
                 print(className.simpleName)
                 extends?.let {
                     print(" extends ")
