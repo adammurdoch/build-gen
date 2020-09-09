@@ -15,14 +15,14 @@ class BuildTreeBuilder(private val rootDir: Path) {
 
     fun addBuildSrc() {
         val build = BuildBuilder("buildSrc build", rootDir.resolve("buildSrc"))
-        val plugin = build.produces("test.buildsrc.plugin", "test.buildsrc.PluginImpl")
+        val plugin = build.produces("test.buildsrc.plugin", "test.buildsrc.PluginImpl", "buildSrcTask")
         mainBuild.requires(plugin)
         builds.add(build)
     }
 
     fun addBuildLogicBuild() {
         val build = BuildBuilder("build logic build", rootDir.resolve("plugins"))
-        val plugin = build.produces("test.plugins.plugin", "test.plugins.PluginImpl")
+        val plugin = build.produces("test.plugins.plugin", "test.plugins.PluginImpl", "pluginTask")
         mainBuild.requires(plugin)
         mainBuild.childBuilds.add(build)
         builds.add(build)
@@ -40,6 +40,7 @@ class BuildTreeBuilder(private val rootDir: Path) {
     private class PluginSpec(
             override val id: String,
             override val implementationClass: JvmClassName,
+            override val taskName: String,
             override val producedBy: BuildSpec
     ) : PluginProductionSpec, PluginUseSpec
 
@@ -58,8 +59,8 @@ class BuildTreeBuilder(private val rootDir: Path) {
         override val includeConfigurationCacheProblems: Boolean
             get() = this@BuildTreeBuilder.includeConfigurationCacheProblems
 
-        fun produces(id: String, implementationClass: String): PluginSpec {
-            val plugin = PluginSpec(id, JvmClassName(implementationClass), this)
+        fun produces(id: String, implementationClass: String, taskName: String): PluginSpec {
+            val plugin = PluginSpec(id, JvmClassName(implementationClass), taskName, this)
             producesPlugins.add(plugin)
             return plugin
         }

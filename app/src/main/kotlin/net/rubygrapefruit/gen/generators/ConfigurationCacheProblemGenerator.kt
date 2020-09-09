@@ -1,16 +1,23 @@
 package net.rubygrapefruit.gen.generators
 
-class ConfigurationCacheProblemGenerator : Generator<BuildGenerationContext> {
-    override fun generate(model: BuildGenerationContext) {
-        if (model.spec.includeConfigurationCacheProblems) {
-            model.settingsScript.apply {
+class ConfigurationCacheProblemGenerator : BuildGenerator, PluginGenerator {
+    override fun generate(context: BuildGenerationContext) {
+        if (context.spec.includeConfigurationCacheProblems) {
+            context.settingsScript.apply {
                 block("gradle.buildFinished")
                 method("System.getProperty(\"build.input\")")
             }
-            model.rootBuildScript.apply {
+            context.rootBuildScript.apply {
                 block("gradle.buildFinished")
                 method("System.getProperty(\"build.input\")")
             }
+        }
+    }
+
+    override fun generate(context: PluginGenerationContext) {
+        if (context.build.includeConfigurationCacheProblems) {
+            context.source.applyMethodBody("project.getGradle().buildFinished(r -> {});")
+            context.source.applyMethodBody("System.getProperty(\"build.input\");")
         }
     }
 }
