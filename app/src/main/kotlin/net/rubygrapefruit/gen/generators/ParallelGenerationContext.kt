@@ -6,17 +6,25 @@ import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 
 class ParallelGenerationContext : GenerationContext, Closeable {
-    private val executor = Executors.newFixedThreadPool(4)
+    private val executor = Executors.newCachedThreadPool()
 
-    override fun <T> apply(models: Iterable<T>, generator: Generator<T>) {
-        apply(models) { generator.generate(it, this) }
+    override fun <T> apply(models: Collection<T>, generator: Generator<T>) {
+        apply(models) {
+            generator.generate(it, this)
+        }
     }
 
-    override fun <T> apply(model: T, generators: Iterable<Generator<T>>) {
-        apply(generators) { it.generate(model, this) }
+    override fun <T> apply(model: T, generators: Collection<Generator<T>>) {
+        apply(generators) {
+            it.generate(model, this)
+        }
     }
 
-    private fun <T> apply(elements: Iterable<T>, action: (T) -> Unit) {
+    private fun <T> apply(elements: Collection<T>, action: (T) -> Unit) {
+        if (elements.isEmpty()) {
+            return
+        }
+
         val results = mutableListOf<Future<*>>()
         for (element in elements) {
             val future = executor.submit {

@@ -2,6 +2,7 @@ package net.rubygrapefruit.gen.generators
 
 import net.rubygrapefruit.gen.builders.BuildContentsBuilder
 import net.rubygrapefruit.gen.builders.PluginImplementationBuilder
+import net.rubygrapefruit.gen.builders.ProjectContentsBuilder
 
 class ConfigurationCacheProblemGenerator {
     fun buildContents(): Assembler<BuildContentsBuilder> = Assembler.of {
@@ -10,7 +11,12 @@ class ConfigurationCacheProblemGenerator {
                 block("gradle.buildFinished")
                 method("System.getProperty(\"build.input\")")
             }
-            rootBuildScript.apply {
+        }
+    }
+
+    fun projectContents(): Assembler<ProjectContentsBuilder> = Assembler.of {
+        if (spec.includeConfigurationCacheProblems) {
+            buildScript.apply {
                 block("gradle.buildFinished")
                 method("System.getProperty(\"build.input\")")
                 for (plugin in spec.usesPlugins) {
@@ -25,7 +31,7 @@ class ConfigurationCacheProblemGenerator {
     }
 
     fun pluginImplementation(): Assembler<PluginImplementationBuilder> = Assembler.of {
-        if (build.includeConfigurationCacheProblems) {
+        if (includeConfigurationCacheProblems) {
             source.applyMethodBody("project.getGradle().buildFinished(r -> {});")
             source.applyMethodBody("System.getProperty(\"build.input\");")
 

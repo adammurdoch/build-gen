@@ -27,6 +27,6 @@ class FuncTest {
     @Test
     fun canGenerateWithKotlinDsl() {
         val dir = testDir.newFolder()
-        generate(dir.toPath(), BuildTreeTemplate.BuildLogicChildBuildAndBuildSrc, Theme.None, DslLanguage.GroovyDsl)
+        generate(dir.toPath(), BuildTreeTemplate.BuildLogicChildBuildAndBuildSrc, Theme.None, DslLanguage.KotlinDsl)
     }
 }

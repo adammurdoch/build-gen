@@ -1,6 +1,6 @@
 package net.rubygrapefruit.gen.specs
 
 class PluginImplementationSpec(
-        val build: BuildSpec,
+        val project: ProjectSpec,
         val spec: PluginProductionSpec
 )

@@ -3,7 +3,6 @@ package net.rubygrapefruit.gen.generators
 import net.rubygrapefruit.gen.builders.PluginImplementationBuilder
 import net.rubygrapefruit.gen.files.PluginSourceBuilder
 import net.rubygrapefruit.gen.files.SourceFileGenerator
-import net.rubygrapefruit.gen.specs.BuildSpec
 import net.rubygrapefruit.gen.specs.PluginImplementationSpec
 import net.rubygrapefruit.gen.specs.PluginProductionSpec
 import java.io.IOException
@@ -14,11 +13,11 @@ class PluginImplementationGenerator(
         private val assemblers: List<Assembler<PluginImplementationBuilder>>
 ) {
     fun pluginImplementation(): Generator<PluginImplementationSpec> = Generator.of { generationContext ->
-        val builder = PluginImplementationBuilderImpl(build, spec)
+        val builder = PluginImplementationBuilderImpl(spec, project.includeConfigurationCacheProblems)
         for (assembler in assemblers) {
             assembler.assemble(builder, generationContext)
         }
-        sourceFileGenerator.java(build.rootDir.resolve("src/main/java"), spec.taskImplementationClass).apply {
+        sourceFileGenerator.java(project.projectDir.resolve("src/main/java"), spec.taskImplementationClass).apply {
             imports("org.gradle.api.DefaultTask")
             imports("org.gradle.api.tasks.TaskAction")
             imports("org.gradle.api.tasks.Input")
@@ -44,7 +43,7 @@ class PluginImplementationGenerator(
                         }
                     """.trimIndent())
         }.complete()
-        sourceFileGenerator.java(build.rootDir.resolve("src/main/java"), spec.pluginImplementationClass).apply {
+        sourceFileGenerator.java(project.projectDir.resolve("src/main/java"), spec.pluginImplementationClass).apply {
             imports("org.gradle.api.Plugin")
             imports("org.gradle.api.Project")
             imports("org.gradle.api.tasks.TaskProvider")
@@ -70,8 +69,8 @@ class PluginImplementationGenerator(
     }
 
     private class PluginImplementationBuilderImpl(
-            override val build: BuildSpec,
-            override val spec: PluginProductionSpec
+            override val spec: PluginProductionSpec,
+            override val includeConfigurationCacheProblems: Boolean
     ) : PluginImplementationBuilder, PluginSourceBuilder {
         private val applyMethodBody = mutableListOf<String>()
         private val taskMethodBody = mutableListOf<String>()
