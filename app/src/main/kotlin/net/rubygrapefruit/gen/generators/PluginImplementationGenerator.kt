@@ -13,7 +13,7 @@ class PluginImplementationGenerator(
         private val sourceFileGenerator: SourceFileGenerator,
         private val assemblers: List<Assembler<PluginImplementationBuilder>>
 ) {
-    fun generator(): Generator<PluginImplementationSpec> = Generator.of { generationContext ->
+    fun pluginImplementation(): Generator<PluginImplementationSpec> = Generator.of { generationContext ->
         val builder = PluginImplementationBuilderImpl(build, spec)
         for (assembler in assemblers) {
             assembler.assemble(builder, generationContext)

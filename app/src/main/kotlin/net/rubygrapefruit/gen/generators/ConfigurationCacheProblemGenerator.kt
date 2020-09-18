@@ -4,7 +4,7 @@ import net.rubygrapefruit.gen.builders.BuildContentsBuilder
 import net.rubygrapefruit.gen.builders.PluginImplementationBuilder
 
 class ConfigurationCacheProblemGenerator {
-    fun build(): Assembler<BuildContentsBuilder> = Assembler.of {
+    fun buildContents(): Assembler<BuildContentsBuilder> = Assembler.of {
         if (spec.includeConfigurationCacheProblems) {
             settingsScript.apply {
                 block("gradle.buildFinished")
@@ -24,7 +24,7 @@ class ConfigurationCacheProblemGenerator {
         }
     }
 
-    fun plugin(): Assembler<PluginImplementationBuilder> = Assembler.of {
+    fun pluginImplementation(): Assembler<PluginImplementationBuilder> = Assembler.of {
         if (build.includeConfigurationCacheProblems) {
             source.applyMethodBody("project.getGradle().buildFinished(r -> {});")
             source.applyMethodBody("System.getProperty(\"build.input\");")
