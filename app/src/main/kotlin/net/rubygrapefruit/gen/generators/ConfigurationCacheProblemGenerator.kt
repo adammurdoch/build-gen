@@ -10,6 +10,13 @@ class ConfigurationCacheProblemGenerator : BuildGenerator, PluginGenerator {
             context.rootBuildScript.apply {
                 block("gradle.buildFinished")
                 method("System.getProperty(\"build.input\")")
+                for (plugin in context.spec.usesPlugins) {
+                    block("tasks.named(\"${plugin.workerTaskName}\")") {
+                        block("doLast") {
+                            method("taskDependencies")
+                        }
+                    }
+                }
             }
         }
     }
@@ -19,7 +26,7 @@ class ConfigurationCacheProblemGenerator : BuildGenerator, PluginGenerator {
             context.source.applyMethodBody("project.getGradle().buildFinished(r -> {});")
             context.source.applyMethodBody("System.getProperty(\"build.input\");")
 
-            context.source.taskMethodBody("getProject().getName();")
+            context.source.taskMethodBody("getTaskDependencies();")
         }
     }
 }

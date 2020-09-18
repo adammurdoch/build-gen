@@ -41,8 +41,10 @@ class GeneratedDirectoryContentsSynchronizer {
 
     private class ContextImpl(val rootDir: Path, val writer: PrintWriter, val previous: MutableSet<Path>) : FileGenerationContext {
         override fun generated(file: Path) {
-            writer.println(rootDir.relativize(file).toString())
-            previous.remove(file)
+            synchronized(this) {
+                writer.println(rootDir.relativize(file).toString())
+                previous.remove(file)
+            }
         }
     }
 }
