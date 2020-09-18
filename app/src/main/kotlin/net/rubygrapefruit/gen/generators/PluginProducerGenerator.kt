@@ -1,5 +1,6 @@
 package net.rubygrapefruit.gen.generators
 
+import net.rubygrapefruit.gen.builders.BuildContentsBuilder
 import net.rubygrapefruit.gen.files.PluginSourceBuilder
 import net.rubygrapefruit.gen.files.SourceFileGenerator
 import net.rubygrapefruit.gen.specs.BuildSpec
@@ -9,12 +10,12 @@ import java.nio.file.Files
 
 class PluginProducerGenerator(
         private val sourceFileGenerator: SourceFileGenerator,
-        private val generators: List<PluginGenerator>
-) : BuildGenerator {
-    override fun generate(context: BuildGenerationContext) {
-        val build = context.spec
+        private val generators: List<Assembler<PluginGenerationContext>>
+) : Assembler<BuildContentsBuilder> {
+    override fun assemble(model: BuildContentsBuilder, generationContext: GenerationContext) {
+        val build = model.spec
         if (build.producesPlugins.isNotEmpty()) {
-            context.rootBuildScript.apply {
+            model.rootBuildScript.apply {
                 plugin("java-gradle-plugin")
                 block("gradlePlugin") {
                     block("plugins") {
@@ -31,7 +32,7 @@ class PluginProducerGenerator(
             for (plugin in build.producesPlugins) {
                 val pluginContext = PluginGenerationContextImpl(build, plugin)
                 for (generator in generators) {
-                    generator.generate(pluginContext)
+                    generator.assemble(pluginContext, generationContext)
                 }
                 sourceFileGenerator.java(build.rootDir.resolve("src/main/java"), plugin.taskImplementationClass).apply {
                     imports("org.gradle.api.DefaultTask")

@@ -1,8 +1,8 @@
 package net.rubygrapefruit.gen.generators
 
 /**
- * Implementations must be thread safe.
+ * Generates filesystem state from the given model. Implementations must be thread safe.
  */
-interface Generator<T> {
-    fun generate(model: T)
+interface Generator<in T> {
+    fun generate(model: T, generationContext: GenerationContext)
 }

@@ -2,16 +2,14 @@ package net.rubygrapefruit.gen
 
 import net.rubygrapefruit.gen.builders.BuildTreeBuilder
 import net.rubygrapefruit.gen.files.*
-import net.rubygrapefruit.gen.generators.BuildContentsGenerator
-import net.rubygrapefruit.gen.generators.BuildTreeContentsGenerator
-import net.rubygrapefruit.gen.generators.ConfigurationCacheProblemGenerator
-import net.rubygrapefruit.gen.generators.PluginProducerGenerator
+import net.rubygrapefruit.gen.generators.*
 import net.rubygrapefruit.gen.templates.BuildTreeTemplate
 import net.rubygrapefruit.gen.templates.Theme
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.prompts.Prompter
 import net.rubygrapefruit.platform.terminal.Terminals
 import java.io.File
+import java.nio.file.Path
 
 
 fun main(args: Array<String>) {
@@ -24,7 +22,12 @@ fun main(args: Array<String>) {
     val layout = prompter.select("Select build tree structure", BuildTreeTemplate.values())
     val theme = prompter.select("Select theme", Theme.values())
     val dsl = prompter.select("Select DSL language", DslLanguage.values())
-    val builder = BuildTreeBuilder(File("build/test").absoluteFile.toPath())
+    val rootDir = File("build/test").absoluteFile.toPath()
+    generate(rootDir, layout, theme, dsl)
+}
+
+fun generate(rootDir: Path, layout: BuildTreeTemplate, theme: Theme, dsl: DslLanguage) {
+    val builder = BuildTreeBuilder(rootDir)
     layout.applyTo(builder)
     theme.applyTo(builder)
     val buildTree = builder.build()
@@ -45,15 +48,17 @@ fun main(args: Array<String>) {
     println()
 
     val synchronizer = GeneratedDirectoryContentsSynchronizer()
-    synchronizer.sync(buildTree.rootDir) { context ->
+    synchronizer.sync(buildTree.rootDir) { fileContext ->
         val problemGenerator = ConfigurationCacheProblemGenerator()
-        val textFileGenerator = TextFileGenerator(context)
+        val textFileGenerator = TextFileGenerator(fileContext)
         val buildTreeGenerator = BuildTreeContentsGenerator(
                 BuildContentsGenerator(
                         ScriptGenerator(dsl, textFileGenerator),
-                        listOf(PluginProducerGenerator(SourceFileGenerator(textFileGenerator), listOf(problemGenerator)), problemGenerator)
+                        listOf(PluginProducerGenerator(SourceFileGenerator(textFileGenerator), listOf(problemGenerator.plugin())), problemGenerator.build())
                 ))
-        buildTreeGenerator.generate(buildTree)
+        ParallelGenerationContext().use {
+            buildTreeGenerator.generate(buildTree, it)
+        }
     }
 }
 

@@ -1,16 +1,18 @@
 package net.rubygrapefruit.gen.generators
 
-class ConfigurationCacheProblemGenerator : BuildGenerator, PluginGenerator {
-    override fun generate(context: BuildGenerationContext) {
-        if (context.spec.includeConfigurationCacheProblems) {
-            context.settingsScript.apply {
+import net.rubygrapefruit.gen.builders.BuildContentsBuilder
+
+class ConfigurationCacheProblemGenerator {
+    fun build(): Assembler<BuildContentsBuilder> = Assembler.of {
+        if (spec.includeConfigurationCacheProblems) {
+            settingsScript.apply {
                 block("gradle.buildFinished")
                 method("System.getProperty(\"build.input\")")
             }
-            context.rootBuildScript.apply {
+            rootBuildScript.apply {
                 block("gradle.buildFinished")
                 method("System.getProperty(\"build.input\")")
-                for (plugin in context.spec.usesPlugins) {
+                for (plugin in spec.usesPlugins) {
                     block("tasks.named(\"${plugin.workerTaskName}\")") {
                         block("doLast") {
                             method("taskDependencies")
@@ -21,12 +23,12 @@ class ConfigurationCacheProblemGenerator : BuildGenerator, PluginGenerator {
         }
     }
 
-    override fun generate(context: PluginGenerationContext) {
-        if (context.build.includeConfigurationCacheProblems) {
-            context.source.applyMethodBody("project.getGradle().buildFinished(r -> {});")
-            context.source.applyMethodBody("System.getProperty(\"build.input\");")
+    fun plugin(): Assembler<PluginGenerationContext> = Assembler.of {
+        if (build.includeConfigurationCacheProblems) {
+            source.applyMethodBody("project.getGradle().buildFinished(r -> {});")
+            source.applyMethodBody("System.getProperty(\"build.input\");")
 
-            context.source.taskMethodBody("getTaskDependencies();")
+            source.taskMethodBody("getTaskDependencies();")
         }
     }
 }
