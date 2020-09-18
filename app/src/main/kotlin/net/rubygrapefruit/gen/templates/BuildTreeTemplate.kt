@@ -2,7 +2,7 @@ package net.rubygrapefruit.gen.templates
 
 import net.rubygrapefruit.gen.builders.BuildTreeBuilder
 
-enum class BuildTreeTemplate(val display: String) {
+enum class BuildTreeTemplate(private val display: String) {
     MainBuildOnly("single build") {
         override fun applyTo(builder: BuildTreeBuilder) {
         }

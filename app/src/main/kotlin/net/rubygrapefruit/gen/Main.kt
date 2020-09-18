@@ -53,9 +53,17 @@ fun generate(rootDir: Path, layout: BuildTreeTemplate, theme: Theme, dsl: DslLan
         val textFileGenerator = TextFileGenerator(fileContext)
         val sourceFileGenerator = SourceFileGenerator(textFileGenerator)
         val scriptGenerator = ScriptGenerator(dsl, textFileGenerator)
-        val pluginImplementationGenerator = PluginImplementationGenerator(sourceFileGenerator, listOf(problemGenerator.pluginImplementation()))
+        val pluginImplementationGenerator = PluginImplementationGenerator(
+                sourceFileGenerator,
+                listOf(problemGenerator.pluginImplementation())
+        )
         val pluginProducerGenerator = PluginProducerGenerator(pluginImplementationGenerator.pluginImplementation())
-        val buildContentsGenerator = BuildContentsGenerator(scriptGenerator, listOf(pluginProducerGenerator.buildContents(), problemGenerator.buildContents()))
+        val projectGenerator = ProjectGenerator()
+        val buildContentsGenerator = BuildContentsGenerator(
+                scriptGenerator,
+                listOf(pluginProducerGenerator.buildContents(), problemGenerator.buildContents()),
+                projectGenerator.project()
+        )
         val buildTreeGenerator = BuildTreeContentsGenerator(buildContentsGenerator.buildContents())
         ParallelGenerationContext().use {
             buildTreeGenerator.generate(buildTree, it)

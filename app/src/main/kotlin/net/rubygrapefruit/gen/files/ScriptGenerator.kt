@@ -13,28 +13,58 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
     }
 
     private interface BlockElement {
-        fun renderContents(writer: PrintWriter, prefix: String)
+        fun PrintWriter.renderContents(prefix: String)
+    }
+
+    private class IncludedProjects : BlockElement {
+        val names = mutableListOf<String>()
+
+        override fun PrintWriter.renderContents(prefix: String) {
+            if (names.isEmpty()) {
+                return
+            }
+            println()
+            for (name in names) {
+                print(prefix)
+                println("include(\"$name\")")
+            }
+        }
+    }
+
+    private class IncludedBuilds : BlockElement {
+        val paths = mutableListOf<String>()
+
+        override fun PrintWriter.renderContents(prefix: String) {
+            if (paths.isEmpty()) {
+                return
+            }
+            println()
+            for (path in paths) {
+                print(prefix)
+                println("includeBuild(\"$path\")")
+            }
+        }
     }
 
     private class PropertyImpl(val name: String, val value: String) : BlockElement {
-        override fun renderContents(writer: PrintWriter, prefix: String) {
-            writer.print(prefix)
-            writer.print(name)
-            writer.print(" = \"")
-            writer.print(value)
-            writer.println("\"")
+        override fun PrintWriter.renderContents(prefix: String) {
+            print(prefix)
+            print(name)
+            print(" = \"")
+            print(value)
+            println("\"")
         }
     }
 
     private class MethodImpl(val text: String) : BlockElement {
-        override fun renderContents(writer: PrintWriter, prefix: String) {
-            writer.print(prefix)
-            writer.println(text)
+        override fun PrintWriter.renderContents(prefix: String) {
+            print(prefix)
+            println(text)
         }
     }
 
     private open inner class HasBlockContents : ScriptBlockGenerator {
-        private val elements = mutableListOf<BlockElement>()
+        val elements = mutableListOf<BlockElement>()
 
         override fun block(name: String, body: ScriptBlockGenerator.() -> Unit) {
             val block = NestedBlock(name)
@@ -58,61 +88,80 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
             elements.add(MethodImpl(text))
         }
 
-        fun renderElements(writer: PrintWriter, prefix: String) {
+        fun PrintWriter.renderElements(prefix: String) {
             for (element in elements) {
-                element.renderContents(writer, prefix)
+                element.run {
+                    renderContents(prefix)
+                }
             }
         }
     }
 
     private inner class NestedBlock(val name: String) : HasBlockContents(), BlockElement {
-        override fun renderContents(writer: PrintWriter, prefix: String) {
-            writer.print(prefix)
-            writer.print(name)
-            writer.println(" {")
-            renderElements(writer, "$prefix    ")
-            writer.print(prefix)
-            writer.println("}")
+        override fun PrintWriter.renderContents(prefix: String) {
+            print(prefix)
+            print(name)
+            println(" {")
+            renderElements("$prefix    ")
+            print(prefix)
+            println("}")
         }
     }
 
     private inner class SettingsScriptBuilderImpl(val dir: Path) : HasBlockContents(), SettingsScriptBuilder {
-        private val includedBuilds = mutableListOf<String>()
+        private val includedProjects = IncludedProjects()
+        private val includedBuilds = IncludedBuilds()
+
+        init {
+            elements.add(includedProjects)
+            elements.add(includedBuilds)
+        }
+
+        override fun includeProject(path: String) {
+            includedProjects.names.add(path)
+        }
 
         override fun includeBuild(path: String) {
-            includedBuilds.add(path)
+            includedBuilds.paths.add(path)
         }
 
         override fun complete() {
             textFileGenerator.file(dir.resolve("settings.${dsl.extension}")) {
-                if (includedBuilds.isNotEmpty()) {
-                    for (path in includedBuilds) {
-                        println("includeBuild(\"$path\")")
-                    }
-                }
-                renderElements(this, "")
+                renderElements("")
             }
         }
     }
 
+    private class Plugins : BlockElement {
+        val ids = mutableListOf<String>()
+
+        override fun PrintWriter.renderContents(prefix: String) {
+            if (ids.isEmpty()) {
+                return
+            }
+            println()
+            println("plugins {")
+            for (id in ids) {
+                println("    id(\"$id\")")
+            }
+            println("}")
+        }
+    }
+
     private inner class BuildScriptBuilderImpl(val dir: Path) : HasBlockContents(), BuildScriptBuilder {
-        private val plugins = mutableListOf<String>()
+        private val plugins = Plugins()
+
+        init {
+            elements.add(plugins)
+        }
 
         override fun plugin(id: String) {
-            plugins.add(id)
+            plugins.ids.add(id)
         }
 
         override fun complete() {
             textFileGenerator.file(dir.resolve("build.${dsl.extension}")) {
-                if (plugins.isNotEmpty()) {
-                    println()
-                    println("plugins {")
-                    for (plugin in plugins) {
-                        println("    id(\"$plugin\")")
-                    }
-                    println("}")
-                }
-                renderElements(this, "")
+                renderElements("")
             }
         }
     }

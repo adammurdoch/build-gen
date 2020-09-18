@@ -5,7 +5,7 @@ import java.nio.file.Path
 
 class BuildTreeBuilder(private val rootDir: Path) {
     private val builds = mutableListOf<BuildBuilder>()
-    private val mainBuild = BuildBuilder("main build", rootDir)
+    private val mainBuild = BuildBuilder("main build", rootDir, ProjectGraphSpec.MultipleProjects)
 
     init {
         builds.add(mainBuild)
@@ -14,14 +14,14 @@ class BuildTreeBuilder(private val rootDir: Path) {
     var includeConfigurationCacheProblems = false
 
     fun addBuildSrc() {
-        val build = BuildBuilder("buildSrc build", rootDir.resolve("buildSrc"))
+        val build = BuildBuilder("buildSrc build", rootDir.resolve("buildSrc"), ProjectGraphSpec.RootProject)
         val plugin = build.produces("test.buildsrc.plugin", "test.buildsrc.PluginImpl", "test.buildsrc.TaskImpl", "buildSrc", "buildSrcWorker")
         mainBuild.requires(plugin)
         builds.add(build)
     }
 
     fun addBuildLogicBuild() {
-        val build = BuildBuilder("build logic build", rootDir.resolve("plugins"))
+        val build = BuildBuilder("build logic build", rootDir.resolve("plugins"), ProjectGraphSpec.RootProject)
         val plugin = build.produces("test.plugins.plugin", "test.plugins.PluginImpl", "test.plugins.TaskImpl", "plugin", "pluginWorker")
         mainBuild.requires(plugin)
         mainBuild.childBuilds.add(build)
@@ -48,7 +48,8 @@ class BuildTreeBuilder(private val rootDir: Path) {
 
     private inner class BuildBuilder(
             override val displayName: String,
-            override val rootDir: Path
+            override val rootDir: Path,
+            override val projects: ProjectGraphSpec
     ) : BuildSpec {
         override val producesPlugins = mutableListOf<PluginSpec>()
         override val usesPlugins = mutableListOf<PluginSpec>()
