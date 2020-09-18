@@ -1,6 +1,7 @@
 package net.rubygrapefruit.gen.generators
 
 import net.rubygrapefruit.gen.builders.BuildContentsBuilder
+import net.rubygrapefruit.gen.builders.PluginImplementationBuilder
 
 class ConfigurationCacheProblemGenerator {
     fun build(): Assembler<BuildContentsBuilder> = Assembler.of {
@@ -23,7 +24,7 @@ class ConfigurationCacheProblemGenerator {
         }
     }
 
-    fun plugin(): Assembler<PluginGenerationContext> = Assembler.of {
+    fun plugin(): Assembler<PluginImplementationBuilder> = Assembler.of {
         if (build.includeConfigurationCacheProblems) {
             source.applyMethodBody("project.getGradle().buildFinished(r -> {});")
             source.applyMethodBody("System.getProperty(\"build.input\");")
