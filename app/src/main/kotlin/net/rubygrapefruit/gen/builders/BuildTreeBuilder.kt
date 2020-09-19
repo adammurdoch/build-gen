@@ -15,14 +15,14 @@ class BuildTreeBuilder(private val rootDir: Path) {
 
     fun addBuildSrc() {
         val build = BuildBuilder("buildSrc build", rootDir.resolve("buildSrc"), ProjectGraphSpec.RootProject)
-        val plugin = build.produces("test.buildsrc.plugin", "test.buildsrc.PluginImpl", "test.buildsrc.TaskImpl", "buildSrc", "buildSrcWorker")
+        val plugin = build.produces("buildSrc", "test.buildsrc")
         mainBuild.requires(plugin)
         builds.add(build)
     }
 
     fun addBuildLogicBuild() {
         val build = BuildBuilder("build logic build", rootDir.resolve("plugins"), ProjectGraphSpec.RootProject)
-        val plugin = build.produces("test.plugins.plugin", "test.plugins.PluginImpl", "test.plugins.TaskImpl", "plugin", "pluginWorker")
+        val plugin = build.produces("plugins", "test.plugins")
         mainBuild.requires(plugin)
         mainBuild.childBuilds.add(build)
         builds.add(build)
@@ -38,12 +38,21 @@ class BuildTreeBuilder(private val rootDir: Path) {
     ) : BuildTreeSpec
 
     private class PluginSpec(
+            val baseName: String,
             override val id: String,
-            override val pluginImplementationClass: JvmClassName,
-            override val taskImplementationClass: JvmClassName,
-            override val lifecycleTaskName: String,
-            override val workerTaskName: String,
-    ) : PluginProductionSpec, PluginUseSpec
+    ) : PluginProductionSpec, PluginUseSpec {
+        override val workerTaskName: String
+            get() = identifier("worker")
+
+        override val lifecycleTaskName: String
+            get() = baseName
+
+        override fun identifier(suffix: String) = baseName + suffix.capitalize()
+
+        override fun className(classNameSuffix: String): JvmClassName {
+            return JvmClassName(id.toLowerCase() + ".plugin." + classNameSuffix.capitalize())
+        }
+    }
 
     private inner class BuildBuilder(
             override val displayName: String,
@@ -61,8 +70,8 @@ class BuildTreeBuilder(private val rootDir: Path) {
         override val includeConfigurationCacheProblems: Boolean
             get() = this@BuildTreeBuilder.includeConfigurationCacheProblems
 
-        fun produces(id: String, pluginImplementationClass: String, workerImplementationClass: String, lifecycleTaskName: String, workerTaskName: String): PluginSpec {
-            val plugin = PluginSpec(id, JvmClassName(pluginImplementationClass), JvmClassName(workerImplementationClass), lifecycleTaskName, workerTaskName)
+        fun produces(baseName: String, id: String): PluginSpec {
+            val plugin = PluginSpec(baseName, id)
             producesPlugins.add(plugin)
             return plugin
         }

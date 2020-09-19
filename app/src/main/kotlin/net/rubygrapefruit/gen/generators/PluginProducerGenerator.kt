@@ -8,13 +8,15 @@ class PluginProducerGenerator(
 ) {
     fun projectContents(): Assembler<ProjectContentsBuilder> = Assembler.of { generationContext ->
         if (spec.producesPlugins.isNotEmpty()) {
+            val plugins = spec.producesPlugins.map { PluginImplementationSpec(spec, it, it.className("PluginImpl"), it.className("WorkerTask")) }
+
             buildScript.apply {
                 plugin("java-gradle-plugin")
                 block("gradlePlugin") {
                     block("plugins") {
-                        spec.producesPlugins.forEachIndexed { index, plugin ->
+                        plugins.forEachIndexed { index, plugin ->
                             namedItem("plugin$index") {
-                                property("id", plugin.id)
+                                property("id", plugin.spec.id)
                                 property("implementationClass", plugin.pluginImplementationClass.name)
                             }
                         }
@@ -22,7 +24,7 @@ class PluginProducerGenerator(
                 }
             }
 
-            generationContext.apply(spec.producesPlugins.map { PluginImplementationSpec(spec, it) }, generator)
+            generationContext.apply(plugins, generator)
         }
     }
 }
