@@ -13,12 +13,11 @@ class BuildContentsGenerator(
     fun buildContents(): Generator<BuildSpec> = Generator.of { generationContext ->
         Files.createDirectories(rootDir)
 
-        val projects = projects(this)
-        val subprojects = projects.filterIsInstance(SubProjectSpec::class.java)
+        val rootProject = projects(this)
 
         val settings = scriptGenerator.settings(rootDir)
         settings.apply {
-            for (project in subprojects) {
+            for (project in rootProject.children) {
                 includeProject(project.name)
             }
             for (childBuild in childBuilds) {
@@ -33,19 +32,20 @@ class BuildContentsGenerator(
 
         settings.complete()
 
-        generationContext.apply(projects, projectGenerator)
+        generationContext.apply(rootProject.projects, projectGenerator)
     }
 
-    private fun projects(build: BuildSpec): List<ProjectSpec> {
+    private fun projects(build: BuildSpec): RootProjectSpec {
         return when (build.projects) {
-            ProjectGraphSpec.RootProject -> listOf(
-                    RootProjectSpec(build.rootDir, build.usesPlugins, build.producesPlugins, build.includeConfigurationCacheProblems)
-            )
-            ProjectGraphSpec.MultipleProjects -> listOf(
-                    RootProjectSpec(build.rootDir, emptyList(), build.producesPlugins, build.includeConfigurationCacheProblems),
-                    SubProjectSpec("app", build.rootDir.resolve("app"), build.usesPlugins, emptyList(), build.includeConfigurationCacheProblems),
-                    SubProjectSpec("lib", build.rootDir.resolve("lib"), build.usesPlugins, emptyList(), build.includeConfigurationCacheProblems)
-            )
+            ProjectGraphSpec.RootProject -> RootProjectSpec(build.rootDir, emptyList(), build.usesPlugins, build.producesPlugins, emptyList(), build.includeConfigurationCacheProblems)
+            ProjectGraphSpec.MultipleProjects -> {
+                val libs = if (build.usesPlugins.isEmpty()) emptyList() else listOf(LibraryUseSpec(":lib"))
+                val children = listOf(
+                        ChildProjectSpec("lib", build.rootDir.resolve("lib"), build.usesPlugins, emptyList(), emptyList(), build.includeConfigurationCacheProblems),
+                        ChildProjectSpec("app", build.rootDir.resolve("app"), build.usesPlugins, emptyList(), libs, build.includeConfigurationCacheProblems)
+                )
+                RootProjectSpec(build.rootDir, children, emptyList(), build.producesPlugins, emptyList(), build.includeConfigurationCacheProblems)
+            }
         }
     }
 }

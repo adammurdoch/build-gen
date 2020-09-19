@@ -43,7 +43,6 @@ class BuildTreeBuilder(private val rootDir: Path) {
             override val taskImplementationClass: JvmClassName,
             override val lifecycleTaskName: String,
             override val workerTaskName: String,
-            override val producedBy: BuildSpec
     ) : PluginProductionSpec, PluginUseSpec
 
     private inner class BuildBuilder(
@@ -63,7 +62,7 @@ class BuildTreeBuilder(private val rootDir: Path) {
             get() = this@BuildTreeBuilder.includeConfigurationCacheProblems
 
         fun produces(id: String, pluginImplementationClass: String, workerImplementationClass: String, lifecycleTaskName: String, workerTaskName: String): PluginSpec {
-            val plugin = PluginSpec(id, JvmClassName(pluginImplementationClass), JvmClassName(workerImplementationClass), lifecycleTaskName, workerTaskName, this)
+            val plugin = PluginSpec(id, JvmClassName(pluginImplementationClass), JvmClassName(workerImplementationClass), lifecycleTaskName, workerTaskName)
             producesPlugins.add(plugin)
             return plugin
         }

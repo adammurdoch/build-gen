@@ -52,6 +52,7 @@ class PluginImplementationGenerator(
                         public void apply(Project project) {
                             System.out.println("apply `${spec.id}`");
                             project.getPlugins().apply("lifecycle-base");
+                            project.getConfigurations().maybeCreate("implementation");
                             TaskProvider<?> worker = project.getTasks().register("${spec.workerTaskName}", ${spec.taskImplementationClass.simpleName}.class, t -> {
                                 t.getMessage().set("input");
                                 t.getOutputFile().set(project.getLayout().getBuildDirectory().file("${spec.workerTaskName}.txt"));

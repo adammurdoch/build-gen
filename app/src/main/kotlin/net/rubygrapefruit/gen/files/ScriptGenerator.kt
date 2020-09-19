@@ -132,6 +132,22 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
         }
     }
 
+    private class Dependencies : BlockElement {
+        val implementation = mutableListOf<String>()
+
+        override fun PrintWriter.renderContents(prefix: String) {
+            if (implementation.isEmpty()) {
+                return
+            }
+            println()
+            println("dependencies {")
+            for (project in implementation) {
+                println("    implementation(project(\"${project}\"))")
+            }
+            println("}")
+        }
+    }
+
     private class Plugins : BlockElement {
         val ids = mutableListOf<String>()
 
@@ -150,13 +166,19 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
 
     private inner class BuildScriptBuilderImpl(val dir: Path) : HasBlockContents(), BuildScriptBuilder {
         private val plugins = Plugins()
+        private val dependencies = Dependencies()
 
         init {
             elements.add(plugins)
+            elements.add(dependencies)
         }
 
         override fun plugin(id: String) {
             plugins.ids.add(id)
+        }
+
+        override fun implementationDependency(projectPath: String) {
+            dependencies.implementation.add(projectPath)
         }
 
         override fun complete() {

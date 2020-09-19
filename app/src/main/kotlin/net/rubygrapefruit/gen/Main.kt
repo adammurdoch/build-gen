@@ -32,21 +32,6 @@ fun generate(rootDir: Path, layout: BuildTreeTemplate, theme: Theme, dsl: DslLan
     theme.applyTo(builder)
     val buildTree = builder.build()
 
-    println()
-    println("* generating build with the following settings:")
-    println("- DSL: ${dsl}")
-    for (build in buildTree.builds) {
-        println("- generate ${build.displayName}")
-        println("  - root dir: ${build.rootDir}")
-        for (plugin in build.usesPlugins) {
-            println("  - uses plugin ${plugin.id} from ${plugin.producedBy.displayName}")
-        }
-        for (plugin in build.producesPlugins) {
-            println("  - produces plugin ${plugin.id}")
-        }
-    }
-    println()
-
     val synchronizer = GeneratedDirectoryContentsSynchronizer()
     synchronizer.sync(buildTree.rootDir) { fileContext ->
         val problemGenerator = ConfigurationCacheProblemGenerator()

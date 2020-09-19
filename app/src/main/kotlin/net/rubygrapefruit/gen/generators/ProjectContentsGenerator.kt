@@ -17,6 +17,9 @@ class ProjectContentsGenerator(
             for (plugin in usesPlugins) {
                 plugin(plugin.id)
             }
+            for (library in usesLibraries) {
+                implementationDependency(library.producedByProject)
+            }
         }
 
         val builder = ProjectContentsBuilder(this, buildScript)
