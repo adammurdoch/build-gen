@@ -1,6 +1,6 @@
 package net.rubygrapefruit.gen
 
-import net.rubygrapefruit.gen.builders.BuildTreeBuilder
+import net.rubygrapefruit.gen.builders.DefaultBuildTreeBuilder
 import net.rubygrapefruit.gen.files.*
 import net.rubygrapefruit.gen.generators.*
 import net.rubygrapefruit.gen.templates.BuildTreeTemplate
@@ -27,7 +27,7 @@ fun main(args: Array<String>) {
 }
 
 fun generate(rootDir: Path, layout: BuildTreeTemplate, theme: Theme, dsl: DslLanguage) {
-    val builder = BuildTreeBuilder(rootDir)
+    val builder = DefaultBuildTreeBuilder(rootDir)
     layout.run { builder.applyTo() }
     theme.applyTo(builder)
     val buildTree = builder.build()

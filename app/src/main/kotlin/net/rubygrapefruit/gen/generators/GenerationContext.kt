@@ -7,7 +7,7 @@ interface GenerationContext {
     fun <T> apply(models: Collection<T>, generator: Generator<T>)
 
     /**
-     * Applies the given model to the given generators in parallel.
+     * Applies the given generators to the given model in parallel.
      */
     fun <T> apply(model: T, generators: Collection<Generator<T>>)
 }

@@ -1,7 +1,6 @@
 package net.rubygrapefruit.gen.generators
 
 import net.rubygrapefruit.gen.builders.BuildContentsBuilder
-import net.rubygrapefruit.gen.builders.RootProjectBuilder
 import net.rubygrapefruit.gen.files.ScriptGenerator
 import net.rubygrapefruit.gen.specs.BuildSpec
 import net.rubygrapefruit.gen.specs.ProjectGraphSpec
@@ -40,37 +39,37 @@ class BuildContentsGenerator(
     }
 
     private fun projects(build: BuildSpec): RootProjectSpec {
-        val builder = RootProjectBuilder(build)
-        when (build.projects) {
-            ProjectGraphSpec.RootProject -> {
-                builder.root {
-                    requiresPlugins(build.usesPlugins)
-                    producesExternalLibrary(build.producesLibrary)
+        return build.projects {
+            when (build.projects) {
+                ProjectGraphSpec.RootProject -> {
+                    root {
+                        requiresPlugins(build.usesPlugins)
+                        producesExternalLibrary(build.producesLibrary)
+                    }
                 }
-            }
-            ProjectGraphSpec.AppAndLibraries -> {
-                val library = builder.child("util") {
-                    requiresPlugins(build.usesPlugins)
-                    producesExternalLibrary(build.producesLibrary)
+                ProjectGraphSpec.AppAndLibraries -> {
+                    val library = project("util") {
+                        requiresPlugins(build.usesPlugins)
+                        producesExternalLibrary(build.producesLibrary)
+                    }
+                    project("app") {
+                        requiresPlugins(build.usesPlugins)
+                        requiresExternalLibraries(build.usesLibraries)
+                        requiresLibrary(library)
+                    }
                 }
-                builder.child("app") {
-                    requiresPlugins(build.usesPlugins)
-                    requiresExternalLibraries(build.usesLibraries)
-                    requiresLibrary(library)
-                }
-            }
-            ProjectGraphSpec.Libraries -> {
-                val library = builder.child("impl") {
-                    requiresPlugins(build.usesPlugins)
-                    requiresExternalLibraries(build.usesLibraries)
-                }
-                builder.child("core") {
-                    requiresPlugins(build.usesPlugins)
-                    requiresLibrary(library)
-                    producesExternalLibrary(build.producesLibrary)
+                ProjectGraphSpec.Libraries -> {
+                    val library = project("impl") {
+                        requiresPlugins(build.usesPlugins)
+                        requiresExternalLibraries(build.usesLibraries)
+                    }
+                    project("core") {
+                        requiresPlugins(build.usesPlugins)
+                        requiresLibrary(library)
+                        producesExternalLibrary(build.producesLibrary)
+                    }
                 }
             }
         }
-        return builder.build()
     }
 }
