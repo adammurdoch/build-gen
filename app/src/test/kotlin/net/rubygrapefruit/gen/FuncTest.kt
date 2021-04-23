@@ -27,28 +27,42 @@ class FuncTest {
     }
 
     @Test
-    fun canGenerateBuildSrcWithGroovyDsl() {
+    fun canGenerateMainBuildOnlyWithKotlinDsl() {
+        val dir = testDir.newFolder()
+        generate(dir.toPath(), BuildTreeTemplate.MainBuildOnly, Theme.None, DslLanguage.KotlinDsl)
+        runBuild(dir, "help")
+    }
+
+    @Test
+    fun canGenerateMainBuildWithBuildSrcWithGroovyDsl() {
         val dir = testDir.newFolder()
         generate(dir.toPath(), BuildTreeTemplate.BuildSrc, Theme.None, DslLanguage.GroovyDsl)
         runBuild(dir, "assemble")
     }
 
     @Test
-    fun canGenerateTreeWithGroovyDsl() {
+    fun canGenerateTreeWithBuildLogicInChildWithGroovyDsl() {
+        val dir = testDir.newFolder()
+        generate(dir.toPath(), BuildTreeTemplate.TreeWithBuildLogicChildBuild, Theme.None, DslLanguage.GroovyDsl)
+        runBuild(dir, "assemble")
+    }
+
+    @Test
+    fun canGenerateMainBuildWithBuildLogicInBuildSrcAndChildWithGroovyDsl() {
         val dir = testDir.newFolder()
         generate(dir.toPath(), BuildTreeTemplate.BuildLogicChildBuildAndBuildSrc, Theme.None, DslLanguage.GroovyDsl)
         runBuild(dir, "assemble")
     }
 
     @Test
-    fun canGenerateTreeWithKotlinDsl() {
+    fun canGenerateMainBuildWithBuildLogicInBuildSrcAndChildWithKotlinDsl() {
         val dir = testDir.newFolder()
         generate(dir.toPath(), BuildTreeTemplate.BuildLogicChildBuildAndBuildSrc, Theme.None, DslLanguage.KotlinDsl)
         runBuild(dir, "assemble")
     }
 
     @Test
-    fun canGenerateTreeWithConfigurationCacheProblemsAndKotlinDsl() {
+    fun canGenerateMainBuildWithBuildLogicInBuildSrcAndChildWithConfigurationCacheProblemsAndKotlinDsl() {
         val dir = testDir.newFolder()
         generate(dir.toPath(), BuildTreeTemplate.BuildLogicChildBuildAndBuildSrc, Theme.ConfigurationCacheProblems, DslLanguage.KotlinDsl)
         runBuild(dir, "assemble")

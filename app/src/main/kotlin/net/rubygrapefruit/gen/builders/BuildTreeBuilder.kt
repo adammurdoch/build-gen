@@ -20,10 +20,21 @@ class BuildTreeBuilder(private val rootDir: Path) {
         builds.add(build)
     }
 
-    fun addBuildLogicBuild() {
+    fun addBuildLogicBuild(): PluginUseSpec {
         val build = BuildBuilder("build logic build", rootDir.resolve("plugins"), ProjectGraphSpec.RootProject)
         val plugin = build.produces("plugins", "test.plugins")
-        mainBuild.requires(plugin)
+        mainBuild.childBuilds.add(build)
+        builds.add(build)
+        return plugin
+    }
+
+    fun mainBuild(body: BuildRelationshipBuilder.() -> Unit) {
+        body(mainBuild)
+    }
+
+    fun addProductionBuild(body: BuildRelationshipBuilder.() -> Unit) {
+        val build = BuildBuilder("library build", rootDir.resolve("libs"), ProjectGraphSpec.MultipleProjects)
+        body(build)
         mainBuild.childBuilds.add(build)
         builds.add(build)
     }
@@ -33,13 +44,13 @@ class BuildTreeBuilder(private val rootDir: Path) {
     }
 
     private class BuildTreeSpecImpl(
-            override val rootDir: Path,
-            override val builds: List<BuildSpec>
+        override val rootDir: Path,
+        override val builds: List<BuildSpec>
     ) : BuildTreeSpec
 
     private class PluginSpec(
-            val baseName: String,
-            override val id: String,
+        val baseName: String,
+        override val id: String,
     ) : PluginProductionSpec, PluginUseSpec {
         override val workerTaskName: String
             get() = identifier("worker")
@@ -55,12 +66,12 @@ class BuildTreeBuilder(private val rootDir: Path) {
     }
 
     private inner class BuildBuilder(
-            override val displayName: String,
-            override val rootDir: Path,
-            override val projects: ProjectGraphSpec
-    ) : BuildSpec {
+        override val displayName: String,
+        override val rootDir: Path,
+        override val projects: ProjectGraphSpec
+    ) : BuildSpec, BuildRelationshipBuilder {
         override val producesPlugins = mutableListOf<PluginSpec>()
-        override val usesPlugins = mutableListOf<PluginSpec>()
+        override val usesPlugins = mutableListOf<PluginUseSpec>()
         override val childBuilds = mutableListOf<BuildSpec>()
 
         override fun toString(): String {
@@ -76,7 +87,7 @@ class BuildTreeBuilder(private val rootDir: Path) {
             return plugin
         }
 
-        fun requires(plugin: PluginSpec) {
+        override fun requires(plugin: PluginUseSpec) {
             usesPlugins.add(plugin)
         }
     }
