@@ -1,14 +1,18 @@
 package net.rubygrapefruit.gen.generators
 
 import net.rubygrapefruit.gen.builders.BuildContentsBuilder
+import net.rubygrapefruit.gen.builders.RootProjectBuilder
 import net.rubygrapefruit.gen.files.ScriptGenerator
-import net.rubygrapefruit.gen.specs.*
+import net.rubygrapefruit.gen.specs.BuildSpec
+import net.rubygrapefruit.gen.specs.ProjectGraphSpec
+import net.rubygrapefruit.gen.specs.ProjectSpec
+import net.rubygrapefruit.gen.specs.RootProjectSpec
 import java.nio.file.Files
 
 class BuildContentsGenerator(
-        private val scriptGenerator: ScriptGenerator,
-        private val assemblers: List<Assembler<BuildContentsBuilder>>,
-        private val projectGenerator: Generator<ProjectSpec>
+    private val scriptGenerator: ScriptGenerator,
+    private val assemblers: List<Assembler<BuildContentsBuilder>>,
+    private val projectGenerator: Generator<ProjectSpec>
 ) {
     fun buildContents(): Generator<BuildSpec> = Generator.of { generationContext ->
         Files.createDirectories(rootDir)
@@ -36,24 +40,37 @@ class BuildContentsGenerator(
     }
 
     private fun projects(build: BuildSpec): RootProjectSpec {
-        return when (build.projects) {
-            ProjectGraphSpec.RootProject -> RootProjectSpec(build.rootDir, emptyList(), build.usesPlugins, build.producesPlugins, emptyList(), build.includeConfigurationCacheProblems)
+        val builder = RootProjectBuilder(build)
+        when (build.projects) {
+            ProjectGraphSpec.RootProject -> {
+                builder.root {
+                    requiresPlugins(build.usesPlugins)
+                    producesExternalLibrary(build.producesLibrary)
+                }
+            }
             ProjectGraphSpec.AppAndLibraries -> {
-                val libs = if (build.usesPlugins.isEmpty()) emptyList() else listOf(LibraryUseSpec(":util"))
-                val children = listOf(
-                        ChildProjectSpec("util", build.rootDir.resolve("util"), build.usesPlugins, emptyList(), emptyList(), build.includeConfigurationCacheProblems),
-                        ChildProjectSpec("app", build.rootDir.resolve("app"), build.usesPlugins, emptyList(), libs, build.includeConfigurationCacheProblems)
-                )
-                RootProjectSpec(build.rootDir, children, emptyList(), build.producesPlugins, emptyList(), build.includeConfigurationCacheProblems)
+                val library = builder.child("util") {
+                    requiresPlugins(build.usesPlugins)
+                    producesExternalLibrary(build.producesLibrary)
+                }
+                builder.child("app") {
+                    requiresPlugins(build.usesPlugins)
+                    requiresExternalLibraries(build.usesLibraries)
+                    requiresLibrary(library)
+                }
             }
             ProjectGraphSpec.Libraries -> {
-                val libs = if (build.usesPlugins.isEmpty()) emptyList() else listOf(LibraryUseSpec(":impl"))
-                val children = listOf(
-                        ChildProjectSpec("impl", build.rootDir.resolve("impl"), build.usesPlugins, emptyList(), emptyList(), build.includeConfigurationCacheProblems),
-                        ChildProjectSpec("core", build.rootDir.resolve("core"), build.usesPlugins, emptyList(), libs, build.includeConfigurationCacheProblems)
-                )
-                RootProjectSpec(build.rootDir, children, emptyList(), build.producesPlugins, emptyList(), build.includeConfigurationCacheProblems)
+                val library = builder.child("impl") {
+                    requiresPlugins(build.usesPlugins)
+                    requiresExternalLibraries(build.usesLibraries)
+                }
+                builder.child("core") {
+                    requiresPlugins(build.usesPlugins)
+                    requiresLibrary(library)
+                    producesExternalLibrary(build.producesLibrary)
+                }
             }
         }
+        return builder.build()
     }
 }

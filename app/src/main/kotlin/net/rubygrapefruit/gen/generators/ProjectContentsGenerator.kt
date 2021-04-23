@@ -6,8 +6,8 @@ import net.rubygrapefruit.gen.specs.ProjectSpec
 import java.nio.file.Files
 
 class ProjectContentsGenerator(
-        private val scriptGenerator: ScriptGenerator,
-        private val assemblers: List<Assembler<ProjectContentsBuilder>>
+    private val scriptGenerator: ScriptGenerator,
+    private val assemblers: List<Assembler<ProjectContentsBuilder>>
 ) {
     fun projectContents(): Generator<ProjectSpec> = Generator.of { generationContext ->
         Files.createDirectories(projectDir)
@@ -17,8 +17,16 @@ class ProjectContentsGenerator(
             for (plugin in usesPlugins) {
                 plugin(plugin.id)
             }
-            for (library in usesLibraries) {
-                implementationDependency(library.producedByProject)
+            if (usesPlugins.isNotEmpty()) {
+                if (producesExternalLibrary != null) {
+                    group(producesExternalLibrary.group)
+                }
+                for (library in usesExternalLibraries) {
+                    implementationDependency(library.group, library.name, library.version)
+                }
+                for (library in usesLibraries) {
+                    implementationDependency(library.producedByProject)
+                }
             }
         }
 

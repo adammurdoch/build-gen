@@ -132,8 +132,32 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
         }
     }
 
+    private abstract class Dependency {
+        abstract fun PrintWriter.append()
+    }
+
+    private class ProjectDependency(val projectPath: String) : Dependency() {
+        override fun PrintWriter.append() {
+            print("project(\"")
+            print(projectPath)
+            print("\")")
+        }
+    }
+
+    private class ExternalDependency(val group: String, val name: String, val version: String) : Dependency() {
+        override fun PrintWriter.append() {
+            print('"')
+            print(group)
+            print(':')
+            print(name)
+            print(':')
+            print(version)
+            print('"')
+        }
+    }
+
     private class Dependencies : BlockElement {
-        val implementation = mutableListOf<String>()
+        val implementation = mutableListOf<Dependency>()
 
         override fun PrintWriter.renderContents(prefix: String) {
             if (implementation.isEmpty()) {
@@ -141,8 +165,10 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
             }
             println()
             println("dependencies {")
-            for (project in implementation) {
-                println("    implementation(project(\"${project}\"))")
+            for (dependency in implementation) {
+                print("    implementation(")
+                dependency.run { append() }
+                println(")")
             }
             println("}")
         }
@@ -164,12 +190,25 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
         }
     }
 
+    private class Group : BlockElement {
+        var group: String? = null
+
+        override fun PrintWriter.renderContents(prefix: String) {
+            if (group != null) {
+                println()
+                println("group=\"$group\"")
+            }
+        }
+    }
+
     private inner class BuildScriptBuilderImpl(val dir: Path) : HasBlockContents(), BuildScriptBuilder {
         private val plugins = Plugins()
         private val dependencies = Dependencies()
+        private val group = Group()
 
         init {
             elements.add(plugins)
+            elements.add(group)
             elements.add(dependencies)
         }
 
@@ -177,8 +216,16 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
             plugins.ids.add(id)
         }
 
+        override fun group(group: String) {
+            this.group.group = group
+        }
+
         override fun implementationDependency(projectPath: String) {
-            dependencies.implementation.add(projectPath)
+            dependencies.implementation.add(ProjectDependency(projectPath))
+        }
+
+        override fun implementationDependency(group: String, name: String, version: String) {
+            dependencies.implementation.add(ExternalDependency(group, name, version))
         }
 
         override fun complete() {

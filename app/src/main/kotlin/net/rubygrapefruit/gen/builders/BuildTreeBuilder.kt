@@ -59,7 +59,15 @@ class BuildTreeBuilder(private val rootDir: Path) {
         override val builds: List<BuildSpec>
     ) : BuildTreeSpec
 
-    private class LibrarySpec() : ExternalLibraryProductionSpec, ExternalLibraryUseSpec {
+    private class LibrarySpec(val baseName: String) : ExternalLibraryProductionSpec, ExternalLibraryUseSpec {
+        override val group: String
+            get() = "test.${baseName}"
+
+        override val name: String
+            get() = baseName
+
+        override val version: String
+            get() = "1.0"
     }
 
     private class PluginSpec(
@@ -87,7 +95,7 @@ class BuildTreeBuilder(private val rootDir: Path) {
         override val producesPlugins = mutableListOf<PluginProductionSpec>()
         override val usesPlugins = mutableListOf<PluginUseSpec>()
         override val usesLibraries = mutableListOf<ExternalLibraryUseSpec>()
-        override val producesLibraries = mutableListOf<ExternalLibraryProductionSpec>()
+        override var producesLibrary: ExternalLibraryProductionSpec? = null
         override val childBuilds = mutableListOf<BuildSpec>()
 
         override fun toString(): String {
@@ -104,8 +112,8 @@ class BuildTreeBuilder(private val rootDir: Path) {
         }
 
         fun producesLibrary(baseName: String): LibrarySpec {
-            val library = LibrarySpec()
-            producesLibraries.add(library)
+            val library = LibrarySpec(baseName)
+            producesLibrary = library
             return library
         }
 
