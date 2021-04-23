@@ -38,11 +38,19 @@ class BuildContentsGenerator(
     private fun projects(build: BuildSpec): RootProjectSpec {
         return when (build.projects) {
             ProjectGraphSpec.RootProject -> RootProjectSpec(build.rootDir, emptyList(), build.usesPlugins, build.producesPlugins, emptyList(), build.includeConfigurationCacheProblems)
-            ProjectGraphSpec.MultipleProjects -> {
-                val libs = if (build.usesPlugins.isEmpty()) emptyList() else listOf(LibraryUseSpec(":lib"))
+            ProjectGraphSpec.AppAndLibraries -> {
+                val libs = if (build.usesPlugins.isEmpty()) emptyList() else listOf(LibraryUseSpec(":util"))
                 val children = listOf(
-                        ChildProjectSpec("lib", build.rootDir.resolve("lib"), build.usesPlugins, emptyList(), emptyList(), build.includeConfigurationCacheProblems),
+                        ChildProjectSpec("util", build.rootDir.resolve("util"), build.usesPlugins, emptyList(), emptyList(), build.includeConfigurationCacheProblems),
                         ChildProjectSpec("app", build.rootDir.resolve("app"), build.usesPlugins, emptyList(), libs, build.includeConfigurationCacheProblems)
+                )
+                RootProjectSpec(build.rootDir, children, emptyList(), build.producesPlugins, emptyList(), build.includeConfigurationCacheProblems)
+            }
+            ProjectGraphSpec.Libraries -> {
+                val libs = if (build.usesPlugins.isEmpty()) emptyList() else listOf(LibraryUseSpec(":impl"))
+                val children = listOf(
+                        ChildProjectSpec("impl", build.rootDir.resolve("impl"), build.usesPlugins, emptyList(), emptyList(), build.includeConfigurationCacheProblems),
+                        ChildProjectSpec("core", build.rootDir.resolve("core"), build.usesPlugins, emptyList(), libs, build.includeConfigurationCacheProblems)
                 )
                 RootProjectSpec(build.rootDir, children, emptyList(), build.producesPlugins, emptyList(), build.includeConfigurationCacheProblems)
             }

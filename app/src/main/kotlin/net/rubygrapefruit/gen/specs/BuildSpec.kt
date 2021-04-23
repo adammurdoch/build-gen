@@ -9,5 +9,7 @@ interface BuildSpec {
     val childBuilds: List<BuildSpec>
     val usesPlugins: List<PluginUseSpec>
     val producesPlugins: List<PluginProductionSpec>
+    val usesLibraries: List<ExternalLibraryUseSpec>
+    val producesLibraries: List<ExternalLibraryProductionSpec>
     val projects: ProjectGraphSpec
 }

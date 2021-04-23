@@ -3,9 +3,12 @@ package net.rubygrapefruit.gen.builders
 import net.rubygrapefruit.gen.specs.*
 import java.nio.file.Path
 
+/**
+ * A mutable builder for the build tree structure.
+ */
 class BuildTreeBuilder(private val rootDir: Path) {
-    private val builds = mutableListOf<BuildBuilder>()
-    private val mainBuild = BuildBuilder("main build", rootDir, ProjectGraphSpec.MultipleProjects)
+    private val builds = mutableListOf<BuildBuilderImpl>()
+    private val mainBuild = BuildBuilderImpl("main build", rootDir, ProjectGraphSpec.AppAndLibraries)
 
     init {
         builds.add(mainBuild)
@@ -14,29 +17,37 @@ class BuildTreeBuilder(private val rootDir: Path) {
     var includeConfigurationCacheProblems = false
 
     fun addBuildSrc() {
-        val build = BuildBuilder("buildSrc build", rootDir.resolve("buildSrc"), ProjectGraphSpec.RootProject)
-        val plugin = build.produces("buildSrc", "test.buildsrc")
+        val build = BuildBuilderImpl("buildSrc build", rootDir.resolve("buildSrc"), ProjectGraphSpec.RootProject)
+        val plugin = build.producesPlugin("buildSrc", "test.buildsrc")
         mainBuild.requires(plugin)
         builds.add(build)
     }
 
+    /**
+     * Adds a child build that produces a plugin, returning the spec for using the plugin.
+     */
     fun addBuildLogicBuild(): PluginUseSpec {
-        val build = BuildBuilder("build logic build", rootDir.resolve("plugins"), ProjectGraphSpec.RootProject)
-        val plugin = build.produces("plugins", "test.plugins")
+        val build = BuildBuilderImpl("build logic build", rootDir.resolve("plugins"), ProjectGraphSpec.RootProject)
+        val plugin = build.producesPlugin("plugins", "test.plugins")
         mainBuild.childBuilds.add(build)
         builds.add(build)
         return plugin
     }
 
-    fun mainBuild(body: BuildRelationshipBuilder.() -> Unit) {
-        body(mainBuild)
-    }
-
-    fun addProductionBuild(body: BuildRelationshipBuilder.() -> Unit) {
-        val build = BuildBuilder("library build", rootDir.resolve("libs"), ProjectGraphSpec.MultipleProjects)
+    /**
+     * Adds a child build that produces a library, returning the spec for using the library.
+     */
+    fun addProductionBuild(body: BuildBuilder.() -> Unit): ExternalLibraryUseSpec {
+        val build = BuildBuilderImpl("library build", rootDir.resolve("libs"), ProjectGraphSpec.Libraries)
+        val library = build.producesLibrary("core")
         body(build)
         mainBuild.childBuilds.add(build)
         builds.add(build)
+        return library
+    }
+
+    fun mainBuild(body: BuildBuilder.() -> Unit) {
+        body(mainBuild)
     }
 
     fun build(): BuildTreeSpec {
@@ -47,6 +58,9 @@ class BuildTreeBuilder(private val rootDir: Path) {
         override val rootDir: Path,
         override val builds: List<BuildSpec>
     ) : BuildTreeSpec
+
+    private class LibrarySpec() : ExternalLibraryProductionSpec, ExternalLibraryUseSpec {
+    }
 
     private class PluginSpec(
         val baseName: String,
@@ -65,13 +79,15 @@ class BuildTreeBuilder(private val rootDir: Path) {
         }
     }
 
-    private inner class BuildBuilder(
+    private inner class BuildBuilderImpl(
         override val displayName: String,
         override val rootDir: Path,
         override val projects: ProjectGraphSpec
-    ) : BuildSpec, BuildRelationshipBuilder {
-        override val producesPlugins = mutableListOf<PluginSpec>()
+    ) : BuildSpec, BuildBuilder {
+        override val producesPlugins = mutableListOf<PluginProductionSpec>()
         override val usesPlugins = mutableListOf<PluginUseSpec>()
+        override val usesLibraries = mutableListOf<ExternalLibraryUseSpec>()
+        override val producesLibraries = mutableListOf<ExternalLibraryProductionSpec>()
         override val childBuilds = mutableListOf<BuildSpec>()
 
         override fun toString(): String {
@@ -81,14 +97,24 @@ class BuildTreeBuilder(private val rootDir: Path) {
         override val includeConfigurationCacheProblems: Boolean
             get() = this@BuildTreeBuilder.includeConfigurationCacheProblems
 
-        fun produces(baseName: String, id: String): PluginSpec {
+        fun producesPlugin(baseName: String, id: String): PluginSpec {
             val plugin = PluginSpec(baseName, id)
             producesPlugins.add(plugin)
             return plugin
         }
 
+        fun producesLibrary(baseName: String): LibrarySpec {
+            val library = LibrarySpec()
+            producesLibraries.add(library)
+            return library
+        }
+
         override fun requires(plugin: PluginUseSpec) {
             usesPlugins.add(plugin)
+        }
+
+        override fun requires(library: ExternalLibraryUseSpec) {
+            usesLibraries.add(library)
         }
     }
 }
