@@ -19,7 +19,7 @@ class ProjectContentsGenerator(
             }
             if (usesPlugins.isNotEmpty()) {
                 if (producesExternalLibrary != null) {
-                    group(producesExternalLibrary.group)
+                    property("group", producesExternalLibrary.group)
                 }
                 for (library in usesExternalLibraries) {
                     implementationDependency(library.group, library.name, library.version)

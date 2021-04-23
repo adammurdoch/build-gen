@@ -13,17 +13,18 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
     }
 
     private interface BlockElement {
+        val empty: Boolean
+
         fun PrintWriter.renderContents(prefix: String)
     }
 
     private class IncludedProjects : BlockElement {
         val names = mutableListOf<String>()
 
+        override val empty: Boolean
+            get() = names.isEmpty()
+
         override fun PrintWriter.renderContents(prefix: String) {
-            if (names.isEmpty()) {
-                return
-            }
-            println()
             for (name in names) {
                 print(prefix)
                 println("include(\"$name\")")
@@ -34,11 +35,10 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
     private class IncludedBuilds : BlockElement {
         val paths = mutableListOf<String>()
 
+        override val empty: Boolean
+            get() = paths.isEmpty()
+
         override fun PrintWriter.renderContents(prefix: String) {
-            if (paths.isEmpty()) {
-                return
-            }
-            println()
             for (path in paths) {
                 print(prefix)
                 println("includeBuild(\"$path\")")
@@ -47,6 +47,9 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
     }
 
     private class PropertyImpl(val name: String, val value: String) : BlockElement {
+        override val empty: Boolean
+            get() = false
+
         override fun PrintWriter.renderContents(prefix: String) {
             print(prefix)
             print(name)
@@ -57,6 +60,9 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
     }
 
     private class MethodImpl(val text: String) : BlockElement {
+        override val empty: Boolean
+            get() = false
+
         override fun PrintWriter.renderContents(prefix: String) {
             print(prefix)
             println(text)
@@ -89,8 +95,12 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
         }
 
         fun PrintWriter.renderElements(prefix: String) {
-            for (element in elements) {
-                element.run {
+            val nonEmpty = elements.filter { !it.empty }
+            for (index in nonEmpty.indices) {
+                if (index > 0) {
+                    println()
+                }
+                nonEmpty[index].run {
                     renderContents(prefix)
                 }
             }
@@ -98,6 +108,9 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
     }
 
     private inner class NestedBlock(val name: String) : HasBlockContents(), BlockElement {
+        override val empty: Boolean
+            get() = false
+
         override fun PrintWriter.renderContents(prefix: String) {
             print(prefix)
             print(name)
@@ -159,11 +172,10 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
     private class Dependencies : BlockElement {
         val implementation = mutableListOf<Dependency>()
 
+        override val empty: Boolean
+            get() = implementation.isEmpty()
+
         override fun PrintWriter.renderContents(prefix: String) {
-            if (implementation.isEmpty()) {
-                return
-            }
-            println()
             println("dependencies {")
             for (dependency in implementation) {
                 print("    implementation(")
@@ -177,11 +189,10 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
     private class Plugins : BlockElement {
         val ids = mutableListOf<String>()
 
+        override val empty: Boolean
+            get() = ids.isEmpty()
+
         override fun PrintWriter.renderContents(prefix: String) {
-            if (ids.isEmpty()) {
-                return
-            }
-            println()
             println("plugins {")
             for (id in ids) {
                 println("    id(\"$id\")")
@@ -190,34 +201,17 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
         }
     }
 
-    private class Group : BlockElement {
-        var group: String? = null
-
-        override fun PrintWriter.renderContents(prefix: String) {
-            if (group != null) {
-                println()
-                println("group=\"$group\"")
-            }
-        }
-    }
-
     private inner class BuildScriptBuilderImpl(val dir: Path) : HasBlockContents(), BuildScriptBuilder {
         private val plugins = Plugins()
         private val dependencies = Dependencies()
-        private val group = Group()
 
         init {
             elements.add(plugins)
-            elements.add(group)
             elements.add(dependencies)
         }
 
         override fun plugin(id: String) {
             plugins.ids.add(id)
-        }
-
-        override fun group(group: String) {
-            this.group.group = group
         }
 
         override fun implementationDependency(projectPath: String) {

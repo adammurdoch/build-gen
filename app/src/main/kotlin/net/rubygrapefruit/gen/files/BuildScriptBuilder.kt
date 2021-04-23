@@ -7,7 +7,5 @@ interface BuildScriptBuilder : ScriptBlockGenerator {
 
     fun implementationDependency(group: String, name: String, version: String)
 
-    fun group(group: String)
-
     fun complete()
 }

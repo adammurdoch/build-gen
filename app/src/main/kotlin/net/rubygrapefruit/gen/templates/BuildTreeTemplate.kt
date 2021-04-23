@@ -23,12 +23,16 @@ enum class BuildTreeTemplate(private val display: String) {
     TreeWithBuildLogicChildBuild("composite build with build logic in child build") {
         override fun BuildTreeBuilder.applyTo() {
             val plugin = addBuildLogicBuild()
-            val library = addProductionBuild {
+            val dataLibrary = addProductionBuild("data") {
+                requires(plugin)
+            }
+            val uiLibrary = addProductionBuild("ui") {
                 requires(plugin)
             }
             mainBuild {
                 requires(plugin)
-                requires(library)
+                requires(dataLibrary)
+                requires(uiLibrary)
             }
         }
     },

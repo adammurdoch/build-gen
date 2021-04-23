@@ -37,9 +37,9 @@ class BuildTreeBuilder(private val rootDir: Path) {
     /**
      * Adds a child build that produces a library, returning the spec for using the library.
      */
-    fun addProductionBuild(body: BuildBuilder.() -> Unit): ExternalLibraryUseSpec {
-        val build = BuildBuilderImpl("library build", rootDir.resolve("libs"), ProjectGraphSpec.Libraries)
-        val library = build.producesLibrary("core")
+    fun addProductionBuild(name: String, body: BuildBuilder.() -> Unit): ExternalLibraryUseSpec {
+        val build = BuildBuilderImpl("library $name build", rootDir.resolve(name), ProjectGraphSpec.Libraries)
+        val library = build.producesLibrary("core", "${name}.core")
         body(build)
         mainBuild.childBuilds.add(build)
         builds.add(build)
@@ -59,13 +59,7 @@ class BuildTreeBuilder(private val rootDir: Path) {
         override val builds: List<BuildSpec>
     ) : BuildTreeSpec
 
-    private class LibrarySpec(val baseName: String) : ExternalLibraryProductionSpec, ExternalLibraryUseSpec {
-        override val group: String
-            get() = "test.${baseName}"
-
-        override val name: String
-            get() = baseName
-
+    private class LibrarySpec(override val name: String, override val group: String) : ExternalLibraryProductionSpec, ExternalLibraryUseSpec {
         override val version: String
             get() = "1.0"
     }
@@ -111,8 +105,8 @@ class BuildTreeBuilder(private val rootDir: Path) {
             return plugin
         }
 
-        fun producesLibrary(baseName: String): LibrarySpec {
-            val library = LibrarySpec(baseName)
+        fun producesLibrary(baseName: String, group: String): LibrarySpec {
+            val library = LibrarySpec(baseName, group)
             producesLibrary = library
             return library
         }
