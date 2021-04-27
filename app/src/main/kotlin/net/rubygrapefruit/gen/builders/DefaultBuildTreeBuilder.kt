@@ -91,7 +91,7 @@ class DefaultBuildTreeBuilder(
             val coordinates = ExternalLibraryCoordinates(group, baseName, "1.0")
             val library = librarySpecFactory.library(baseName, coordinates)
             producesLibrary = ExternalLibraryProductionSpec(coordinates, library)
-            return ExternalLibraryUseSpec(coordinates, library.toUseSpec())
+            return ExternalLibraryUseSpec(coordinates, library.toApiSpec())
         }
 
         override fun requires(plugin: PluginUseSpec) {

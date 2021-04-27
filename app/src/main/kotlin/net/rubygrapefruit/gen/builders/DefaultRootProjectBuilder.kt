@@ -30,7 +30,7 @@ class DefaultRootProjectBuilder(
 
         val library = project.producesLibrary
         return if (library != null) {
-            library.spec.toUseSpec()
+            LibraryUseSpec(library.localCoordinates, library.spec.toApiSpec())
         } else {
             null
         }
@@ -62,7 +62,9 @@ class DefaultRootProjectBuilder(
         }
 
         override fun requiresLibraries(libraries: List<ExternalLibraryUseSpec>) {
-            usesLibraries.addAll(libraries.map { it.spec })
+            for (library in libraries) {
+                usesLibraries.add(LibraryUseSpec(library.coordinates, library.spec))
+            }
         }
 
         override fun requiresLibrary(library: LibraryUseSpec?) {

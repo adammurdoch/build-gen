@@ -1,17 +1,17 @@
 package net.rubygrapefruit.gen.specs
 
-sealed class LibraryUseSpec(
-    val coordinates: LibraryCoordinates
+class LibraryUseSpec(
+    val coordinates: LibraryCoordinates,
+    val api: LibraryApiSpec
 )
 
-class CustomLibraryUseSpec(
-    coordinates: LibraryCoordinates,
-) : LibraryUseSpec(coordinates)
+sealed class LibraryApiSpec
 
-class JavaLibraryUseSpec(
-    coordinates: LibraryCoordinates,
+class CustomLibraryApiSpec : LibraryApiSpec()
+
+class JavaLibraryApiSpec(
     val methodReference: JvmMethodReference
-) : LibraryUseSpec(coordinates)
+) : LibraryApiSpec()
 
 sealed class LibraryCoordinates
 
