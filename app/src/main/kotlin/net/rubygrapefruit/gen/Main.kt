@@ -40,11 +40,13 @@ fun generate(rootDir: Path, layout: BuildTreeTemplate, implementation: Implement
         val textFileGenerator = TextFileGenerator(fileContext)
         val sourceFileGenerator = SourceFileGenerator(textFileGenerator)
         val scriptGenerator = ScriptGenerator(dsl, textFileGenerator)
-        val pluginImplementationGenerator = CustomPluginImplementationGenerator(
+        val customPluginImplementationGenerator = CustomPluginImplementationGenerator(
             sourceFileGenerator,
             listOf(problemGenerator.pluginImplementation())
         )
-        val pluginProducerGenerator = CustomPluginProducerGenerator(pluginImplementationGenerator.pluginImplementation())
+        val javaConventionPluginImplementationGenerator = JavaConventionPluginImplementationGenerator(sourceFileGenerator)
+        val pluginImplementationGenerator = PluginImplementationGenerator(customPluginImplementationGenerator.pluginImplementation(), javaConventionPluginImplementationGenerator.pluginImplementation())
+        val pluginProducerGenerator = PluginProducerProjectAssembler(pluginImplementationGenerator.pluginImplementation())
         val projectGenerator = ProjectContentsGenerator(
             scriptGenerator,
             listOf(pluginProducerGenerator.projectContents(), problemGenerator.projectContents())
@@ -61,11 +63,18 @@ fun generate(rootDir: Path, layout: BuildTreeTemplate, implementation: Implement
     }
 }
 
-
 fun <T> Prompter.select(prompt: String, values: Array<T>): T {
-    return values.get(select(prompt, values.map { it.toString() }, 0))
+    return if (values.size == 1) {
+        values[0]
+    } else {
+        values.get(select(prompt, values.map { it.toString() }, 0))
+    }
 }
 
 fun <T> Prompter.select(prompt: String, values: List<T>): T {
-    return values.get(select(prompt, values.map { it.toString() }, 0))
+    return if (values.size == 1) {
+        values[0]
+    } else {
+        values.get(select(prompt, values.map { it.toString() }, 0))
+    }
 }

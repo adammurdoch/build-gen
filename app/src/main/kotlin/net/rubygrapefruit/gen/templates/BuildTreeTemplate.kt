@@ -3,19 +3,19 @@ package net.rubygrapefruit.gen.templates
 import net.rubygrapefruit.gen.builders.BuildTreeBuilder
 
 enum class BuildTreeTemplate(private val display: String) {
-    MainBuildOnly("build with no build logic") {
+    MainBuildOnly("Build with no build logic") {
         override val applicableImplementations: List<Implementation>
             get() = listOf(Implementation.None)
 
         override fun BuildTreeBuilder.applyTo() {
         }
     },
-    BuildSrc("build with plugin in buildSrc") {
+    BuildSrc("Build with plugin in buildSrc") {
         override fun BuildTreeBuilder.applyTo() {
             addBuildSrc()
         }
     },
-    BuildLogicChildBuild("build with plugin in child build") {
+    BuildLogicChildBuild("Build with plugin in child build") {
         override fun BuildTreeBuilder.applyTo() {
             val plugin = addBuildLogicBuild()
             mainBuild {
@@ -23,7 +23,7 @@ enum class BuildTreeTemplate(private val display: String) {
             }
         }
     },
-    BuildLogicChildBuildAndBuildSrc("build with plugin in buildSrc and child build") {
+    BuildLogicChildBuildAndBuildSrc("Build with plugin in buildSrc and child build") {
         override fun BuildTreeBuilder.applyTo() {
             addBuildSrc()
             val plugin = addBuildLogicBuild()
@@ -32,7 +32,7 @@ enum class BuildTreeTemplate(private val display: String) {
             }
         }
     },
-    TreeWithBuildLogicChildBuild("composite build with plugin in child build") {
+    TreeWithBuildLogicChildBuild("Composite build with plugin in child build") {
         override fun BuildTreeBuilder.applyTo() {
             val plugin = addBuildLogicBuild()
             val dataLibrary = addProductionBuild("data") {
