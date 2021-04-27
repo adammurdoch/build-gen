@@ -32,3 +32,11 @@ class CustomPluginProductionSpec(baseName: String, id: String) : PluginProductio
 class JavaConventionPluginProductionSpec(baseName: String, id: String) : PluginProductionSpec(baseName, id) {
     override fun toUseSpec() = PluginUseSpec(id, "compileJava")
 }
+
+class PluginUseSpec(
+    val id: String,
+    /**
+     * The name of a task added by the plugin.
+     */
+    val workerTaskName: String
+)

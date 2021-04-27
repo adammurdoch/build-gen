@@ -11,14 +11,10 @@ class JavaConventionPluginImplementationGenerator(
             imports("org.gradle.api.Plugin")
             imports("org.gradle.api.Project")
             implements("Plugin<Project>")
-            method(
-                """
-                        public void apply(Project project) {
-                            System.out.println("apply `${spec.id}`");
-                            project.getPluginManager().apply("java-library");
-                        }
-            """.trimIndent()
-            )
+            method("public void apply(Project project)") {
+                methodCall("""System.out.println("apply `${spec.id}`")""")
+                methodCall("""project.getPluginManager().apply("java-library")""")
+            }
         }.complete()
     }
 }

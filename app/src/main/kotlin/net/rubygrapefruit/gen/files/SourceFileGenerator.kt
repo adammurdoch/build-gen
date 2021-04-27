@@ -46,6 +46,15 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             methods.add(MethodImpl(text))
         }
 
+        override fun method(signature: String, body: JavaSourceFileBuilder.MethodBody.() -> Unit) {
+            val builder = MethodBodyImpl()
+            builder.body.append(signature.trim())
+            builder.body.append(" {\n")
+            body(builder)
+            builder.body.append("}")
+            methods.add(MethodImpl(builder.body.toString()))
+        }
+
         override fun complete() {
             textFileGenerator.file(srcDir.resolve(className.name.replace(".", "/") + ".java")) {
                 if (className.packageName.isNotEmpty()) {
@@ -83,6 +92,19 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
                 }
                 println("}")
             }
+        }
+    }
+
+    private class MethodBodyImpl : JavaSourceFileBuilder.MethodBody {
+        val body = StringBuilder()
+
+        override fun methodCall(text: String) {
+            body.append("    ")
+            body.append(text.trim())
+            if (!text.endsWith(';')) {
+                body.append(';')
+            }
+            body.append('\n')
         }
     }
 }

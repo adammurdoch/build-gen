@@ -17,5 +17,11 @@ interface JavaSourceFileBuilder {
 
     fun method(text: String)
 
+    fun method(signature: String, body: MethodBody.() -> Unit)
+
     fun complete()
+
+    interface MethodBody {
+        fun methodCall(text: String)
+    }
 }

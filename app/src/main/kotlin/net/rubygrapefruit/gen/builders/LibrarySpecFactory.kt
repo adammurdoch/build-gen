@@ -20,6 +20,6 @@ class CustomLibrarySpecFactory : LibrarySpecFactory {
 
 class JavaLibrarySpecFactory : LibrarySpecFactory {
     override fun library(baseName: String): LibraryProductionSpec {
-        return JavaLibraryProductionSpec(JvmMethodReference(JvmClassName("$baseName.api.Api"), "something"))
+        return JavaLibraryProductionSpec(JvmMethodReference(JvmClassName("$baseName.api.${baseName.capitalize()}"), "something"))
     }
 }
