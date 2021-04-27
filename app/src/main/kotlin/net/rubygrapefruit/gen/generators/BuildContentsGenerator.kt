@@ -44,6 +44,7 @@ class BuildContentsGenerator(
             if (hasLibraries) {
                 val library = project("impl") {
                     requiresPlugins(build.usesPlugins)
+                    producesLibrary()
                 }
                 project("core") {
                     requiresPlugins(build.usesPlugins)

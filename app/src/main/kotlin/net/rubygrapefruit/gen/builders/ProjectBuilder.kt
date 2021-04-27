@@ -7,7 +7,9 @@ interface ProjectBuilder {
 
     fun requiresPlugins(plugins: List<PluginUseSpec>)
 
-    fun producesLibrary(library: ExternalLibraryProductionSpec?)
+    fun producesLibrary(): LibraryUseSpec?
+
+    fun producesLibrary(library: ExternalLibraryProductionSpec?): LibraryUseSpec?
 
     fun requiresLibraries(libraries: List<ExternalLibraryUseSpec>)
 

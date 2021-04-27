@@ -16,24 +16,12 @@ class DefaultRootProjectBuilder(
         body(root)
     }
 
-    override fun project(name: String, body: ProjectBuilder.() -> Unit): LibraryUseSpec? {
+    override fun <T> project(name: String, body: ProjectBuilder.() -> T): T {
         require(!name.contains(':') && !name.contains('/'))
         val project = ProjectBuilderImpl(name)
-        body(project)
-        if (project.producesLibrary == null) {
-            val spec = librarySpecFactory.maybeLibrary(name)
-            if (spec != null) {
-                project.producesLibrary = LocalLibraryProductionSpec(project.localCoordinates, null, spec)
-            }
-        }
+        val result = body(project)
         children.add(project)
-
-        val library = project.producesLibrary
-        return if (library != null) {
-            LibraryUseSpec(library.localCoordinates, library.spec.toApiSpec())
-        } else {
-            null
-        }
+        return result
     }
 
     fun build(): RootProjectSpec {
@@ -58,11 +46,24 @@ class DefaultRootProjectBuilder(
             producesPlugins.addAll(plugins)
         }
 
-        override fun producesLibrary(library: ExternalLibraryProductionSpec?) {
+        override fun producesLibrary(): LibraryUseSpec? {
+            val spec = librarySpecFactory.maybeLibrary(name)
+            if (spec == null) {
+                producesLibrary = null
+                return null
+            } else {
+                producesLibrary = LocalLibraryProductionSpec(localCoordinates, null, spec)
+                return LibraryUseSpec(localCoordinates, spec.toApiSpec())
+            }
+        }
+
+        override fun producesLibrary(library: ExternalLibraryProductionSpec?): LibraryUseSpec? {
             if (library == null) {
                 this.producesLibrary = null
+                return null
             } else {
                 this.producesLibrary = LocalLibraryProductionSpec(localCoordinates, library.coordinates, library.spec)
+                return LibraryUseSpec(localCoordinates, library.spec.toApiSpec())
             }
         }
 

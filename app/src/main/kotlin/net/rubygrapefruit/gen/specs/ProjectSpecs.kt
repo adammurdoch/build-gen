@@ -20,6 +20,9 @@ class RootProjectSpec(
     usesLibraries: List<LibraryUseSpec>,
     includeConfigurationCacheProblems: Boolean
 ) : ProjectSpec(projectDir, usesPlugins, producesPlugins, producesLibrary, usesLibraries, includeConfigurationCacheProblems) {
+    /**
+     * Includes this project and its children
+     */
     val projects: List<ProjectSpec> = listOf(this) + children
 }
 
