@@ -1,14 +1,10 @@
 package net.rubygrapefruit.gen.specs
 
 sealed class PluginProductionSpec(
-    private val baseName: String,
+    protected val baseName: String,
     val id: String,
 ) {
-    val workerTaskName: String
-        get() = identifier("worker")
-
-    val lifecycleTaskName: String
-        get() = baseName
+    abstract val workerTaskName: String
 
     /**
      * Creates a unique identifier based on the identity of this plugin.
@@ -24,7 +20,14 @@ sealed class PluginProductionSpec(
 }
 
 class CustomPluginProductionSpec(baseName: String, id: String) : PluginProductionSpec(baseName, id) {
+    val lifecycleTaskName: String
+        get() = baseName
+
+    override val workerTaskName: String
+        get() = identifier("worker")
 }
 
 class JavaConventionPluginProductionSpec(baseName: String, id: String) : PluginProductionSpec(baseName, id) {
+    override val workerTaskName: String
+        get() = "compileJava"
 }

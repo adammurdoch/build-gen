@@ -1,14 +1,15 @@
 package net.rubygrapefruit.gen.generators
 
 import net.rubygrapefruit.gen.builders.ProjectContentsBuilder
-import net.rubygrapefruit.gen.specs.PluginImplementationSpec
+import net.rubygrapefruit.gen.specs.CustomPluginImplementationSpec
+import net.rubygrapefruit.gen.specs.CustomPluginProductionSpec
 
-class PluginProducerGenerator(
-        private val generator: Generator<PluginImplementationSpec>
+class CustomPluginProducerGenerator(
+    private val generator: Generator<CustomPluginImplementationSpec>
 ) {
     fun projectContents(): Assembler<ProjectContentsBuilder> = Assembler.of { generationContext ->
         if (spec.producesPlugins.isNotEmpty()) {
-            val plugins = spec.producesPlugins.map { PluginImplementationSpec(spec, it, it.className("PluginImpl"), it.className("WorkerTask")) }
+            val plugins = spec.producesPlugins.filterIsInstance(CustomPluginProductionSpec::class.java).map { CustomPluginImplementationSpec(spec, it) }
 
             buildScript.apply {
                 plugin("java-gradle-plugin")

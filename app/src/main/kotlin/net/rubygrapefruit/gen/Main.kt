@@ -40,11 +40,11 @@ fun generate(rootDir: Path, layout: BuildTreeTemplate, implementation: Implement
         val textFileGenerator = TextFileGenerator(fileContext)
         val sourceFileGenerator = SourceFileGenerator(textFileGenerator)
         val scriptGenerator = ScriptGenerator(dsl, textFileGenerator)
-        val pluginImplementationGenerator = PluginImplementationGenerator(
+        val pluginImplementationGenerator = CustomPluginImplementationGenerator(
             sourceFileGenerator,
             listOf(problemGenerator.pluginImplementation())
         )
-        val pluginProducerGenerator = PluginProducerGenerator(pluginImplementationGenerator.pluginImplementation())
+        val pluginProducerGenerator = CustomPluginProducerGenerator(pluginImplementationGenerator.pluginImplementation())
         val projectGenerator = ProjectContentsGenerator(
             scriptGenerator,
             listOf(pluginProducerGenerator.projectContents(), problemGenerator.projectContents())

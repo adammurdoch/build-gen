@@ -1,7 +1,9 @@
 package net.rubygrapefruit.gen.generators
 
 /**
- * Generates filesystem state from the given model. Implementations must be thread safe.
+ * Generates filesystem state from an immutable model.
+ *
+ * Implementations must be thread safe (can generate multiple models in parallel)
  */
 interface Generator<in T> {
     fun generate(model: T, generationContext: GenerationContext)

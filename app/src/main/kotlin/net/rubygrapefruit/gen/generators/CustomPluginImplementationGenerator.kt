@@ -3,16 +3,16 @@ package net.rubygrapefruit.gen.generators
 import net.rubygrapefruit.gen.builders.PluginImplementationBuilder
 import net.rubygrapefruit.gen.files.PluginSourceBuilder
 import net.rubygrapefruit.gen.files.SourceFileGenerator
-import net.rubygrapefruit.gen.specs.PluginImplementationSpec
+import net.rubygrapefruit.gen.specs.CustomPluginImplementationSpec
 import net.rubygrapefruit.gen.specs.PluginProductionSpec
 import java.io.IOException
 import java.nio.file.Files
 
-class PluginImplementationGenerator(
-        private val sourceFileGenerator: SourceFileGenerator,
-        private val assemblers: List<Assembler<PluginImplementationBuilder>>
+class CustomPluginImplementationGenerator(
+    private val sourceFileGenerator: SourceFileGenerator,
+    private val assemblers: List<Assembler<PluginImplementationBuilder>>
 ) {
-    fun pluginImplementation(): Generator<PluginImplementationSpec> = Generator.of { generationContext ->
+    fun pluginImplementation(): Generator<CustomPluginImplementationSpec> = Generator.of { generationContext ->
         val builder = PluginImplementationBuilderImpl(spec, project.includeConfigurationCacheProblems)
         for (assembler in assemblers) {
             assembler.assemble(builder, generationContext)
