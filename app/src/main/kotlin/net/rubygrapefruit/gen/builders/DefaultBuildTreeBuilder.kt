@@ -67,16 +67,6 @@ class DefaultBuildTreeBuilder(
             get() = coordinates.group
     }
 
-    private class PluginSpec(
-        val productionSpec: PluginProductionSpec
-    ) : PluginUseSpec {
-        override val id: String
-            get() = productionSpec.id
-
-        override val workerTaskName: String
-            get() = productionSpec.workerTaskName
-    }
-
     private inner class BuildBuilderImpl(
         override val displayName: String,
         override val rootDir: Path,
@@ -95,17 +85,17 @@ class DefaultBuildTreeBuilder(
         override val includeConfigurationCacheProblems: Boolean
             get() = this@DefaultBuildTreeBuilder.includeConfigurationCacheProblems
 
-        fun producesPlugin(baseName: String, id: String): PluginSpec {
+        fun producesPlugin(baseName: String, id: String): PluginUseSpec {
             val plugin = pluginSpecFactory.plugin(baseName, id)
             producesPlugins.add(plugin)
-            return PluginSpec(plugin)
+            return plugin.toUseSpec()
         }
 
         fun producesLibrary(baseName: String, group: String): LibraryUseSpec {
             val coordinates = ExternalLibraryCoordinates(group, baseName, "1.0")
-            val library = LibraryUseSpec(coordinates)
+            val library = CustomLibraryProductionSpec(coordinates)
             producesLibrary = LibrarySpec(coordinates)
-            return library
+            return library.toUseSpec()
         }
 
         override fun requires(plugin: PluginUseSpec) {

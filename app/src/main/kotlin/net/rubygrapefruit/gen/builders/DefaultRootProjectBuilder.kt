@@ -18,7 +18,7 @@ class DefaultRootProjectBuilder(private val build: BuildSpec) : RootProjectBuild
         val project = ProjectBuilderImpl(name)
         body(project)
         children.add(project)
-        return LibraryUseSpec(LocalLibraryCoordinates(":$name"))
+        return CustomLibraryProductionSpec(LocalLibraryCoordinates(":$name")).toUseSpec()
     }
 
     fun build(): RootProjectSpec {

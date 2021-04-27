@@ -4,7 +4,7 @@ sealed class PluginProductionSpec(
     protected val baseName: String,
     val id: String,
 ) {
-    abstract val workerTaskName: String
+    abstract fun toUseSpec(): PluginUseSpec
 
     /**
      * Creates a unique identifier based on the identity of this plugin.
@@ -23,11 +23,12 @@ class CustomPluginProductionSpec(baseName: String, id: String) : PluginProductio
     val lifecycleTaskName: String
         get() = baseName
 
-    override val workerTaskName: String
+    val workerTaskName: String
         get() = identifier("worker")
+
+    override fun toUseSpec() = PluginUseSpec(id, workerTaskName)
 }
 
 class JavaConventionPluginProductionSpec(baseName: String, id: String) : PluginProductionSpec(baseName, id) {
-    override val workerTaskName: String
-        get() = "compileJava"
+    override fun toUseSpec() = PluginUseSpec(id, "compileJava")
 }
