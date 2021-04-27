@@ -4,6 +4,7 @@ import net.rubygrapefruit.gen.builders.DefaultBuildTreeBuilder
 import net.rubygrapefruit.gen.files.*
 import net.rubygrapefruit.gen.generators.*
 import net.rubygrapefruit.gen.templates.BuildTreeTemplate
+import net.rubygrapefruit.gen.templates.Implementation
 import net.rubygrapefruit.gen.templates.Theme
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.prompts.Prompter
@@ -19,15 +20,16 @@ fun main(args: Array<String>) {
         System.exit(1)
     }
     val prompter = Prompter(terminals)
-    val layout = prompter.select("Select build tree structure", BuildTreeTemplate.values())
+    val treeTemplate = prompter.select("Select build tree structure", BuildTreeTemplate.values())
+    val implementation = prompter.select("Select implementation", treeTemplate.applicableImplementations)
     val theme = prompter.select("Select theme", Theme.values())
     val dsl = prompter.select("Select DSL language", DslLanguage.values())
     val rootDir = File("build/test").absoluteFile.toPath()
-    generate(rootDir, layout, theme, dsl)
+    generate(rootDir, treeTemplate, implementation, theme, dsl)
 }
 
-fun generate(rootDir: Path, layout: BuildTreeTemplate, theme: Theme, dsl: DslLanguage) {
-    val builder = DefaultBuildTreeBuilder(rootDir)
+fun generate(rootDir: Path, layout: BuildTreeTemplate, implementation: Implementation, theme: Theme, dsl: DslLanguage) {
+    val builder = DefaultBuildTreeBuilder(rootDir, implementation.pluginSpecFactory)
     layout.run { builder.applyTo() }
     theme.applyTo(builder)
     val buildTree = builder.build()
@@ -61,5 +63,9 @@ fun generate(rootDir: Path, layout: BuildTreeTemplate, theme: Theme, dsl: DslLan
 
 
 fun <T> Prompter.select(prompt: String, values: Array<T>): T {
+    return values.get(select(prompt, values.map { it.toString() }, 0))
+}
+
+fun <T> Prompter.select(prompt: String, values: List<T>): T {
     return values.get(select(prompt, values.map { it.toString() }, 0))
 }

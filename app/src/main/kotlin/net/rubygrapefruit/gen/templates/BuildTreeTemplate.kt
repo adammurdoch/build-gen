@@ -4,15 +4,18 @@ import net.rubygrapefruit.gen.builders.BuildTreeBuilder
 
 enum class BuildTreeTemplate(private val display: String) {
     MainBuildOnly("build with no build logic") {
+        override val applicableImplementations: List<Implementation>
+            get() = listOf(Implementation.None)
+
         override fun BuildTreeBuilder.applyTo() {
         }
     },
-    BuildSrc("build with buildSrc") {
+    BuildSrc("build with plugin in buildSrc") {
         override fun BuildTreeBuilder.applyTo() {
             addBuildSrc()
         }
     },
-    BuildLogicChildBuild("build logic in child build") {
+    BuildLogicChildBuild("build with plugin in child build") {
         override fun BuildTreeBuilder.applyTo() {
             val plugin = addBuildLogicBuild()
             mainBuild {
@@ -20,7 +23,16 @@ enum class BuildTreeTemplate(private val display: String) {
             }
         }
     },
-    TreeWithBuildLogicChildBuild("composite build with build logic in child build") {
+    BuildLogicChildBuildAndBuildSrc("build with plugin in buildSrc and child build") {
+        override fun BuildTreeBuilder.applyTo() {
+            addBuildSrc()
+            val plugin = addBuildLogicBuild()
+            mainBuild {
+                requires(plugin)
+            }
+        }
+    },
+    TreeWithBuildLogicChildBuild("composite build with plugin in child build") {
         override fun BuildTreeBuilder.applyTo() {
             val plugin = addBuildLogicBuild()
             val dataLibrary = addProductionBuild("data") {
@@ -35,18 +47,12 @@ enum class BuildTreeTemplate(private val display: String) {
                 requires(uiLibrary)
             }
         }
-    },
-    BuildLogicChildBuildAndBuildSrc("build logic in buildSrc and child build") {
-        override fun BuildTreeBuilder.applyTo() {
-            addBuildSrc()
-            val plugin = addBuildLogicBuild()
-            mainBuild {
-                requires(plugin)
-            }
-        }
     };
 
     override fun toString() = display
+
+    open val applicableImplementations: List<Implementation>
+        get() = Implementation.values().toList()
 
     abstract fun BuildTreeBuilder.applyTo()
 }

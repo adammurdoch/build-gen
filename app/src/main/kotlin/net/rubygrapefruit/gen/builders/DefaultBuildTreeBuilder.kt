@@ -6,7 +6,10 @@ import java.nio.file.Path
 /**
  * A mutable builder for the build tree structure.
  */
-class DefaultBuildTreeBuilder(private val rootDir: Path) : BuildTreeBuilder {
+class DefaultBuildTreeBuilder(
+    private val rootDir: Path,
+    private val pluginSpecFactory: PluginSpecFactory
+) : BuildTreeBuilder {
     private val builds = mutableListOf<BuildBuilderImpl>()
     private val mainBuild = BuildBuilderImpl("main build", rootDir, ProjectGraphSpec.AppAndLibraries)
 
@@ -65,20 +68,13 @@ class DefaultBuildTreeBuilder(private val rootDir: Path) : BuildTreeBuilder {
     }
 
     private class PluginSpec(
-        val baseName: String,
-        override val id: String,
-    ) : PluginProductionSpec, PluginUseSpec {
+        val productionSpec: PluginProductionSpec
+    ) : PluginUseSpec {
+        override val id: String
+            get() = productionSpec.id
+
         override val workerTaskName: String
-            get() = identifier("worker")
-
-        override val lifecycleTaskName: String
-            get() = baseName
-
-        override fun identifier(suffix: String) = baseName + suffix.capitalize()
-
-        override fun className(classNameSuffix: String): JvmClassName {
-            return JvmClassName(id.toLowerCase() + ".plugin." + classNameSuffix.capitalize())
-        }
+            get() = productionSpec.workerTaskName
     }
 
     private inner class BuildBuilderImpl(
@@ -100,9 +96,9 @@ class DefaultBuildTreeBuilder(private val rootDir: Path) : BuildTreeBuilder {
             get() = this@DefaultBuildTreeBuilder.includeConfigurationCacheProblems
 
         fun producesPlugin(baseName: String, id: String): PluginSpec {
-            val plugin = PluginSpec(baseName, id)
+            val plugin = pluginSpecFactory.plugin(baseName, id)
             producesPlugins.add(plugin)
-            return plugin
+            return PluginSpec(plugin)
         }
 
         fun producesLibrary(baseName: String, group: String): LibrarySpec {
