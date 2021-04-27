@@ -40,7 +40,7 @@ class DefaultBuildTreeBuilder(
     /**
      * Adds a child build that produces a library, returning the spec for using the library.
      */
-    override fun addProductionBuild(name: String, body: BuildBuilder.() -> Unit): ExternalLibraryUseSpec {
+    override fun addProductionBuild(name: String, body: BuildBuilder.() -> Unit): LibraryUseSpec {
         val build = BuildBuilderImpl("library $name build", rootDir.resolve(name), ProjectGraphSpec.Libraries)
         val library = build.producesLibrary("core", "${name}.core")
         body(build)
@@ -62,9 +62,9 @@ class DefaultBuildTreeBuilder(
         override val builds: List<BuildSpec>
     ) : BuildTreeSpec
 
-    private class LibrarySpec(override val name: String, override val group: String) : ExternalLibraryProductionSpec, ExternalLibraryUseSpec {
-        override val version: String
-            get() = "1.0"
+    private class LibrarySpec(val coordinates: ExternalLibraryCoordinates) : ExternalLibraryProductionSpec {
+        override val group: String
+            get() = coordinates.group
     }
 
     private class PluginSpec(
@@ -84,7 +84,7 @@ class DefaultBuildTreeBuilder(
     ) : BuildSpec, BuildBuilder {
         override val producesPlugins = mutableListOf<PluginProductionSpec>()
         override val usesPlugins = mutableListOf<PluginUseSpec>()
-        override val usesLibraries = mutableListOf<ExternalLibraryUseSpec>()
+        override val usesLibraries = mutableListOf<LibraryUseSpec>()
         override var producesLibrary: ExternalLibraryProductionSpec? = null
         override val childBuilds = mutableListOf<BuildSpec>()
 
@@ -101,9 +101,10 @@ class DefaultBuildTreeBuilder(
             return PluginSpec(plugin)
         }
 
-        fun producesLibrary(baseName: String, group: String): LibrarySpec {
-            val library = LibrarySpec(baseName, group)
-            producesLibrary = library
+        fun producesLibrary(baseName: String, group: String): LibraryUseSpec {
+            val coordinates = ExternalLibraryCoordinates(group, baseName, "1.0")
+            val library = LibraryUseSpec(coordinates)
+            producesLibrary = LibrarySpec(coordinates)
             return library
         }
 
@@ -111,7 +112,7 @@ class DefaultBuildTreeBuilder(
             usesPlugins.add(plugin)
         }
 
-        override fun requires(library: ExternalLibraryUseSpec) {
+        override fun requires(library: LibraryUseSpec) {
             usesLibraries.add(library)
         }
 

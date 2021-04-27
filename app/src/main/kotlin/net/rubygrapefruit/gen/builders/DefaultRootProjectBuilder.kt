@@ -18,19 +18,18 @@ class DefaultRootProjectBuilder(private val build: BuildSpec) : RootProjectBuild
         val project = ProjectBuilderImpl(name)
         body(project)
         children.add(project)
-        return LibraryUseSpec(":$name")
+        return LibraryUseSpec(LocalLibraryCoordinates(":$name"))
     }
 
     fun build(): RootProjectSpec {
         val childSpecs = children.map {
-            ChildProjectSpec(it.name, build.rootDir.resolve(it.name), it.usesPlugins, emptyList(), it.usesExternalLibraries, it.producesLibrary, it.usesLibraries, build.includeConfigurationCacheProblems)
+            ChildProjectSpec(it.name, build.rootDir.resolve(it.name), it.usesPlugins, emptyList(), it.producesLibrary, it.usesLibraries, build.includeConfigurationCacheProblems)
         }
-        return RootProjectSpec(build.rootDir, childSpecs, root.usesPlugins, build.producesPlugins, root.usesExternalLibraries, root.producesLibrary, root.usesLibraries, build.includeConfigurationCacheProblems)
+        return RootProjectSpec(build.rootDir, childSpecs, root.usesPlugins, build.producesPlugins, root.producesLibrary, root.usesLibraries, build.includeConfigurationCacheProblems)
     }
 
     private inner class ProjectBuilderImpl(val name: String) : ProjectBuilder {
         val usesPlugins = mutableListOf<PluginUseSpec>()
-        val usesExternalLibraries = mutableListOf<ExternalLibraryUseSpec>()
         val usesLibraries = mutableListOf<LibraryUseSpec>()
         var producesLibrary: ExternalLibraryProductionSpec? = null
 
@@ -38,12 +37,12 @@ class DefaultRootProjectBuilder(private val build: BuildSpec) : RootProjectBuild
             usesPlugins.addAll(plugins)
         }
 
-        override fun requiresExternalLibraries(libraries: List<ExternalLibraryUseSpec>) {
-            usesExternalLibraries.addAll(libraries)
-        }
-
         override fun producesExternalLibrary(producesLibrary: ExternalLibraryProductionSpec?) {
             this.producesLibrary = producesLibrary
+        }
+
+        override fun requiresLibraries(libraries: List<LibraryUseSpec>) {
+            usesLibraries.addAll(libraries)
         }
 
         override fun requiresLibrary(library: LibraryUseSpec) {
