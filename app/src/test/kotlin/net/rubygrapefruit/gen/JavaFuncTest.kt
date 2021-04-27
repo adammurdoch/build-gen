@@ -24,7 +24,7 @@ class JavaFuncTest : AbstractFuncTest() {
     @Test
     fun canGenerateTreeWithBuildLogicAndLibraryInChildWithGroovyDsl() {
         val dir = testDir.newFolder()
-        generate(dir.toPath(), BuildTreeTemplate.TreeWithBuildLogicAndProductionChildBuild, Implementation.Java, Theme.None, DslLanguage.GroovyDsl)
+        generate(dir.toPath(), BuildTreeTemplate.TreeWithBuildLogicAndLibraryChildBuild, Implementation.Java, Theme.None, DslLanguage.GroovyDsl)
         runBuild(dir, "assemble")
     }
 }

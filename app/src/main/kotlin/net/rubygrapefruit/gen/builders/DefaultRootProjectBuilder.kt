@@ -38,19 +38,24 @@ class DefaultRootProjectBuilder(
 
     fun build(): RootProjectSpec {
         val childSpecs = children.map {
-            ChildProjectSpec(it.name, build.rootDir.resolve(it.name), it.usesPlugins, emptyList(), it.producesLibrary, it.usesLibraries, build.includeConfigurationCacheProblems)
+            ChildProjectSpec(it.name, build.rootDir.resolve(it.name), it.usesPlugins, it.producesPlugins, it.producesLibrary, it.usesLibraries, build.includeConfigurationCacheProblems)
         }
-        return RootProjectSpec(build.rootDir, childSpecs, root.usesPlugins, build.producesPlugins, root.producesLibrary, root.usesLibraries, build.includeConfigurationCacheProblems)
+        return RootProjectSpec(build.rootDir, childSpecs, root.usesPlugins, root.producesPlugins, root.producesLibrary, root.usesLibraries, build.includeConfigurationCacheProblems)
     }
 
     private inner class ProjectBuilderImpl(val name: String) : ProjectBuilder {
         val localCoordinates = LocalLibraryCoordinates(":$name")
         val usesPlugins = mutableListOf<PluginUseSpec>()
+        val producesPlugins = mutableListOf<PluginProductionSpec>()
         val usesLibraries = mutableListOf<LibraryUseSpec>()
         var producesLibrary: LocalLibraryProductionSpec? = null
 
         override fun requiresPlugins(plugins: List<PluginUseSpec>) {
             usesPlugins.addAll(plugins)
+        }
+
+        override fun producesPlugins(plugins: List<PluginProductionSpec>) {
+            producesPlugins.addAll(plugins)
         }
 
         override fun producesLibrary(library: ExternalLibraryProductionSpec?) {

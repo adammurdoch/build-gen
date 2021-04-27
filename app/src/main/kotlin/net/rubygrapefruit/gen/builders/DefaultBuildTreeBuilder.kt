@@ -12,7 +12,7 @@ class DefaultBuildTreeBuilder(
     private val librarySpecFactory: LibrarySpecFactory
 ) : BuildTreeBuilder {
     private val builds = mutableListOf<BuildBuilderImpl>()
-    private val mainBuild = BuildBuilderImpl("main build", "main", rootDir, ProjectGraphSpec.AppAndLibraries)
+    private val mainBuild = BuildBuilderImpl("main build", "main", rootDir)
 
     init {
         builds.add(mainBuild)
@@ -22,7 +22,7 @@ class DefaultBuildTreeBuilder(
 
     override fun <T> build(name: String, body: BuildBuilder.() -> T): T {
         require(!name.contains(':') && !name.contains('/'))
-        val build = BuildBuilderImpl("build $name", name, rootDir.resolve(name), ProjectGraphSpec.Libraries)
+        val build = BuildBuilderImpl("build $name", name, rootDir.resolve(name))
         val result = body(build)
         mainBuild.childBuilds.add(build)
         builds.add(build)
@@ -45,8 +45,7 @@ class DefaultBuildTreeBuilder(
     private inner class BuildBuilderImpl(
         override val displayName: String,
         val baseName: String,
-        override val rootDir: Path,
-        override val projects: ProjectGraphSpec
+        override val rootDir: Path
     ) : BuildSpec, BuildBuilder {
         override val producesPlugins = mutableListOf<PluginProductionSpec>()
         override val usesPlugins = mutableListOf<PluginUseSpec>()
@@ -78,7 +77,7 @@ class DefaultBuildTreeBuilder(
         }
 
         override fun <T> buildSrc(body: BuildBuilder.() -> T): T {
-            val build = BuildBuilderImpl("buildSrc build", "buildSrc", rootDir.resolve("buildSrc"), ProjectGraphSpec.RootProject)
+            val build = BuildBuilderImpl("buildSrc build", "buildSrc", rootDir.resolve("buildSrc"))
             val result = body(build)
             builds.add(build)
             return result

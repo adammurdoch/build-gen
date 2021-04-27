@@ -12,7 +12,6 @@ interface BuildSpec {
     val producesPlugins: List<PluginProductionSpec>
     val usesLibraries: List<ExternalLibraryUseSpec>
     val producesLibrary: ExternalLibraryProductionSpec?
-    val projects: ProjectGraphSpec
 
     /**
      * Creates a project tree for this build.

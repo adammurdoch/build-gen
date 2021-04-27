@@ -64,7 +64,10 @@ enum class BuildTreeTemplate(private val display: String) {
             }
         }
     },
-    TreeWithBuildLogicAndProductionChildBuild("Composite build with plugin and library in child build") {
+    TreeWithBuildLogicAndLibraryChildBuild("Composite build with plugin and library in child build") {
+        override val applicableImplementations: List<Implementation>
+            get() = listOf(Implementation.Java)
+
         override fun BuildTreeBuilder.applyTo() {
             val (plugin, sharedLibrary) = build("shared") {
                 val plugin = producesPlugin()

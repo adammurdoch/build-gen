@@ -40,7 +40,8 @@ class BuildContentsGenerator(
     private fun projects(build: BuildSpec): RootProjectSpec {
         return build.projects {
             val producesLibrary = build.producesLibrary
-            if (build.usesPlugins.isNotEmpty()) {
+            val hasLibraries = build.usesPlugins.isNotEmpty()
+            if (hasLibraries) {
                 val library = project("impl") {
                     requiresPlugins(build.usesPlugins)
                 }
@@ -50,9 +51,23 @@ class BuildContentsGenerator(
                     requiresLibrary(library)
                     producesLibrary(producesLibrary)
                 }
+                if (build.producesPlugins.isNotEmpty()) {
+                    project("plugins") {
+                        producesPlugins(build.producesPlugins)
+                    }
+                }
             } else if (producesLibrary != null) {
                 project(producesLibrary.coordinates.name) {
                     producesLibrary(producesLibrary)
+                }
+                if (build.producesPlugins.isNotEmpty()) {
+                    project("plugins") {
+                        producesPlugins(build.producesPlugins)
+                    }
+                }
+            } else {
+                root {
+                    producesPlugins(build.producesPlugins)
                 }
             }
         }
