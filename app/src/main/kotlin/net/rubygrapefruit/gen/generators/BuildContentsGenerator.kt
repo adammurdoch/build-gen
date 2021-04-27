@@ -42,11 +42,12 @@ class BuildContentsGenerator(
             val producesLibrary = build.producesLibrary
             val hasLibraries = build.usesPlugins.isNotEmpty()
             if (hasLibraries) {
-                val library = project("impl") {
+                val library = project(build.projectNames.next()) {
                     requiresPlugins(build.usesPlugins)
                     producesLibrary()
                 }
-                project("core") {
+                val projectName = if (producesLibrary != null) producesLibrary.coordinates.name else build.projectNames.next()
+                project(projectName) {
                     requiresPlugins(build.usesPlugins)
                     requiresLibraries(build.usesLibraries)
                     requiresLibrary(library)

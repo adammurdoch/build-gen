@@ -17,6 +17,7 @@ enum class BuildTreeTemplate(private val display: String) {
                     producesPlugin()
                 }
                 requires(plugin)
+                projectNames(mainBuildNames)
             }
         }
     },
@@ -27,6 +28,7 @@ enum class BuildTreeTemplate(private val display: String) {
             }
             mainBuild {
                 requires(plugin)
+                projectNames(mainBuildNames)
             }
         }
     },
@@ -41,6 +43,7 @@ enum class BuildTreeTemplate(private val display: String) {
                 }
                 requires(buildSrcPlugin)
                 requires(childBuildPlugin)
+                projectNames(mainBuildNames)
             }
         }
     },
@@ -51,16 +54,19 @@ enum class BuildTreeTemplate(private val display: String) {
             }
             val dataLibrary = build("data") {
                 requires(plugin)
+                projectNames(dataBuildNames)
                 producesLibrary()
             }
             val uiLibrary = build("ui") {
                 requires(plugin)
+                projectNames(uiBuildNames)
                 producesLibrary()
             }
             mainBuild {
                 requires(plugin)
                 requires(dataLibrary)
                 requires(uiLibrary)
+                projectNames(mainBuildNames)
             }
         }
     },
@@ -76,10 +82,12 @@ enum class BuildTreeTemplate(private val display: String) {
             }
             val dataLibrary = build("data") {
                 requires(plugin)
+                projectNames(dataBuildNames)
                 producesLibrary()
             }
             val uiLibrary = build("ui") {
                 requires(plugin)
+                projectNames(uiBuildNames)
                 producesLibrary()
             }
             mainBuild {
@@ -87,9 +95,14 @@ enum class BuildTreeTemplate(private val display: String) {
                 requires(dataLibrary)
                 requires(uiLibrary)
                 requires(sharedLibrary)
+                projectNames(mainBuildNames)
             }
         }
     };
+
+    protected val mainBuildNames = listOf("util", "app")
+    protected val dataBuildNames = listOf("main", "store")
+    protected val uiBuildNames = listOf("entry", "render")
 
     override fun toString() = display
 

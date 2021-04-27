@@ -31,4 +31,9 @@ interface BuildBuilder {
      * The projects of this build should use the given library.
      */
     fun requires(library: ExternalLibraryUseSpec)
+
+    /**
+     * Defines some project names to use for this build
+     */
+    fun projectNames(names: List<String>)
 }

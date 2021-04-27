@@ -13,6 +13,8 @@ interface BuildSpec {
     val usesLibraries: List<ExternalLibraryUseSpec>
     val producesLibrary: ExternalLibraryProductionSpec?
 
+    val projectNames: NameProvider
+
     /**
      * Creates a project tree for this build.
      */
