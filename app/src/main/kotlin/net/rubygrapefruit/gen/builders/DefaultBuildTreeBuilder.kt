@@ -12,7 +12,7 @@ class DefaultBuildTreeBuilder(
     private val librarySpecFactory: LibrarySpecFactory
 ) : BuildTreeBuilder {
     private val builds = mutableListOf<BuildBuilderImpl>()
-    private val mainBuild = BuildBuilderImpl("main build", rootDir, ProjectGraphSpec.AppAndLibraries)
+    private val mainBuild = BuildBuilderImpl("main build", "main", rootDir, ProjectGraphSpec.AppAndLibraries)
 
     init {
         builds.add(mainBuild)
@@ -20,38 +20,17 @@ class DefaultBuildTreeBuilder(
 
     override var includeConfigurationCacheProblems = false
 
-    override fun addBuildSrc() {
-        val build = BuildBuilderImpl("buildSrc build", rootDir.resolve("buildSrc"), ProjectGraphSpec.RootProject)
-        val plugin = build.producesPlugin("buildSrc", "test.buildsrc")
-        mainBuild.requires(plugin)
-        builds.add(build)
-    }
-
-    /**
-     * Adds a child build that produces a plugin, returning the spec for using the plugin.
-     */
-    override fun addBuildLogicBuild(): PluginUseSpec {
-        val build = BuildBuilderImpl("build logic build", rootDir.resolve("plugins"), ProjectGraphSpec.RootProject)
-        val plugin = build.producesPlugin("plugins", "test.plugins")
+    override fun <T> build(name: String, body: BuildBuilder.() -> T): T {
+        require(!name.contains(':') && !name.contains('/'))
+        val build = BuildBuilderImpl("build $name", name, rootDir.resolve(name), ProjectGraphSpec.Libraries)
+        val result = body(build)
         mainBuild.childBuilds.add(build)
         builds.add(build)
-        return plugin
+        return result
     }
 
-    /**
-     * Adds a child build that produces a library, returning the spec for using the library.
-     */
-    override fun addProductionBuild(name: String, body: BuildBuilder.() -> Unit): ExternalLibraryUseSpec {
-        val build = BuildBuilderImpl("library $name build", rootDir.resolve(name), ProjectGraphSpec.Libraries)
-        val library = build.producesLibrary("core", "${name}.core")
-        body(build)
-        mainBuild.childBuilds.add(build)
-        builds.add(build)
-        return library
-    }
-
-    override fun mainBuild(body: BuildBuilder.() -> Unit) {
-        body(mainBuild)
+    override fun <T> mainBuild(body: BuildBuilder.() -> T): T {
+        return body(mainBuild)
     }
 
     fun build(): BuildTreeSpec {
@@ -65,6 +44,7 @@ class DefaultBuildTreeBuilder(
 
     private inner class BuildBuilderImpl(
         override val displayName: String,
+        val baseName: String,
         override val rootDir: Path,
         override val projects: ProjectGraphSpec
     ) : BuildSpec, BuildBuilder {
@@ -81,17 +61,27 @@ class DefaultBuildTreeBuilder(
         override val includeConfigurationCacheProblems: Boolean
             get() = this@DefaultBuildTreeBuilder.includeConfigurationCacheProblems
 
-        fun producesPlugin(baseName: String, id: String): PluginUseSpec {
-            val plugin = pluginSpecFactory.plugin(baseName, id)
+        override fun producesPlugin(): PluginUseSpec {
+            val plugin = pluginSpecFactory.plugin(baseName, "test.${baseName}")
             producesPlugins.add(plugin)
             return plugin.toUseSpec()
         }
 
-        fun producesLibrary(baseName: String, group: String): ExternalLibraryUseSpec {
-            val coordinates = ExternalLibraryCoordinates(group, baseName, "1.0")
-            val library = librarySpecFactory.library(baseName)
-            producesLibrary = ExternalLibraryProductionSpec(coordinates, library)
-            return ExternalLibraryUseSpec(coordinates, library.toApiSpec())
+        override fun producesLibrary(): ExternalLibraryUseSpec {
+            if (producesLibrary == null) {
+                val coordinates = ExternalLibraryCoordinates("$baseName.core", "core", "1.0")
+                val libraryApi = librarySpecFactory.library(baseName)
+                producesLibrary = ExternalLibraryProductionSpec(coordinates, libraryApi)
+            }
+            val library = producesLibrary!!
+            return ExternalLibraryUseSpec(library.coordinates, library.spec.toApiSpec())
+        }
+
+        override fun <T> buildSrc(body: BuildBuilder.() -> T): T {
+            val build = BuildBuilderImpl("buildSrc build", "buildSrc", rootDir.resolve("buildSrc"), ProjectGraphSpec.RootProject)
+            val result = body(build)
+            builds.add(build)
+            return result
         }
 
         override fun requires(plugin: PluginUseSpec) {

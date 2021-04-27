@@ -12,12 +12,19 @@ enum class BuildTreeTemplate(private val display: String) {
     },
     BuildSrc("Build with plugin in buildSrc") {
         override fun BuildTreeBuilder.applyTo() {
-            addBuildSrc()
+            mainBuild {
+                val plugin = buildSrc {
+                    producesPlugin()
+                }
+                requires(plugin)
+            }
         }
     },
     BuildLogicChildBuild("Build with plugin in child build") {
         override fun BuildTreeBuilder.applyTo() {
-            val plugin = addBuildLogicBuild()
+            val plugin = build("plugins") {
+                producesPlugin()
+            }
             mainBuild {
                 requires(plugin)
             }
@@ -25,26 +32,58 @@ enum class BuildTreeTemplate(private val display: String) {
     },
     BuildLogicChildBuildAndBuildSrc("Build with plugin in buildSrc and child build") {
         override fun BuildTreeBuilder.applyTo() {
-            addBuildSrc()
-            val plugin = addBuildLogicBuild()
+            val childBuildPlugin = build("plugins") {
+                producesPlugin()
+            }
             mainBuild {
-                requires(plugin)
+                val buildSrcPlugin = buildSrc {
+                    producesPlugin()
+                }
+                requires(buildSrcPlugin)
+                requires(childBuildPlugin)
             }
         }
     },
     TreeWithBuildLogicChildBuild("Composite build with plugin in child build") {
         override fun BuildTreeBuilder.applyTo() {
-            val plugin = addBuildLogicBuild()
-            val dataLibrary = addProductionBuild("data") {
-                requires(plugin)
+            val plugin = build("plugins") {
+                producesPlugin()
             }
-            val uiLibrary = addProductionBuild("ui") {
+            val dataLibrary = build("data") {
                 requires(plugin)
+                producesLibrary()
+            }
+            val uiLibrary = build("ui") {
+                requires(plugin)
+                producesLibrary()
             }
             mainBuild {
                 requires(plugin)
                 requires(dataLibrary)
                 requires(uiLibrary)
+            }
+        }
+    },
+    TreeWithBuildLogicAndProductionChildBuild("Composite build with plugin and library in child build") {
+        override fun BuildTreeBuilder.applyTo() {
+            val (plugin, sharedLibrary) = build("shared") {
+                val plugin = producesPlugin()
+                val library = producesLibrary()
+                Pair(plugin, library)
+            }
+            val dataLibrary = build("data") {
+                requires(plugin)
+                producesLibrary()
+            }
+            val uiLibrary = build("ui") {
+                requires(plugin)
+                producesLibrary()
+            }
+            mainBuild {
+                requires(plugin)
+                requires(dataLibrary)
+                requires(uiLibrary)
+                requires(sharedLibrary)
             }
         }
     };

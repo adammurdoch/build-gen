@@ -6,7 +6,7 @@ import net.rubygrapefruit.gen.templates.Implementation
 import net.rubygrapefruit.gen.templates.Theme
 import kotlin.test.Test
 
-class JavaFuncTest: AbstractFuncTest() {
+class JavaFuncTest : AbstractFuncTest() {
     @Test
     fun canGenerateBuildWithBuildLogicInBuildSrcWithGroovyDsl() {
         val dir = testDir.newFolder()
@@ -18,6 +18,13 @@ class JavaFuncTest: AbstractFuncTest() {
     fun canGenerateTreeWithBuildLogicInChildWithGroovyDsl() {
         val dir = testDir.newFolder()
         generate(dir.toPath(), BuildTreeTemplate.TreeWithBuildLogicChildBuild, Implementation.Java, Theme.None, DslLanguage.GroovyDsl)
+        runBuild(dir, "assemble")
+    }
+
+    @Test
+    fun canGenerateTreeWithBuildLogicAndLibraryInChildWithGroovyDsl() {
+        val dir = testDir.newFolder()
+        generate(dir.toPath(), BuildTreeTemplate.TreeWithBuildLogicAndProductionChildBuild, Implementation.Java, Theme.None, DslLanguage.GroovyDsl)
         runBuild(dir, "assemble")
     }
 }
