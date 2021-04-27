@@ -19,16 +19,14 @@ class ProjectContentsGenerator(
             for (plugin in usesPlugins) {
                 plugin(plugin.id)
             }
-            if (usesPlugins.isNotEmpty()) {
-                if (producesLibrary?.externalCoordinates != null) {
-                    property("group", producesLibrary.externalCoordinates.group)
-                }
-                for (library in usesLibraries) {
-                    val coordinates = library.coordinates
-                    when (coordinates) {
-                        is ExternalLibraryCoordinates -> implementationDependency(coordinates.group, coordinates.name, coordinates.version)
-                        is LocalLibraryCoordinates -> implementationDependency(coordinates.producedByProject)
-                    }
+            if (producesLibrary?.externalCoordinates != null) {
+                property("group", producesLibrary.externalCoordinates.group)
+            }
+            for (library in usesLibraries) {
+                val coordinates = library.coordinates
+                when (coordinates) {
+                    is ExternalLibraryCoordinates -> implementationDependency(coordinates.group, coordinates.name, coordinates.version)
+                    is LocalLibraryCoordinates -> implementationDependency(coordinates.producedByProject)
                 }
             }
         }

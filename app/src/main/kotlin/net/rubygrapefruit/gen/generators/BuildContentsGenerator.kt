@@ -3,7 +3,6 @@ package net.rubygrapefruit.gen.generators
 import net.rubygrapefruit.gen.builders.BuildContentsBuilder
 import net.rubygrapefruit.gen.files.ScriptGenerator
 import net.rubygrapefruit.gen.specs.BuildSpec
-import net.rubygrapefruit.gen.specs.ProjectGraphSpec
 import net.rubygrapefruit.gen.specs.ProjectSpec
 import net.rubygrapefruit.gen.specs.RootProjectSpec
 import java.nio.file.Files
@@ -40,34 +39,20 @@ class BuildContentsGenerator(
 
     private fun projects(build: BuildSpec): RootProjectSpec {
         return build.projects {
-            when (build.projects) {
-                ProjectGraphSpec.RootProject -> {
-                    root {
-                        requiresPlugins(build.usesPlugins)
-                        producesLibrary(build.producesLibrary)
-                    }
+            val producesLibrary = build.producesLibrary
+            if (build.usesPlugins.isNotEmpty()) {
+                val library = project("impl") {
+                    requiresPlugins(build.usesPlugins)
                 }
-                ProjectGraphSpec.AppAndLibraries -> {
-                    val library = project("util") {
-                        requiresPlugins(build.usesPlugins)
-                        producesLibrary(build.producesLibrary)
-                    }
-                    project("app") {
-                        requiresPlugins(build.usesPlugins)
-                        requiresLibraries(build.usesLibraries)
-                        requiresLibrary(library)
-                    }
+                project("core") {
+                    requiresPlugins(build.usesPlugins)
+                    requiresLibraries(build.usesLibraries)
+                    requiresLibrary(library)
+                    producesLibrary(producesLibrary)
                 }
-                ProjectGraphSpec.Libraries -> {
-                    val library = project("impl") {
-                        requiresPlugins(build.usesPlugins)
-                    }
-                    project("core") {
-                        requiresPlugins(build.usesPlugins)
-                        requiresLibraries(build.usesLibraries)
-                        requiresLibrary(library)
-                        producesLibrary(build.producesLibrary)
-                    }
+            } else if (producesLibrary != null) {
+                project(producesLibrary.coordinates.name) {
+                    producesLibrary(producesLibrary)
                 }
             }
         }

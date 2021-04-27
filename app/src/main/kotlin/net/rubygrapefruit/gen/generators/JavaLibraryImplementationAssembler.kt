@@ -11,6 +11,9 @@ class JavaLibraryImplementationAssembler(
     fun projectContents(): Assembler<ProjectContentsBuilder> = Assembler.of { generationContext ->
         val api = spec.producesLibrary?.spec
         if (api is JavaLibraryProductionSpec) {
+            if (spec.usesPlugins.none { it.canProduceJavaLibrary }) {
+                buildScript.plugin("java-library")
+            }
             sourceFileGenerator.java(spec.projectDir.resolve("src/main/java"), api.method.className).apply {
                 imports(Set::class)
                 method("public static void ${api.method.methodName}(Set<String> seen)") {

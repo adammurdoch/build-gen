@@ -69,7 +69,7 @@ class DefaultBuildTreeBuilder(
 
         override fun producesLibrary(): ExternalLibraryUseSpec {
             if (producesLibrary == null) {
-                val coordinates = ExternalLibraryCoordinates("$baseName.core", "core", "1.0")
+                val coordinates = ExternalLibraryCoordinates("test.$baseName", "core", "1.0")
                 val libraryApi = librarySpecFactory.library(baseName)
                 producesLibrary = ExternalLibraryProductionSpec(coordinates, libraryApi)
             }
