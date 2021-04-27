@@ -1,0 +1,24 @@
+package net.rubygrapefruit.gen.generators
+
+import net.rubygrapefruit.gen.builders.ProjectContentsBuilder
+import net.rubygrapefruit.gen.files.SourceFileGenerator
+import net.rubygrapefruit.gen.specs.JavaLibraryProductionSpec
+
+class JavaLibraryImplementationAssembler(
+    private val sourceFileGenerator: SourceFileGenerator
+) {
+    fun projectContents(): Assembler<ProjectContentsBuilder> = Assembler.of { generationContext ->
+        val api = spec.producesLibrary?.spec
+        if (api is JavaLibraryProductionSpec) {
+            sourceFileGenerator.java(spec.projectDir.resolve("src/main/java"), api.method.className).apply {
+                imports(Set::class)
+                method(
+                    """
+                        public static void ${api.method.methodName}(Set<String> seen) {
+                        }
+                    """.trimIndent()
+                )
+            }.complete()
+        }
+    }
+}

@@ -1,5 +1,19 @@
 package net.rubygrapefruit.gen.specs
 
+sealed class LibraryProductionSpec {
+    abstract fun toApiSpec(): LibraryApiSpec
+}
+
+class CustomLibraryProductionSpec : LibraryProductionSpec() {
+    override fun toApiSpec() = CustomLibraryApiSpec()
+}
+
+class JavaLibraryProductionSpec(
+    val method: JvmMethodReference
+) : LibraryProductionSpec() {
+    override fun toApiSpec() = JavaLibraryApiSpec(method)
+}
+
 class LibraryUseSpec(
     val coordinates: LibraryCoordinates,
     val api: LibraryApiSpec

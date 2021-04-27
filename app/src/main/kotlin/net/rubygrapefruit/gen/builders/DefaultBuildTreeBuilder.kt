@@ -89,7 +89,7 @@ class DefaultBuildTreeBuilder(
 
         fun producesLibrary(baseName: String, group: String): ExternalLibraryUseSpec {
             val coordinates = ExternalLibraryCoordinates(group, baseName, "1.0")
-            val library = librarySpecFactory.library(baseName, coordinates)
+            val library = librarySpecFactory.library(baseName)
             producesLibrary = ExternalLibraryProductionSpec(coordinates, library)
             return ExternalLibraryUseSpec(coordinates, library.toApiSpec())
         }

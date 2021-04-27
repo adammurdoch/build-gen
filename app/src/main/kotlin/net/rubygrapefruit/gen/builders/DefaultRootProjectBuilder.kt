@@ -21,7 +21,7 @@ class DefaultRootProjectBuilder(
         val project = ProjectBuilderImpl(name)
         body(project)
         if (project.producesLibrary == null) {
-            val spec = librarySpecFactory.maybeLibrary(name, project.localCoordinates)
+            val spec = librarySpecFactory.maybeLibrary(name)
             if (spec != null) {
                 project.producesLibrary = LocalLibraryProductionSpec(project.localCoordinates, null, spec)
             }
