@@ -8,7 +8,7 @@ interface PluginSpecFactory {
     fun plugin(baseName: String, id: String): PluginProductionSpec
 }
 
-class NoPluginSpecFactory : PluginSpecFactory {
+class NothingPluginSpecFactory : PluginSpecFactory {
     override fun plugin(baseName: String, id: String) = throw IllegalStateException()
 }
 

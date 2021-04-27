@@ -1,12 +1,12 @@
 package net.rubygrapefruit.gen.templates
 
-import net.rubygrapefruit.gen.builders.CustomPluginSpecFactory
-import net.rubygrapefruit.gen.builders.JavaConventionPluginSpecFactory
-import net.rubygrapefruit.gen.builders.NoPluginSpecFactory
-import net.rubygrapefruit.gen.builders.PluginSpecFactory
+import net.rubygrapefruit.gen.builders.*
 
 enum class Implementation(
-    val pluginSpecFactory: PluginSpecFactory
+    val pluginSpecFactory: PluginSpecFactory,
+    val librarySpecFactory: LibrarySpecFactory
 ) {
-    None(NoPluginSpecFactory()), Custom(CustomPluginSpecFactory()), Java(JavaConventionPluginSpecFactory())
+    None(NothingPluginSpecFactory(), NothingLibrarySpecFactory()),
+    Custom(CustomPluginSpecFactory(), CustomLibrarySpecFactory()),
+    Java(JavaConventionPluginSpecFactory(), JavaLibrarySpecFactory())
 }

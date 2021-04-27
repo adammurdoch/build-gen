@@ -11,7 +11,7 @@ interface BuildSpec {
     val usesPlugins: List<PluginUseSpec>
     val producesPlugins: List<PluginProductionSpec>
     val usesLibraries: List<LibraryUseSpec>
-    val producesLibrary: ExternalLibraryProductionSpec?
+    val producesLibrary: LibraryProductionSpec?
     val projects: ProjectGraphSpec
 
     /**

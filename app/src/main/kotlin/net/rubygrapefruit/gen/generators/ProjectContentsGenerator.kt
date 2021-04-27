@@ -20,8 +20,8 @@ class ProjectContentsGenerator(
                 plugin(plugin.id)
             }
             if (usesPlugins.isNotEmpty()) {
-                if (producesExternalLibrary != null) {
-                    property("group", producesExternalLibrary.group)
+                if (producesLibrary != null && producesLibrary.coordinates is ExternalLibraryCoordinates) {
+                    property("group", producesLibrary.coordinates.group)
                 }
                 for (library in usesLibraries) {
                     val coordinates = library.coordinates

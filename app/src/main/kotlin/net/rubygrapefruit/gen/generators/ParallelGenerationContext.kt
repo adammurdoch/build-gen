@@ -1,6 +1,7 @@
 package net.rubygrapefruit.gen.generators
 
 import java.io.Closeable
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
@@ -33,7 +34,11 @@ class ParallelGenerationContext : GenerationContext, Closeable {
             results.add(future)
         }
         for (result in results) {
-            result.get()
+            try {
+                result.get()
+            } catch (e: ExecutionException) {
+                throw e.cause!!
+            }
         }
     }
 

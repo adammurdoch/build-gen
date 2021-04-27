@@ -5,7 +5,10 @@ import net.rubygrapefruit.gen.specs.*
 /**
  * A builder for the root project of a build.
  */
-class DefaultRootProjectBuilder(private val build: BuildSpec) : RootProjectBuilder {
+class DefaultRootProjectBuilder(
+    private val build: BuildSpec,
+    private val librarySpecFactory: LibrarySpecFactory
+) : RootProjectBuilder {
     private val root = ProjectBuilderImpl("root")
     private val children = mutableListOf<ProjectBuilderImpl>()
 
@@ -13,12 +16,15 @@ class DefaultRootProjectBuilder(private val build: BuildSpec) : RootProjectBuild
         body(root)
     }
 
-    override fun project(name: String, body: ProjectBuilder.() -> Unit): LibraryUseSpec {
+    override fun project(name: String, body: ProjectBuilder.() -> Unit): LibraryUseSpec? {
         require(!name.contains(':') && !name.contains('/'))
         val project = ProjectBuilderImpl(name)
         body(project)
+        if (project.producesLibrary == null) {
+            project.producesLibrary = librarySpecFactory.maybeLibrary(name, LocalLibraryCoordinates(":$name"))
+        }
         children.add(project)
-        return CustomLibraryProductionSpec(LocalLibraryCoordinates(":$name")).toUseSpec()
+        return project.producesLibrary?.toUseSpec()
     }
 
     fun build(): RootProjectSpec {
@@ -31,22 +37,24 @@ class DefaultRootProjectBuilder(private val build: BuildSpec) : RootProjectBuild
     private inner class ProjectBuilderImpl(val name: String) : ProjectBuilder {
         val usesPlugins = mutableListOf<PluginUseSpec>()
         val usesLibraries = mutableListOf<LibraryUseSpec>()
-        var producesLibrary: ExternalLibraryProductionSpec? = null
+        var producesLibrary: LibraryProductionSpec? = null
 
         override fun requiresPlugins(plugins: List<PluginUseSpec>) {
             usesPlugins.addAll(plugins)
         }
 
-        override fun producesExternalLibrary(producesLibrary: ExternalLibraryProductionSpec?) {
-            this.producesLibrary = producesLibrary
+        override fun producesLibrary(library: LibraryProductionSpec?) {
+            this.producesLibrary = library
         }
 
         override fun requiresLibraries(libraries: List<LibraryUseSpec>) {
             usesLibraries.addAll(libraries)
         }
 
-        override fun requiresLibrary(library: LibraryUseSpec) {
-            usesLibraries.add(library)
+        override fun requiresLibrary(library: LibraryUseSpec?) {
+            if (library != null) {
+                usesLibraries.add(library)
+            }
         }
     }
 }

@@ -29,7 +29,7 @@ fun main(args: Array<String>) {
 }
 
 fun generate(rootDir: Path, layout: BuildTreeTemplate, implementation: Implementation, theme: Theme, dsl: DslLanguage) {
-    val builder = DefaultBuildTreeBuilder(rootDir, implementation.pluginSpecFactory)
+    val builder = DefaultBuildTreeBuilder(rootDir, implementation.pluginSpecFactory, implementation.librarySpecFactory)
     layout.run { builder.applyTo() }
     theme.applyTo(builder)
     val buildTree = builder.build()

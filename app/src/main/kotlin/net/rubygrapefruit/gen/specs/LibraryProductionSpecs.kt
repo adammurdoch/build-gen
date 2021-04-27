@@ -1,22 +1,20 @@
 package net.rubygrapefruit.gen.specs
 
-sealed class LibraryProductionSpec {
+sealed class LibraryProductionSpec(
+    val coordinates: LibraryCoordinates
+) {
     abstract fun toUseSpec(): LibraryUseSpec
 }
 
 class CustomLibraryProductionSpec(
-    private val coordinates: LibraryCoordinates,
-) : LibraryProductionSpec() {
-    override fun toUseSpec(): LibraryUseSpec {
-        return CustomLibraryUseSpec(coordinates)
-    }
+    coordinates: LibraryCoordinates,
+) : LibraryProductionSpec(coordinates) {
+    override fun toUseSpec() = CustomLibraryUseSpec(coordinates)
 }
 
 class JavaLibraryProductionSpec(
-    private val coordinates: LibraryCoordinates,
+    coordinates: LibraryCoordinates,
     val method: JvmMethodReference
-) : LibraryProductionSpec() {
-    override fun toUseSpec(): LibraryUseSpec {
-        return JavaLibraryUseSpec(coordinates, method)
-    }
+) : LibraryProductionSpec(coordinates) {
+    override fun toUseSpec() = JavaLibraryUseSpec(coordinates, method)
 }

@@ -8,5 +8,8 @@ import net.rubygrapefruit.gen.specs.LibraryUseSpec
 interface RootProjectBuilder {
     fun root(body: ProjectBuilder.() -> Unit)
 
-    fun project(name: String, body: ProjectBuilder.() -> Unit): LibraryUseSpec
+    /**
+     * Adds a project that may produce a library
+     */
+    fun project(name: String, body: ProjectBuilder.() -> Unit): LibraryUseSpec?
 }

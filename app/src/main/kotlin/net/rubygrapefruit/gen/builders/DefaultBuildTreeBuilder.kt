@@ -8,7 +8,8 @@ import java.nio.file.Path
  */
 class DefaultBuildTreeBuilder(
     private val rootDir: Path,
-    private val pluginSpecFactory: PluginSpecFactory
+    private val pluginSpecFactory: PluginSpecFactory,
+    private val librarySpecFactory: LibrarySpecFactory
 ) : BuildTreeBuilder {
     private val builds = mutableListOf<BuildBuilderImpl>()
     private val mainBuild = BuildBuilderImpl("main build", rootDir, ProjectGraphSpec.AppAndLibraries)
@@ -62,11 +63,6 @@ class DefaultBuildTreeBuilder(
         override val builds: List<BuildSpec>
     ) : BuildTreeSpec
 
-    private class LibrarySpec(val coordinates: ExternalLibraryCoordinates) : ExternalLibraryProductionSpec {
-        override val group: String
-            get() = coordinates.group
-    }
-
     private inner class BuildBuilderImpl(
         override val displayName: String,
         override val rootDir: Path,
@@ -75,7 +71,7 @@ class DefaultBuildTreeBuilder(
         override val producesPlugins = mutableListOf<PluginProductionSpec>()
         override val usesPlugins = mutableListOf<PluginUseSpec>()
         override val usesLibraries = mutableListOf<LibraryUseSpec>()
-        override var producesLibrary: ExternalLibraryProductionSpec? = null
+        override var producesLibrary: LibraryProductionSpec? = null
         override val childBuilds = mutableListOf<BuildSpec>()
 
         override fun toString(): String {
@@ -93,8 +89,8 @@ class DefaultBuildTreeBuilder(
 
         fun producesLibrary(baseName: String, group: String): LibraryUseSpec {
             val coordinates = ExternalLibraryCoordinates(group, baseName, "1.0")
-            val library = CustomLibraryProductionSpec(coordinates)
-            producesLibrary = LibrarySpec(coordinates)
+            val library = librarySpecFactory.library(baseName, coordinates)
+            producesLibrary = library
             return library.toUseSpec()
         }
 
@@ -107,7 +103,7 @@ class DefaultBuildTreeBuilder(
         }
 
         override fun projects(body: RootProjectBuilder.() -> Unit): RootProjectSpec {
-            val builder = DefaultRootProjectBuilder(this)
+            val builder = DefaultRootProjectBuilder(this, librarySpecFactory)
             body(builder)
             return builder.build()
         }
