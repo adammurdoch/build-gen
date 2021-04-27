@@ -1,15 +1,13 @@
 package net.rubygrapefruit.gen.builders
 
-import net.rubygrapefruit.gen.specs.LibraryProductionSpec
-import net.rubygrapefruit.gen.specs.LibraryUseSpec
-import net.rubygrapefruit.gen.specs.PluginUseSpec
+import net.rubygrapefruit.gen.specs.*
 
 interface ProjectBuilder {
     fun requiresPlugins(plugins: List<PluginUseSpec>)
 
-    fun producesLibrary(library: LibraryProductionSpec?)
+    fun producesLibrary(library: ExternalLibraryProductionSpec?)
 
-    fun requiresLibraries(libraries: List<LibraryUseSpec>)
+    fun requiresLibraries(libraries: List<ExternalLibraryUseSpec>)
 
     fun requiresLibrary(library: LibraryUseSpec?)
 }

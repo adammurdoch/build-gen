@@ -6,7 +6,7 @@ sealed class ProjectSpec(
     val projectDir: Path,
     val usesPlugins: List<PluginUseSpec>,
     val producesPlugins: List<PluginProductionSpec>,
-    val producesLibrary: LibraryProductionSpec?,
+    val producesLibrary: LocalLibraryProductionSpec?,
     val usesLibraries: List<LibraryUseSpec>,
     val includeConfigurationCacheProblems: Boolean
 )
@@ -16,7 +16,7 @@ class RootProjectSpec(
     val children: List<ChildProjectSpec>,
     usesPlugins: List<PluginUseSpec>,
     producesPlugins: List<PluginProductionSpec>,
-    producesLibrary: LibraryProductionSpec?,
+    producesLibrary: LocalLibraryProductionSpec?,
     usesLibraries: List<LibraryUseSpec>,
     includeConfigurationCacheProblems: Boolean
 ) : ProjectSpec(projectDir, usesPlugins, producesPlugins, producesLibrary, usesLibraries, includeConfigurationCacheProblems) {
@@ -28,7 +28,7 @@ class ChildProjectSpec(
     projectDir: Path,
     usesPlugins: List<PluginUseSpec>,
     producesPlugins: List<PluginProductionSpec>,
-    producesLibrary: LibraryProductionSpec?,
+    producesLibrary: LocalLibraryProductionSpec?,
     usesLibraries: List<LibraryUseSpec>,
     includeConfigurationCacheProblems: Boolean
 ) : ProjectSpec(projectDir, usesPlugins, producesPlugins, producesLibrary, usesLibraries, includeConfigurationCacheProblems)

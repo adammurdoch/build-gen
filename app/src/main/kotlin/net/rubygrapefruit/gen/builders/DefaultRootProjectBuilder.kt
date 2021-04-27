@@ -21,10 +21,19 @@ class DefaultRootProjectBuilder(
         val project = ProjectBuilderImpl(name)
         body(project)
         if (project.producesLibrary == null) {
-            project.producesLibrary = librarySpecFactory.maybeLibrary(name, LocalLibraryCoordinates(":$name"))
+            val spec = librarySpecFactory.maybeLibrary(name, project.localCoordinates)
+            if (spec != null) {
+                project.producesLibrary = LocalLibraryProductionSpec(project.localCoordinates, null, spec)
+            }
         }
         children.add(project)
-        return project.producesLibrary?.toUseSpec()
+
+        val library = project.producesLibrary
+        return if (library != null) {
+            library.spec.toUseSpec()
+        } else {
+            null
+        }
     }
 
     fun build(): RootProjectSpec {
@@ -35,20 +44,25 @@ class DefaultRootProjectBuilder(
     }
 
     private inner class ProjectBuilderImpl(val name: String) : ProjectBuilder {
+        val localCoordinates = LocalLibraryCoordinates(":$name")
         val usesPlugins = mutableListOf<PluginUseSpec>()
         val usesLibraries = mutableListOf<LibraryUseSpec>()
-        var producesLibrary: LibraryProductionSpec? = null
+        var producesLibrary: LocalLibraryProductionSpec? = null
 
         override fun requiresPlugins(plugins: List<PluginUseSpec>) {
             usesPlugins.addAll(plugins)
         }
 
-        override fun producesLibrary(library: LibraryProductionSpec?) {
-            this.producesLibrary = library
+        override fun producesLibrary(library: ExternalLibraryProductionSpec?) {
+            if (library == null) {
+                this.producesLibrary = null
+            } else {
+                this.producesLibrary = LocalLibraryProductionSpec(localCoordinates, library.coordinates, library.spec)
+            }
         }
 
-        override fun requiresLibraries(libraries: List<LibraryUseSpec>) {
-            usesLibraries.addAll(libraries)
+        override fun requiresLibraries(libraries: List<ExternalLibraryUseSpec>) {
+            usesLibraries.addAll(libraries.map { it.spec })
         }
 
         override fun requiresLibrary(library: LibraryUseSpec?) {

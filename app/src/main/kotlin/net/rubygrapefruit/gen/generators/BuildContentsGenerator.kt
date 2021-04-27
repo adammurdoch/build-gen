@@ -44,17 +44,17 @@ class BuildContentsGenerator(
                 ProjectGraphSpec.RootProject -> {
                     root {
                         requiresPlugins(build.usesPlugins)
-                        producesLibrary(build.producesLibrary?.spec)
+                        producesLibrary(build.producesLibrary)
                     }
                 }
                 ProjectGraphSpec.AppAndLibraries -> {
                     val library = project("util") {
                         requiresPlugins(build.usesPlugins)
-                        producesLibrary(build.producesLibrary?.spec)
+                        producesLibrary(build.producesLibrary)
                     }
                     project("app") {
                         requiresPlugins(build.usesPlugins)
-                        requiresLibraries(build.usesLibraries.map { it.spec })
+                        requiresLibraries(build.usesLibraries)
                         requiresLibrary(library)
                     }
                 }
@@ -64,9 +64,9 @@ class BuildContentsGenerator(
                     }
                     project("core") {
                         requiresPlugins(build.usesPlugins)
-                        requiresLibraries(build.usesLibraries.map { it.spec })
+                        requiresLibraries(build.usesLibraries)
                         requiresLibrary(library)
-                        producesLibrary(build.producesLibrary?.spec)
+                        producesLibrary(build.producesLibrary)
                     }
                 }
             }
