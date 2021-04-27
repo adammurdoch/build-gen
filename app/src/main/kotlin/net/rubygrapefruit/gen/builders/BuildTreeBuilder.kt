@@ -1,6 +1,6 @@
 package net.rubygrapefruit.gen.builders
 
-import net.rubygrapefruit.gen.specs.LibraryUseSpec
+import net.rubygrapefruit.gen.specs.ExternalLibraryUseSpec
 import net.rubygrapefruit.gen.specs.PluginUseSpec
 
 /**
@@ -19,7 +19,7 @@ interface BuildTreeBuilder {
     /**
      * Adds a child build that produces a library, returning the spec for using the library.
      */
-    fun addProductionBuild(name: String, body: BuildBuilder.() -> Unit): LibraryUseSpec
+    fun addProductionBuild(name: String, body: BuildBuilder.() -> Unit): ExternalLibraryUseSpec
 
     fun mainBuild(body: BuildBuilder.() -> Unit)
 }

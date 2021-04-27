@@ -41,7 +41,7 @@ class DefaultBuildTreeBuilder(
     /**
      * Adds a child build that produces a library, returning the spec for using the library.
      */
-    override fun addProductionBuild(name: String, body: BuildBuilder.() -> Unit): LibraryUseSpec {
+    override fun addProductionBuild(name: String, body: BuildBuilder.() -> Unit): ExternalLibraryUseSpec {
         val build = BuildBuilderImpl("library $name build", rootDir.resolve(name), ProjectGraphSpec.Libraries)
         val library = build.producesLibrary("core", "${name}.core")
         body(build)
@@ -70,8 +70,8 @@ class DefaultBuildTreeBuilder(
     ) : BuildSpec, BuildBuilder {
         override val producesPlugins = mutableListOf<PluginProductionSpec>()
         override val usesPlugins = mutableListOf<PluginUseSpec>()
-        override val usesLibraries = mutableListOf<LibraryUseSpec>()
-        override var producesLibrary: LibraryProductionSpec? = null
+        override val usesLibraries = mutableListOf<ExternalLibraryUseSpec>()
+        override var producesLibrary: ExternalLibraryProductionSpec? = null
         override val childBuilds = mutableListOf<BuildSpec>()
 
         override fun toString(): String {
@@ -87,18 +87,18 @@ class DefaultBuildTreeBuilder(
             return plugin.toUseSpec()
         }
 
-        fun producesLibrary(baseName: String, group: String): LibraryUseSpec {
+        fun producesLibrary(baseName: String, group: String): ExternalLibraryUseSpec {
             val coordinates = ExternalLibraryCoordinates(group, baseName, "1.0")
             val library = librarySpecFactory.library(baseName, coordinates)
-            producesLibrary = library
-            return library.toUseSpec()
+            producesLibrary = ExternalLibraryProductionSpec(coordinates, library)
+            return ExternalLibraryUseSpec(coordinates, library.toUseSpec())
         }
 
         override fun requires(plugin: PluginUseSpec) {
             usesPlugins.add(plugin)
         }
 
-        override fun requires(library: LibraryUseSpec) {
+        override fun requires(library: ExternalLibraryUseSpec) {
             usesLibraries.add(library)
         }
 
