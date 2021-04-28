@@ -76,6 +76,7 @@ enum class BuildTreeTemplate(private val display: String) {
 
         override fun BuildTreeBuilder.applyTo() {
             val (plugin, sharedLibrary) = build("shared") {
+                projectNames(listOf("generator", "common"))
                 val plugin = producesPlugin()
                 val library = producesLibrary()
                 Pair(plugin, library)

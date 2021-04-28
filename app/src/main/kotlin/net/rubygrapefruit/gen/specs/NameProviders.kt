@@ -14,6 +14,8 @@ class FixedNames(
         counter++
         return if (counter <= names.size) {
             names[counter - 1]
+        } else if (counter == names.size + 1) {
+            defaultName
         } else {
             "$defaultName${counter - names.size}"
         }

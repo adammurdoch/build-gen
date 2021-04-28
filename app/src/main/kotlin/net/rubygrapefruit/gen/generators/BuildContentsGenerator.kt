@@ -59,11 +59,16 @@ class BuildContentsGenerator(
                     }
                 }
             } else if (producesLibrary != null) {
+                val library = project(build.projectNames.next()) {
+                    producesLibrary()
+                }
                 project(producesLibrary.coordinates.name) {
+                    requiresLibrary(library)
                     producesLibrary(producesLibrary)
                 }
                 if (build.producesPlugins.isNotEmpty()) {
                     project("plugins") {
+                        requiresLibrary(library)
                         producesPlugins(build.producesPlugins)
                     }
                 }
