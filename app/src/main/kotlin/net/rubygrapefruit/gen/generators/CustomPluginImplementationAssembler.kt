@@ -9,7 +9,7 @@ import java.nio.file.Files
 class CustomPluginImplementationAssembler(
     private val sourceFileGenerator: SourceFileGenerator
 ) {
-    fun pluginImplementation(): Assembler<PluginImplementationBuilder> = Assembler.of { generationContext ->
+    fun pluginImplementation(): Assembler<PluginImplementationBuilder> = Assembler.of { _ ->
         val spec = this.spec
         if (spec is CustomPluginImplementationSpec) {
             sourceFileGenerator.java(spec.project.projectDir.resolve("src/main/java"), spec.taskImplementationClass).apply {

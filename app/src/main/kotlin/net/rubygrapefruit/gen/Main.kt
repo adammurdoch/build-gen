@@ -56,10 +56,12 @@ fun generate(rootDir: Path, layout: BuildTreeTemplate, implementation: Implement
         val javaLibraryAssembler = JavaLibraryImplementationAssembler(sourceFileGenerator)
         val projectGenerator = ProjectContentsGenerator(
             scriptGenerator,
+            fileContext,
             listOf(pluginProducerAssembler.projectContents(), javaLibraryAssembler.projectContents(), problemGenerator.projectContents())
         )
         val buildContentsGenerator = BuildContentsGenerator(
             scriptGenerator,
+            fileContext,
             listOf(problemGenerator.buildContents()),
             projectGenerator.projectContents()
         )

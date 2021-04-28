@@ -1,6 +1,7 @@
 package net.rubygrapefruit.gen.generators
 
 import net.rubygrapefruit.gen.builders.BuildContentsBuilder
+import net.rubygrapefruit.gen.files.FileGenerationContext
 import net.rubygrapefruit.gen.files.ScriptGenerator
 import net.rubygrapefruit.gen.specs.BuildSpec
 import net.rubygrapefruit.gen.specs.ProjectSpec
@@ -9,11 +10,13 @@ import java.nio.file.Files
 
 class BuildContentsGenerator(
     private val scriptGenerator: ScriptGenerator,
+    private val fileGenerationContext: FileGenerationContext,
     private val assemblers: List<Assembler<BuildContentsBuilder>>,
     private val projectGenerator: Generator<ProjectSpec>
 ) {
     fun buildContents(): Generator<BuildSpec> = Generator.of { generationContext ->
         Files.createDirectories(rootDir)
+        fileGenerationContext.directoryToClean(rootDir.resolve(".gradle"))
 
         val rootProject = projects(this)
 

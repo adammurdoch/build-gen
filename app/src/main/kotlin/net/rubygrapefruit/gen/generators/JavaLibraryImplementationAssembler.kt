@@ -8,7 +8,7 @@ import net.rubygrapefruit.gen.specs.JavaLibraryProductionSpec
 class JavaLibraryImplementationAssembler(
     private val sourceFileGenerator: SourceFileGenerator
 ) {
-    fun projectContents(): Assembler<ProjectContentsBuilder> = Assembler.of { generationContext ->
+    fun projectContents(): Assembler<ProjectContentsBuilder> = Assembler.of { _ ->
         val api = spec.producesLibrary?.spec
         if (api is JavaLibraryProductionSpec) {
             if (spec.usesPlugins.none { it.canProduceJavaLibrary }) {
