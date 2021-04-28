@@ -16,5 +16,8 @@ class CustomPluginImplementationSpec(
         get() = spec.className("WorkerTask")
 }
 
-class JavaConventionPluginImplementationSpec(project: ProjectSpec, override val spec: JavaConventionPluginProductionSpec) : PluginImplementationSpec(project, spec) {
+class JavaConventionPluginImplementationSpec(
+    project: ProjectSpec,
+    override val spec: JavaConventionPluginProductionSpec
+) : PluginImplementationSpec(project, spec) {
 }

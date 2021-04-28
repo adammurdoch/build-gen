@@ -1,11 +1,10 @@
 package net.rubygrapefruit.gen.builders
 
 import net.rubygrapefruit.gen.files.PluginSourceBuilder
-import net.rubygrapefruit.gen.specs.PluginProductionSpec
-import net.rubygrapefruit.gen.specs.ProjectSpec
+import net.rubygrapefruit.gen.specs.PluginImplementationSpec
 
 interface PluginImplementationBuilder {
-    val spec: PluginProductionSpec
+    val spec: PluginImplementationSpec
     val source: PluginSourceBuilder
     val includeConfigurationCacheProblems: Boolean
 }

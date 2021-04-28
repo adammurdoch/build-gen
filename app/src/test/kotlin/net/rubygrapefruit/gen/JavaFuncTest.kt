@@ -27,4 +27,11 @@ class JavaFuncTest : AbstractFuncTest() {
         generate(dir.toPath(), BuildTreeTemplate.TreeWithBuildLogicAndLibraryChildBuild, Implementation.Java, Theme.None, DslLanguage.GroovyDsl)
         runBuild(dir, "assemble")
     }
+
+    @Test
+    fun canGenerateTreeWithBuildLogicAndLibraryInChildWithConfigurationCacheProblemsAndKotlinDsl() {
+        val dir = testDir.newFolder()
+        generate(dir.toPath(), BuildTreeTemplate.TreeWithBuildLogicAndLibraryChildBuild, Implementation.Java, Theme.ConfigurationCacheProblems, DslLanguage.KotlinDsl)
+        runBuild(dir, "assemble")
+    }
 }
