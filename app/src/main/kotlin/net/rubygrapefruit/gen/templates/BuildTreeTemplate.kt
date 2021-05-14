@@ -44,6 +44,35 @@ enum class BuildTreeTemplate {
             }
         }
     },
+    ChildBuildsWithBuildSrc {
+        override fun BuildTreeBuilder.applyTo() {
+            mainBuild {
+                val mainPlugin = buildSrc {
+                    producesPlugin()
+                }
+                val dataLibrary = build("data") {
+                    val plugin = buildSrc {
+                        producesPlugin()
+                    }
+                    requires(plugin)
+                    projectNames(dataBuildNames)
+                    producesLibrary()
+                }
+                val uiLibrary = build("ui") {
+                    val plugin = buildSrc {
+                        producesPlugin()
+                    }
+                    requires(plugin)
+                    projectNames(uiBuildNames)
+                    producesLibrary()
+                }
+                requires(mainPlugin)
+                requires(dataLibrary)
+                requires(uiLibrary)
+                projectNames(mainBuildNames)
+            }
+        }
+    },
     ChildBuildsWithPluginChildBuild {
         override fun BuildTreeBuilder.applyTo() {
             mainBuild {
@@ -125,6 +154,8 @@ enum class BuildTreeTemplate {
                 treeStructure == BuildTreeStructure.MainBuild && buildLogic == BuildLogic.BuildSrc -> MainBuildWithBuildSrc
                 treeStructure == BuildTreeStructure.MainBuild && buildLogic == BuildLogic.BuildSrcAndChildBuild -> MainBuildWithBuildSrcAndPluginChildBuild
                 treeStructure == BuildTreeStructure.MainBuild && buildLogic == BuildLogic.ChildBuild -> MainBuildWithPluginChildBuild
+                treeStructure == BuildTreeStructure.ChildBuilds && buildLogic == BuildLogic.BuildSrc -> ChildBuildsWithBuildSrc
+                treeStructure == BuildTreeStructure.ChildBuilds && buildLogic == BuildLogic.ChildBuild -> ChildBuildsWithPluginChildBuild
                 treeStructure == BuildTreeStructure.ChildBuilds && buildLogic == BuildLogic.ChildBuildAndSharedLibrary -> ChildBuildsWithPluginChildBuildAndSharedLibrary
                 treeStructure == BuildTreeStructure.NestedChildBuilds && buildLogic == BuildLogic.ChildBuild -> NestedChildBuildsWithPluginChildBuild
                 else -> throw UnsupportedOperationException()

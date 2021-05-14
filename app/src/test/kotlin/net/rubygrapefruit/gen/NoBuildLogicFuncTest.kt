@@ -4,20 +4,25 @@ import net.rubygrapefruit.gen.files.DslLanguage
 import net.rubygrapefruit.gen.templates.BuildTreeTemplate
 import net.rubygrapefruit.gen.templates.Implementation
 import net.rubygrapefruit.gen.templates.Theme
+import java.io.File
 import kotlin.test.Test
 
 class NoBuildLogicFuncTest : AbstractFuncTest() {
+    fun generate(dir: File, template: BuildTreeTemplate, theme: Theme = Theme.None, dsl: DslLanguage = DslLanguage.GroovyDsl) {
+        generate(dir.toPath(), template, Implementation.None, theme, dsl)
+    }
+
     @Test
     fun canGenerateBuildWithGroovyDsl() {
         val dir = testDir.newFolder()
-        generate(dir.toPath(), BuildTreeTemplate.MainBuildNoBuildLogic, Implementation.None, Theme.None, DslLanguage.GroovyDsl)
+        generate(dir, BuildTreeTemplate.MainBuildNoBuildLogic)
         runBuild(dir, "help")
     }
 
     @Test
     fun canGenerateBuildWithKotlinDsl() {
         val dir = testDir.newFolder()
-        generate(dir.toPath(), BuildTreeTemplate.MainBuildNoBuildLogic, Implementation.None, Theme.None, DslLanguage.KotlinDsl)
+        generate(dir, BuildTreeTemplate.MainBuildNoBuildLogic, dsl = DslLanguage.KotlinDsl)
         runBuild(dir, "help")
     }
 }
