@@ -13,6 +13,11 @@ interface BuildBuilder {
     fun <T> buildSrc(body: BuildBuilder.() -> T): T
 
     /**
+     * Adds a child build.
+     */
+    fun <T> build(name: String, body: BuildBuilder.() -> T): T
+
+    /**
      * The build should produce a plugin.
      */
     fun producesPlugin(): PluginUseSpec

@@ -43,6 +43,13 @@ class CustomPluginFuncTest : AbstractFuncTest() {
     }
 
     @Test
+    fun canGenerateTreeWithNestedChildBuildsWithGroovyDsl() {
+        val dir = testDir.newFolder()
+        generate(dir.toPath(), BuildTreeTemplate.TreeWithNestedChildBuild, Implementation.Custom, Theme.None, DslLanguage.GroovyDsl)
+        runBuild(dir, "assemble")
+    }
+
+    @Test
     fun canGenerateBuildWithBuildLogicInBuildSrcAndChildWithConfigurationCacheProblemsAndKotlinDsl() {
         val dir = testDir.newFolder()
         generate(dir.toPath(), BuildTreeTemplate.BuildLogicChildBuildAndBuildSrc, Implementation.Custom, Theme.ConfigurationCacheProblems, DslLanguage.KotlinDsl)

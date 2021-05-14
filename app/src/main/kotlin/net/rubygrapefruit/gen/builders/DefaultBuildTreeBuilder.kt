@@ -20,15 +20,6 @@ class DefaultBuildTreeBuilder(
 
     override var includeConfigurationCacheProblems = false
 
-    override fun <T> build(name: String, body: BuildBuilder.() -> T): T {
-        require(!name.contains(':') && !name.contains('/'))
-        val build = BuildBuilderImpl("build $name", name, rootDir.resolve(name))
-        val result = body(build)
-        mainBuild.childBuilds.add(build)
-        builds.add(build)
-        return result
-    }
-
     override fun <T> mainBuild(body: BuildBuilder.() -> T): T {
         return body(mainBuild)
     }
@@ -60,6 +51,15 @@ class DefaultBuildTreeBuilder(
 
         override val includeConfigurationCacheProblems: Boolean
             get() = this@DefaultBuildTreeBuilder.includeConfigurationCacheProblems
+
+        override fun <T> build(name: String, body: BuildBuilder.() -> T): T {
+            require(!name.contains(':') && !name.contains('/'))
+            val build = BuildBuilderImpl("build $name", name, rootDir.resolve(name))
+            val result = body(build)
+            childBuilds.add(build)
+            builds.add(build)
+            return result
+        }
 
         override fun producesPlugin(): PluginUseSpec {
             val plugin = pluginSpecFactory.plugin(baseName, "test.${baseName}")
