@@ -1,7 +1,7 @@
 package net.rubygrapefruit.gen.specs
 
 sealed class PluginProductionSpec(
-    protected val baseName: String,
+    protected val baseName: BaseName,
     val id: String,
 ) {
     abstract fun toUseSpec(): PluginUseSpec
@@ -9,19 +9,19 @@ sealed class PluginProductionSpec(
     /**
      * Creates a unique identifier based on the identity of this plugin.
      */
-    fun identifier(suffix: String) = baseName + suffix.capitalize()
+    fun identifier(suffix: String): String = baseName.camelCase + suffix.capitalize()
 
     /**
      * Creates a unique fully-qualified class name based on the identity of this plugin.
      */
     fun className(classNameSuffix: String): JvmClassName {
-        return JvmClassName(id.toLowerCase() + ".plugin." + classNameSuffix.capitalize())
+        return JvmClassName(baseName.lowerCaseDotSeparator + ".plugin." + classNameSuffix.capitalize())
     }
 }
 
-class CustomPluginProductionSpec(baseName: String, id: String) : PluginProductionSpec(baseName, id) {
+class CustomPluginProductionSpec(baseName: BaseName, val artifactType: String, id: String) : PluginProductionSpec(baseName, id) {
     val lifecycleTaskName: String
-        get() = baseName
+        get() = baseName.camelCase
 
     val workerTaskName: String
         get() = identifier("worker")
@@ -29,7 +29,7 @@ class CustomPluginProductionSpec(baseName: String, id: String) : PluginProductio
     override fun toUseSpec() = PluginUseSpec(id, workerTaskName, false)
 }
 
-class JavaConventionPluginProductionSpec(baseName: String, id: String) : PluginProductionSpec(baseName, id) {
+class JavaConventionPluginProductionSpec(baseName: BaseName, id: String) : PluginProductionSpec(baseName, id) {
     override fun toUseSpec() = PluginUseSpec(id, "compileJava", true)
 }
 

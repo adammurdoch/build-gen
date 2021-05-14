@@ -67,11 +67,11 @@ class CustomPluginImplementationAssembler(
                         Configuration implementation = project.getConfigurations().maybeCreate("implementation");
                         Configuration incoming = project.getConfigurations().create("$incomingConfiguration");
                         incoming.extendsFrom(implementation);
-                        incoming.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, "${spec.spec.id}"));
+                        incoming.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, "${spec.spec.artifactType}"));
                         incoming.setCanBeConsumed(false);
                         Configuration outgoing = project.getConfigurations().create("$outgoingConfiguration");
                         outgoing.extendsFrom(implementation);
-                        outgoing.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, "${spec.spec.id}"));
+                        outgoing.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, "${spec.spec.artifactType}"));
                         TaskProvider<${spec.taskImplementationClass.simpleName}> worker = project.getTasks().register("${spec.spec.workerTaskName}", ${spec.taskImplementationClass.simpleName}.class, t -> {
                             t.getMessage().set("input");
                             t.getInputFiles().from(incoming);
