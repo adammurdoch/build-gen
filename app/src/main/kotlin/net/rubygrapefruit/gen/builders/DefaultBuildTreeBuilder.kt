@@ -12,7 +12,7 @@ class DefaultBuildTreeBuilder(
     private val librarySpecFactory: LibrarySpecFactory
 ) : BuildTreeBuilder {
     private val builds = mutableListOf<BuildBuilderImpl>()
-    private val mainBuild = BuildBuilderImpl("main build", BaseName("main"), "main", rootDir)
+    private val mainBuild = BuildBuilderImpl(null, "main build", BaseName("main"), "main", rootDir)
 
     init {
         builds.add(mainBuild)
@@ -34,6 +34,7 @@ class DefaultBuildTreeBuilder(
     ) : BuildTreeSpec
 
     private inner class BuildBuilderImpl(
+        val owner: BuildBuilderImpl?,
         override val displayName: String,
         val baseName: BaseName,
         val artifactType: String,
@@ -55,7 +56,7 @@ class DefaultBuildTreeBuilder(
 
         override fun <T> build(name: String, body: BuildBuilder.() -> T): T {
             require(!name.contains(':') && !name.contains('/'))
-            val build = BuildBuilderImpl("build $name", BaseName(name), name, rootDir.resolve(name))
+            val build = BuildBuilderImpl(this, "build $name", BaseName(name), name, rootDir.resolve(name))
             val result = body(build)
             childBuilds.add(build)
             builds.add(build)
@@ -79,7 +80,8 @@ class DefaultBuildTreeBuilder(
         }
 
         override fun <T> buildSrc(body: BuildBuilder.() -> T): T {
-            val build = BuildBuilderImpl("buildSrc build", baseName + "buildSrc", "buildSrc", rootDir.resolve("buildSrc"))
+            val buildSrcBaseName = if (owner == null) BaseName("buildSrc") else baseName + "buildSrc"
+            val build = BuildBuilderImpl(this, "buildSrc build", buildSrcBaseName, "buildSrc", rootDir.resolve("buildSrc"))
             val result = body(build)
             builds.add(build)
             return result

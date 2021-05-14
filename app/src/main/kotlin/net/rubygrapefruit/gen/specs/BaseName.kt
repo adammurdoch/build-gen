@@ -1,13 +1,18 @@
 package net.rubygrapefruit.gen.specs
 
-class BaseName(path: String) {
-    private val parts: List<String> = path.split('.').map { it.toLowerCase() }
+class BaseName private constructor(
+    private val parts: List<String>
+) {
+    constructor(path: String) : this(path.split('.'))
 
-    operator fun plus(path: String) = BaseName("$lowerCaseDotSeparator.$path")
+    operator fun plus(path: String) = BaseName(parts + listOf(path))
 
-    val lowerCaseDotSeparator: String = parts.joinToString(".")
+    val lowerCaseDotSeparator: String
+        get() = parts.joinToString(".") { it.lowercase() }
 
-    val capitalCase: String = parts.joinToString { it.capitalize() }
+    val capitalCase: String
+        get() = parts.joinToString { s -> s.replaceFirstChar { c -> c.uppercaseChar() } }
 
-    val camelCase: String = parts.first() + parts.drop(1).joinToString { it.capitalize() }
+    val camelCase: String
+        get() = parts.first().replaceFirstChar { it.lowercaseChar() } + parts.drop(1).joinToString { s -> s.replaceFirstChar { c -> c.uppercaseChar() } }
 }
