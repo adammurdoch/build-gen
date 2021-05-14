@@ -3,9 +3,7 @@ package net.rubygrapefruit.gen
 import net.rubygrapefruit.gen.builders.DefaultBuildTreeBuilder
 import net.rubygrapefruit.gen.files.*
 import net.rubygrapefruit.gen.generators.*
-import net.rubygrapefruit.gen.templates.BuildTreeTemplate
-import net.rubygrapefruit.gen.templates.Implementation
-import net.rubygrapefruit.gen.templates.Theme
+import net.rubygrapefruit.gen.templates.*
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.prompts.Prompter
 import net.rubygrapefruit.platform.terminal.Terminals
@@ -20,10 +18,12 @@ fun main(args: Array<String>) {
         System.exit(1)
     }
     val prompter = Prompter(terminals)
-    val treeTemplate = prompter.select("Select build tree structure", BuildTreeTemplate.values())
-    val implementation = prompter.select("Select implementation", treeTemplate.applicableImplementations)
+    val treeStructure = prompter.select("Select build tree structure", BuildTreeStructure.values())
+    val buildLogic = prompter.select("Select build logic structure", BuildLogic.values())
+    val implementation = prompter.select("Select implementation", buildLogic.applicableImplementations)
     val theme = prompter.select("Select theme", Theme.values())
     val dsl = prompter.select("Select DSL language", DslLanguage.values())
+    val treeTemplate = BuildTreeTemplate.templateFor(treeStructure, buildLogic)
     val rootDir = File("build/test").absoluteFile.toPath()
     generate(rootDir, treeTemplate, implementation, theme, dsl)
 }

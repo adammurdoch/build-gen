@@ -2,15 +2,12 @@ package net.rubygrapefruit.gen.templates
 
 import net.rubygrapefruit.gen.builders.BuildTreeBuilder
 
-enum class BuildTreeTemplate(private val display: String) {
-    MainBuildOnly("Build with no build logic") {
-        override val applicableImplementations: List<Implementation>
-            get() = listOf(Implementation.None)
-
+enum class BuildTreeTemplate {
+    MainBuildNoBuildLogic {
         override fun BuildTreeBuilder.applyTo() {
         }
     },
-    BuildSrc("Build with plugin in buildSrc") {
+    MainBuildWithBuildSrc {
         override fun BuildTreeBuilder.applyTo() {
             mainBuild {
                 val plugin = buildSrc {
@@ -21,7 +18,7 @@ enum class BuildTreeTemplate(private val display: String) {
             }
         }
     },
-    BuildLogicChildBuild("Build with plugin in child build") {
+    MainBuildWithPluginChildBuild {
         override fun BuildTreeBuilder.applyTo() {
             mainBuild {
                 val plugin = build("plugins") {
@@ -32,7 +29,7 @@ enum class BuildTreeTemplate(private val display: String) {
             }
         }
     },
-    BuildLogicChildBuildAndBuildSrc("Build with plugin in buildSrc and child build") {
+    MainBuildWithBuildSrcAndPluginChildBuild {
         override fun BuildTreeBuilder.applyTo() {
             mainBuild {
                 val buildSrcPlugin = buildSrc {
@@ -47,7 +44,7 @@ enum class BuildTreeTemplate(private val display: String) {
             }
         }
     },
-    TreeWithBuildLogicChildBuild("Composite build with plugin in child build") {
+    ChildBuildsWithPluginChildBuild {
         override fun BuildTreeBuilder.applyTo() {
             mainBuild {
                 val plugin = build("plugins") {
@@ -70,10 +67,7 @@ enum class BuildTreeTemplate(private val display: String) {
             }
         }
     },
-    TreeWithBuildLogicAndLibraryChildBuild("Composite build with plugin and library in child build") {
-        override val applicableImplementations: List<Implementation>
-            get() = listOf(Implementation.Java)
-
+    ChildBuildsWithPluginChildBuildAndSharedLibrary {
         override fun BuildTreeBuilder.applyTo() {
             mainBuild {
                 val (plugin, sharedLibrary) = build("shared") {
@@ -100,7 +94,7 @@ enum class BuildTreeTemplate(private val display: String) {
             }
         }
     },
-    TreeWithNestedChildBuild("Composite build with nested child builds") {
+    NestedChildBuildsWithPluginChildBuild {
         override fun BuildTreeBuilder.applyTo() {
             mainBuild {
                 val plugin = build("plugins") {
@@ -124,14 +118,23 @@ enum class BuildTreeTemplate(private val display: String) {
         }
     };
 
+    companion object {
+        fun templateFor(treeStructure: BuildTreeStructure, buildLogic: BuildLogic): BuildTreeTemplate {
+            return when {
+                treeStructure == BuildTreeStructure.MainBuild && buildLogic == BuildLogic.None -> MainBuildNoBuildLogic
+                treeStructure == BuildTreeStructure.MainBuild && buildLogic == BuildLogic.BuildSrc -> MainBuildWithBuildSrc
+                treeStructure == BuildTreeStructure.MainBuild && buildLogic == BuildLogic.BuildSrcAndChildBuild -> MainBuildWithBuildSrcAndPluginChildBuild
+                treeStructure == BuildTreeStructure.MainBuild && buildLogic == BuildLogic.ChildBuild -> MainBuildWithPluginChildBuild
+                treeStructure == BuildTreeStructure.ChildBuilds && buildLogic == BuildLogic.ChildBuildAndSharedLibrary -> ChildBuildsWithPluginChildBuildAndSharedLibrary
+                treeStructure == BuildTreeStructure.NestedChildBuilds && buildLogic == BuildLogic.ChildBuild -> NestedChildBuildsWithPluginChildBuild
+                else -> throw UnsupportedOperationException()
+            }
+        }
+    }
+
     protected val mainBuildNames = listOf("util", "app")
     protected val dataBuildNames = listOf("main", "store")
     protected val uiBuildNames = listOf("entry", "render")
-
-    override fun toString() = display
-
-    open val applicableImplementations: List<Implementation>
-        get() = Implementation.values().toList()
 
     abstract fun BuildTreeBuilder.applyTo()
 }
