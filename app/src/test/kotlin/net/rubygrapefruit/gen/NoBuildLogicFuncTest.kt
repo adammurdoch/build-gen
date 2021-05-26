@@ -25,4 +25,11 @@ class NoBuildLogicFuncTest : AbstractFuncTest() {
         generate(dir, BuildTreeTemplate.MainBuildNoBuildLogic, dsl = DslLanguage.KotlinDsl)
         runBuild(dir, "help")
     }
+
+    @Test
+    fun canGenerateTreeWithGroovyDsl() {
+        val dir = testDir.newFolder()
+        generate(dir, BuildTreeTemplate.ChildBuildsNoBuildLogic)
+        runBuild(dir, "help")
+    }
 }

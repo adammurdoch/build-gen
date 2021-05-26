@@ -44,6 +44,16 @@ enum class BuildTreeTemplate {
             }
         }
     },
+    ChildBuildsNoBuildLogic {
+        override fun BuildTreeBuilder.applyTo() {
+            mainBuild {
+                build("data") {
+                }
+                build("ui") {
+                }
+            }
+        }
+    },
     ChildBuildsWithBuildSrc {
         override fun BuildTreeBuilder.applyTo() {
             mainBuild {
@@ -154,6 +164,7 @@ enum class BuildTreeTemplate {
                 treeStructure == BuildTreeStructure.MainBuild && buildLogic == BuildLogic.BuildSrc -> MainBuildWithBuildSrc
                 treeStructure == BuildTreeStructure.MainBuild && buildLogic == BuildLogic.BuildSrcAndChildBuild -> MainBuildWithBuildSrcAndPluginChildBuild
                 treeStructure == BuildTreeStructure.MainBuild && buildLogic == BuildLogic.ChildBuild -> MainBuildWithPluginChildBuild
+                treeStructure == BuildTreeStructure.ChildBuilds && buildLogic == BuildLogic.None -> ChildBuildsNoBuildLogic
                 treeStructure == BuildTreeStructure.ChildBuilds && buildLogic == BuildLogic.BuildSrc -> ChildBuildsWithBuildSrc
                 treeStructure == BuildTreeStructure.ChildBuilds && buildLogic == BuildLogic.ChildBuild -> ChildBuildsWithPluginChildBuild
                 treeStructure == BuildTreeStructure.ChildBuilds && buildLogic == BuildLogic.ChildBuildAndSharedLibrary -> ChildBuildsWithPluginChildBuildAndSharedLibrary
