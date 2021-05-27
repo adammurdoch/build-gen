@@ -43,7 +43,7 @@ class DefaultBuildTreeBuilder(
         override val producesPlugins = mutableListOf<PluginProductionSpec>()
         override val usesPlugins = mutableListOf<PluginUseSpec>()
         override val usesLibraries = mutableListOf<ExternalLibraryUseSpec>()
-        override var producesLibrary: ExternalLibraryProductionSpec? = null
+        override var producesLibraries = mutableListOf<ExternalLibraryProductionSpec>()
         override val childBuilds = mutableListOf<BuildSpec>()
         override var projectNames: NameProvider = FixedNames(emptyList(), baseName.camelCase)
 
@@ -70,12 +70,10 @@ class DefaultBuildTreeBuilder(
         }
 
         override fun producesLibrary(): ExternalLibraryUseSpec {
-            if (producesLibrary == null) {
-                val coordinates = ExternalLibraryCoordinates("test.${baseName.lowerCaseDotSeparator}", projectNames.next(), "1.0")
-                val libraryApi = librarySpecFactory.library(baseName.camelCase)
-                producesLibrary = ExternalLibraryProductionSpec(coordinates, libraryApi)
-            }
-            val library = producesLibrary!!
+            val coordinates = ExternalLibraryCoordinates("test.${baseName.lowerCaseDotSeparator}", projectNames.next(), "1.0")
+            val libraryApi = librarySpecFactory.library(baseName.camelCase)
+            val library = ExternalLibraryProductionSpec(coordinates, libraryApi)
+            producesLibraries.add(library)
             return ExternalLibraryUseSpec(library.coordinates, library.spec.toApiSpec())
         }
 
@@ -96,7 +94,7 @@ class DefaultBuildTreeBuilder(
         }
 
         override fun projectNames(names: List<String>) {
-            projectNames = FixedNames(names, baseName.capitalCase)
+            projectNames = FixedNames(names, baseName.camelCase)
         }
 
         override fun projects(body: RootProjectBuilder.() -> Unit): RootProjectSpec {

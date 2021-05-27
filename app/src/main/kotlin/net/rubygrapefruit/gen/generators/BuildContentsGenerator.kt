@@ -42,36 +42,46 @@ class BuildContentsGenerator(
 
     private fun projects(build: BuildSpec): RootProjectSpec {
         return build.projects {
-            val producesLibrary = build.producesLibrary
+            val producesLibraries = build.producesLibraries
             val hasLibraries = build.usesPlugins.isNotEmpty()
             if (hasLibraries) {
-                val library = project(build.projectNames.next()) {
+                val internalLibrary = project(build.projectNames.next()) {
                     requiresPlugins(build.usesPlugins)
                     producesLibrary()
                 }
-                val projectName = if (producesLibrary != null) producesLibrary.coordinates.name else build.projectNames.next()
+                val firstLibrary = producesLibraries.firstOrNull()
+                val projectName = if (firstLibrary != null) firstLibrary.coordinates.name else build.projectNames.next()
                 project(projectName) {
                     requiresPlugins(build.usesPlugins)
                     requiresLibraries(build.usesLibraries)
-                    requiresLibrary(library)
-                    producesLibrary(producesLibrary)
+                    requiresLibrary(internalLibrary)
+                    producesLibrary(firstLibrary)
+                }
+                for (library in producesLibraries.drop(1)) {
+                    project(library.coordinates.name) {
+                        requiresPlugins(build.usesPlugins)
+                        requiresLibrary(internalLibrary)
+                        producesLibrary(library)
+                    }
                 }
                 if (build.producesPlugins.isNotEmpty()) {
                     project("plugins") {
                         producesPlugins(build.producesPlugins)
                     }
                 }
-            } else if (producesLibrary != null) {
-                val library = project(build.projectNames.next()) {
+            } else if (producesLibraries.isNotEmpty()) {
+                val internalLibrary = project(build.projectNames.next()) {
                     producesLibrary()
                 }
-                project(producesLibrary.coordinates.name) {
-                    requiresLibrary(library)
-                    producesLibrary(producesLibrary)
+                for (library in producesLibraries) {
+                    project(library.coordinates.name) {
+                        requiresLibrary(internalLibrary)
+                        producesLibrary(library)
+                    }
                 }
                 if (build.producesPlugins.isNotEmpty()) {
                     project("plugins") {
-                        requiresLibrary(library)
+                        requiresLibrary(internalLibrary)
                         producesPlugins(build.producesPlugins)
                     }
                 }

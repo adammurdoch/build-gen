@@ -18,12 +18,12 @@ interface BuildBuilder {
     fun <T> build(name: String, body: BuildBuilder.() -> T): T
 
     /**
-     * The build should produce a plugin.
+     * Adds a plugin that this build should produce.
      */
     fun producesPlugin(): PluginUseSpec
 
     /**
-     * The build should produce a library.
+     * Adds a library that this build should produce.
      */
     fun producesLibrary(): ExternalLibraryUseSpec
 

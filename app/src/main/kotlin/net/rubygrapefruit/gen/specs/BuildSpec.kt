@@ -11,9 +11,12 @@ interface BuildSpec {
     val usesPlugins: List<PluginUseSpec>
     val producesPlugins: List<PluginProductionSpec>
     val usesLibraries: List<ExternalLibraryUseSpec>
-    val producesLibrary: ExternalLibraryProductionSpec?
+    val producesLibraries: List<ExternalLibraryProductionSpec>
 
     val projectNames: NameProvider
+
+    val containsLibraries: Boolean
+        get() = usesPlugins.isNotEmpty() || producesLibraries.isNotEmpty()
 
     /**
      * Creates a project tree for this build.
