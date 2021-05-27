@@ -42,25 +42,28 @@ class BuildContentsGenerator(
 
     private fun projects(build: BuildSpec): RootProjectSpec {
         return build.projects {
-            val producesLibraries = build.producesLibraries
-            val hasLibraries = build.usesPlugins.isNotEmpty()
-            if (hasLibraries) {
-                val internalLibrary = project(build.projectNames.next()) {
+            val internalLibraries = build.internalLibraries.map {
+                project(build.projectNames.next()) {
                     requiresPlugins(build.usesPlugins)
                     producesLibrary()
                 }
+            }.filterNotNull()
+
+            val producesLibraries = build.producesLibraries
+            val hasLibraries = build.usesPlugins.isNotEmpty()
+            if (hasLibraries) {
                 val firstLibrary = producesLibraries.firstOrNull()
                 val projectName = if (firstLibrary != null) firstLibrary.coordinates.name else build.projectNames.next()
                 project(projectName) {
                     requiresPlugins(build.usesPlugins)
-                    requiresLibraries(build.usesLibraries)
-                    requiresLibrary(internalLibrary)
+                    requiresExternalLibraries(build.usesLibraries)
+                    requiresLibraries(internalLibraries)
                     producesLibrary(firstLibrary)
                 }
                 for (library in producesLibraries.drop(1)) {
                     project(library.coordinates.name) {
                         requiresPlugins(build.usesPlugins)
-                        requiresLibrary(internalLibrary)
+                        requiresLibraries(internalLibraries)
                         producesLibrary(library)
                     }
                 }
@@ -70,18 +73,15 @@ class BuildContentsGenerator(
                     }
                 }
             } else if (producesLibraries.isNotEmpty()) {
-                val internalLibrary = project(build.projectNames.next()) {
-                    producesLibrary()
-                }
                 for (library in producesLibraries) {
                     project(library.coordinates.name) {
-                        requiresLibrary(internalLibrary)
+                        requiresLibraries(internalLibraries)
                         producesLibrary(library)
                     }
                 }
                 if (build.producesPlugins.isNotEmpty()) {
                     project("plugins") {
-                        requiresLibrary(internalLibrary)
+                        requiresLibraries(internalLibraries)
                         producesPlugins(build.producesPlugins)
                     }
                 }

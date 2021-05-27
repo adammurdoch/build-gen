@@ -12,6 +12,8 @@ interface BuildSpec {
     val producesPlugins: List<PluginProductionSpec>
     val usesLibraries: List<ExternalLibraryUseSpec>
     val producesLibraries: List<ExternalLibraryProductionSpec>
+    val internalLibraries: List<InternalLibraryProductionSpec>
+        get() = if (containsLibraries) listOf(InternalLibraryProductionSpec()) else emptyList()
 
     val projectNames: NameProvider
 

@@ -55,6 +55,13 @@ class JavaFuncTest : AbstractFuncTest() {
     }
 
     @Test
+    fun canGenerateTreeWithCyclicChildBuildsWithGroovyDsl() {
+        val dir = testDir.newFolder()
+        generate(dir, BuildTreeTemplate.CyclicChildBuildsWithPluginChildBuild)
+        runBuild(dir, "assemble")
+    }
+
+    @Test
     fun canGenerateTreeWithBuildLogicAndLibraryInChildWithGroovyDsl() {
         val dir = testDir.newFolder()
         generate(dir, BuildTreeTemplate.ChildBuildsWithPluginChildBuildAndSharedLibrary)

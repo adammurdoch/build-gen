@@ -74,7 +74,7 @@ class DefaultBuildTreeBuilder(
             val libraryApi = librarySpecFactory.library(baseName.camelCase)
             val library = ExternalLibraryProductionSpec(coordinates, libraryApi)
             producesLibraries.add(library)
-            return ExternalLibraryUseSpec(library.coordinates, library.spec.toApiSpec())
+            return library.toUseSpec()
         }
 
         override fun <T> buildSrc(body: BuildBuilder.() -> T): T {

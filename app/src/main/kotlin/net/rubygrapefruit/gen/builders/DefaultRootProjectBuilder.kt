@@ -36,7 +36,7 @@ class DefaultRootProjectBuilder(
         val usesPlugins = mutableListOf<PluginUseSpec>()
         val producesPlugins = mutableListOf<PluginProductionSpec>()
         val usesLibraries = mutableListOf<LibraryUseSpec>()
-        var producesLibrary: LocalLibraryProductionSpec? = null
+        var producesLibrary: LibraryImplementationSpec? = null
 
         override fun requiresPlugins(plugins: List<PluginUseSpec>) {
             usesPlugins.addAll(plugins)
@@ -52,7 +52,7 @@ class DefaultRootProjectBuilder(
                 producesLibrary = null
                 return null
             } else {
-                producesLibrary = LocalLibraryProductionSpec(localCoordinates, null, spec)
+                producesLibrary = LibraryImplementationSpec(localCoordinates, null, spec)
                 return LibraryUseSpec(localCoordinates, spec.toApiSpec())
             }
         }
@@ -61,15 +61,19 @@ class DefaultRootProjectBuilder(
             if (library == null) {
                 return producesLibrary()
             } else {
-                this.producesLibrary = LocalLibraryProductionSpec(localCoordinates, library.coordinates, library.spec)
+                this.producesLibrary = LibraryImplementationSpec(localCoordinates, library.coordinates, library.spec)
                 return LibraryUseSpec(localCoordinates, library.spec.toApiSpec())
             }
         }
 
-        override fun requiresLibraries(libraries: List<ExternalLibraryUseSpec>) {
+        override fun requiresExternalLibraries(libraries: List<ExternalLibraryUseSpec>) {
             for (library in libraries) {
-                usesLibraries.add(LibraryUseSpec(library.coordinates, library.spec))
+                usesLibraries.add(library.toUseSpec())
             }
+        }
+
+        override fun requiresLibraries(libraries: List<LibraryUseSpec>) {
+            usesLibraries.addAll(libraries)
         }
 
         override fun requiresLibrary(library: LibraryUseSpec?) {

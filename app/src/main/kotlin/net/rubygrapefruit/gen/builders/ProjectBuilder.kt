@@ -14,7 +14,9 @@ interface ProjectBuilder {
      */
     fun producesLibrary(library: ExternalLibraryProductionSpec?): LibraryUseSpec?
 
-    fun requiresLibraries(libraries: List<ExternalLibraryUseSpec>)
+    fun requiresExternalLibraries(libraries: List<ExternalLibraryUseSpec>)
+
+    fun requiresLibraries(libraries: List<LibraryUseSpec>)
 
     fun requiresLibrary(library: LibraryUseSpec?)
 }

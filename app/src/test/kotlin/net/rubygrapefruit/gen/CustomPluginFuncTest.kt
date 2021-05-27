@@ -62,6 +62,13 @@ class CustomPluginFuncTest : AbstractFuncTest() {
     }
 
     @Test
+    fun canGenerateTreeWithCyclicChildBuildsWithGroovyDsl() {
+        val dir = testDir.newFolder()
+        generate(dir, BuildTreeTemplate.CyclicChildBuildsWithPluginChildBuild)
+        runBuild(dir, "assemble")
+    }
+
+    @Test
     fun canGenerateBuildWithBuildLogicInBuildSrcAndChildWithConfigurationCacheProblemsAndKotlinDsl() {
         val dir = testDir.newFolder()
         generate(dir, BuildTreeTemplate.MainBuildWithBuildSrcAndPluginChildBuild, theme = Theme.ConfigurationCacheProblems, dsl = DslLanguage.KotlinDsl)
