@@ -172,6 +172,14 @@ enum class BuildTreeTemplate {
                 else -> throw UnsupportedOperationException()
             }
         }
+
+        fun buildLogicOptionsFor(treeStructure: BuildTreeStructure): List<BuildLogic> {
+            return when (treeStructure) {
+                BuildTreeStructure.MainBuild -> listOf(BuildLogic.None, BuildLogic.BuildSrc, BuildLogic.ChildBuild, BuildLogic.BuildSrcAndChildBuild)
+                BuildTreeStructure.ChildBuilds -> listOf(BuildLogic.None, BuildLogic.BuildSrc, BuildLogic.ChildBuild, BuildLogic.ChildBuildAndSharedLibrary)
+                BuildTreeStructure.NestedChildBuilds -> listOf(BuildLogic.ChildBuild)
+            }
+        }
     }
 
     protected val mainBuildNames = listOf("util", "app")

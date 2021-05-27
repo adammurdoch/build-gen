@@ -11,7 +11,7 @@ import java.io.File
 import java.nio.file.Path
 
 
-fun main(args: Array<String>) {
+fun main() {
     val terminals = Native.get(Terminals::class.java)
     if (!terminals.isTerminalInput || !terminals.isTerminal(Terminals.Output.Stdout)) {
         println("Not connected to a terminal")
@@ -19,7 +19,7 @@ fun main(args: Array<String>) {
     }
     val prompter = Prompter(terminals)
     val treeStructure = prompter.select("Select build tree structure", BuildTreeStructure.values())
-    val buildLogic = prompter.select("Select build logic structure", BuildLogic.values())
+    val buildLogic = prompter.select("Select build logic structure", BuildTreeTemplate.buildLogicOptionsFor(treeStructure))
     val implementation = prompter.select("Select implementation", buildLogic.applicableImplementations)
     val theme = prompter.select("Select theme", Theme.values())
     val dsl = prompter.select("Select DSL language", DslLanguage.values())
