@@ -50,6 +50,7 @@ class DefaultBuildTreeBuilder(
         override val usesPlugins = mutableListOf<PluginUseSpec>()
         override val usesLibraries = mutableListOf<ExternalLibraryUseSpec>()
         override var producesLibraries = mutableListOf<ExternalLibraryProductionSpec>()
+        override val topLevelLibraries = mutableListOf<ExternalLibraryProductionSpec>()
         override val producesApps = mutableListOf<AppProductionSpec>()
         override val childBuilds: List<BuildSpec> = children
         override var projectNames: NameProvider = FixedNames(emptyList(), baseName.camelCase)
@@ -99,21 +100,24 @@ class DefaultBuildTreeBuilder(
         }
 
         override fun producesLibrary(): ExternalLibraryUseSpec {
-            return addLibrary()
+            val library = addLibrary()
+            topLevelLibraries.add(library)
+            return library.toUseSpec()
         }
 
         override fun producesLibraries(): ExternalLibrariesUseSpec {
-            val bottom = addLibrary()
+            val bottom = addLibrary().toUseSpec()
             val top = addLibrary(listOf(bottom))
-            return ExternalLibrariesUseSpec(top, bottom)
+            topLevelLibraries.add(top)
+            return ExternalLibrariesUseSpec(top.toUseSpec(), bottom)
         }
 
-        private fun addLibrary(requires: List<ExternalLibraryUseSpec> = emptyList()): ExternalLibraryUseSpec {
+        private fun addLibrary(requires: List<ExternalLibraryUseSpec> = emptyList()): ExternalLibraryProductionSpec {
             val coordinates = ExternalLibraryCoordinates("test.${baseName.lowerCaseDotSeparator}", projectNames.next(), "1.0")
             val libraryApi = librarySpecFactory.library(baseName.camelCase)
             val library = ExternalLibraryProductionSpec(coordinates, libraryApi, requires)
             producesLibraries.add(library)
-            return library.toUseSpec()
+            return library
         }
 
         override fun <T> buildSrc(body: BuildBuilder.() -> T): T {

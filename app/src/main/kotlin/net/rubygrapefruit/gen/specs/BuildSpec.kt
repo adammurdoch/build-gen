@@ -14,6 +14,9 @@ interface BuildSpec {
     val producesLibraries: List<ExternalLibraryProductionSpec>
     val producesApps: List<AppProductionSpec>
 
+    // TODO - delete this
+    val topLevelLibraries: List<ExternalLibraryProductionSpec>
+
     val projectNames: NameProvider
 
     /**

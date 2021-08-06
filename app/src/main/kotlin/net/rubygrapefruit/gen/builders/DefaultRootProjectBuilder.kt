@@ -57,13 +57,9 @@ class DefaultRootProjectBuilder(
             }
         }
 
-        override fun producesLibrary(library: ExternalLibraryProductionSpec?): LibraryUseSpec? {
-            if (library == null) {
-                return producesLibrary()
-            } else {
-                this.producesLibrary = LibraryImplementationSpec(localCoordinates, library.coordinates, library.spec)
-                return LibraryUseSpec(localCoordinates, library.spec.toApiSpec())
-            }
+        override fun producesLibrary(library: ExternalLibraryProductionSpec): LibraryUseSpec {
+            this.producesLibrary = LibraryImplementationSpec(localCoordinates, library.coordinates, library.spec)
+            return LibraryUseSpec(localCoordinates, library.spec.toApiSpec())
         }
 
         override fun requiresExternalLibraries(libraries: List<ExternalLibraryUseSpec>) {

@@ -9,10 +9,7 @@ interface ProjectBuilder {
 
     fun producesLibrary(): LibraryUseSpec?
 
-    /**
-     * Produces a library. Uses the given spec if not null, otherwise uses a default spec.
-     */
-    fun producesLibrary(library: ExternalLibraryProductionSpec?): LibraryUseSpec?
+    fun producesLibrary(library: ExternalLibraryProductionSpec): LibraryUseSpec
 
     fun requiresExternalLibraries(libraries: List<ExternalLibraryUseSpec>)
 

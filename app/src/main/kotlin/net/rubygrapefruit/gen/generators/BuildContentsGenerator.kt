@@ -54,11 +54,10 @@ class BuildContentsGenerator(
                     requiresPlugins(build.usesPlugins)
                     producesLibrary()
                 }
-                for (index in build.producesLibraries.indices) {
-                    val library = build.producesLibraries[index]
+                for (library in build.producesLibraries) {
                     project(library.coordinates.name) {
                         requiresPlugins(build.usesPlugins)
-                        if (index == 0) {
+                        if (build.topLevelLibraries.contains(library)) {
                             requiresExternalLibraries(build.usesLibraries)
                         }
                         requiresLibrary(internalLibrary)
