@@ -25,7 +25,7 @@ class NoBuildLogicFuncTest : AbstractFuncTest() {
     @Test
     fun canGenerateBuildWithKotlinDsl() {
         val dir = generate(BuildTreeTemplate.MainBuildNoBuildLogic, dsl = DslLanguage.KotlinDsl)
-        buildTree(dir)
+        buildTree(dir, dsl = DslLanguage.KotlinDsl)
         runBuild(dir, "help")
     }
 

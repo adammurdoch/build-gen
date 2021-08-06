@@ -1,6 +1,7 @@
 package net.rubygrapefruit.gen
 
 import junit.framework.TestCase.assertTrue
+import net.rubygrapefruit.gen.files.DslLanguage
 import net.rubygrapefruit.gen.files.GeneratedDirectoryContentsSynchronizer
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.rules.TemporaryFolder
@@ -27,18 +28,19 @@ abstract class AbstractFuncTest {
         runner.build()
     }
 
-    fun buildTree(dir: File): BuildTreeFixture {
+    fun buildTree(dir: File, dsl: DslLanguage = DslLanguage.GroovyDsl): BuildTreeFixture {
         assertTrue(dir.isDirectory)
-        assertTrue(dir.resolve("settings.gradle").isFile || dir.resolve("settings.gradle.kts").isFile)
         assertTrue(GeneratedDirectoryContentsSynchronizer().isGenerated(dir.toPath()))
-        return BuildTreeFixture(dir)
+        val buildTree = BuildTreeFixture(dir, dsl)
+        buildTree.assertHasRootBuild()
+        return buildTree
     }
 
-    fun application(dir: File): ApplicationFixture {
-        buildTree(dir)
-        val appDir = dir.resolve("app")
-        assertTrue(appDir.exists())
-        return ApplicationFixture()
+    fun application(dir: File, dsl: DslLanguage = DslLanguage.GroovyDsl): ApplicationFixture {
+        val buildTree = buildTree(dir, dsl)
+        buildTree.assertHasProject("app")
+        buildTree.assertHasProject("util")
+        return ApplicationFixture(buildTree)
     }
 
 }
