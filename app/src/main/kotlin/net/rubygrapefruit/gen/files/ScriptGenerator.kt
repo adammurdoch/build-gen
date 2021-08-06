@@ -126,8 +126,8 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
         private val includedBuilds = IncludedBuilds()
 
         init {
-            elements.add(includedProjects)
             elements.add(includedBuilds)
+            elements.add(includedProjects)
         }
 
         override fun includeProject(path: String) {

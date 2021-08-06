@@ -94,17 +94,21 @@ class DefaultBuildTreeBuilder(
         }
 
         override fun producesLibrary(): ExternalLibraryUseSpec {
-            val coordinates = ExternalLibraryCoordinates("test.${baseName.lowerCaseDotSeparator}", projectNames.next(), "1.0")
-            val libraryApi = librarySpecFactory.library(baseName.camelCase)
-            val library = ExternalLibraryProductionSpec(coordinates, libraryApi)
-            producesLibraries.add(library)
-            return library.toUseSpec()
+            return addLibrary()
         }
 
-        override fun producesLibraries(): ExternalLibrariesSpec {
-            val top = producesLibrary()
-            val bottom = producesLibrary()
-            return ExternalLibrariesSpec(top, bottom)
+        override fun producesLibraries(): ExternalLibrariesUseSpec {
+            val bottom = addLibrary()
+            val top = addLibrary(listOf(bottom))
+            return ExternalLibrariesUseSpec(top, bottom)
+        }
+
+        private fun addLibrary(requires: List<ExternalLibraryUseSpec> = emptyList()): ExternalLibraryUseSpec {
+            val coordinates = ExternalLibraryCoordinates("test.${baseName.lowerCaseDotSeparator}", projectNames.next(), "1.0")
+            val libraryApi = librarySpecFactory.library(baseName.camelCase)
+            val library = ExternalLibraryProductionSpec(coordinates, libraryApi, requires)
+            producesLibraries.add(library)
+            return library.toUseSpec()
         }
 
         override fun <T> buildSrc(body: BuildBuilder.() -> T): T {

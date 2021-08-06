@@ -22,11 +22,11 @@ class BuildContentsGenerator(
 
         val settings = scriptGenerator.settings(rootDir)
         settings.apply {
-            for (project in rootProject.children) {
-                includeProject(project.name)
-            }
             for (childBuild in childBuilds) {
                 includeBuild(rootDir.relativize(childBuild.rootDir).toString())
+            }
+            for (project in rootProject.children) {
+                includeProject(project.name)
             }
         }
 
