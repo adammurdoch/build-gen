@@ -34,6 +34,11 @@ interface BuildBuilder {
     fun <T> build(name: String, body: BuildBuilder.() -> T): T
 
     /**
+     * Adds an application.
+     */
+    fun producesApp()
+
+    /**
      * Adds a plugin that this build should produce.
      */
     fun producesPlugin(): PluginUseSpec

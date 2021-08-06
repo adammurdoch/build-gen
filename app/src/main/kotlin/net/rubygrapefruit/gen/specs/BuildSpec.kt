@@ -12,13 +12,9 @@ interface BuildSpec {
     val producesPlugins: List<PluginProductionSpec>
     val usesLibraries: List<ExternalLibraryUseSpec>
     val producesLibraries: List<ExternalLibraryProductionSpec>
-    val internalLibraries: List<InternalLibraryProductionSpec>
-        get() = if (containsLibraries) listOf(InternalLibraryProductionSpec()) else emptyList()
+    val producesApps: List<AppProductionSpec>
 
     val projectNames: NameProvider
-
-    val containsLibraries: Boolean
-        get() = usesPlugins.isNotEmpty() || producesLibraries.isNotEmpty()
 
     /**
      * Creates a project tree for this build.

@@ -50,6 +50,7 @@ class DefaultBuildTreeBuilder(
         override val usesPlugins = mutableListOf<PluginUseSpec>()
         override val usesLibraries = mutableListOf<ExternalLibraryUseSpec>()
         override var producesLibraries = mutableListOf<ExternalLibraryProductionSpec>()
+        override val producesApps = mutableListOf<AppProductionSpec>()
         override val childBuilds: List<BuildSpec> = children
         override var projectNames: NameProvider = FixedNames(emptyList(), baseName.camelCase)
 
@@ -91,6 +92,10 @@ class DefaultBuildTreeBuilder(
             val plugin = pluginSpecFactory.plugin(baseName, artifactType, "test.${baseName.lowerCaseDotSeparator}")
             producesPlugins.add(plugin)
             return plugin.toUseSpec()
+        }
+
+        override fun producesApp() {
+            producesApps.add(AppProductionSpec(BaseName(projectNames.next())))
         }
 
         override fun producesLibrary(): ExternalLibraryUseSpec {

@@ -42,52 +42,40 @@ class BuildContentsGenerator(
 
     private fun projects(build: BuildSpec): RootProjectSpec {
         return build.projects {
-            val internalLibraries = build.internalLibraries.map {
-                project(build.projectNames.next()) {
+            val hasProductionCode = build.producesLibraries.isNotEmpty() || build.producesApps.isNotEmpty()
+            if (build.producesPlugins.isNotEmpty() && !hasProductionCode) {
+                // Produces plugins and not libraries -> root project contains plugin
+                root {
+                    producesPlugins(build.producesPlugins)
+                }
+            } else if (hasProductionCode) {
+                // Produces libraries and maybe plugins too
+                val internalLibrary = project(build.projectNames.next()) {
                     requiresPlugins(build.usesPlugins)
                     producesLibrary()
                 }
-            }.filterNotNull()
-
-            val producesLibraries = build.producesLibraries
-            val hasLibraries = build.usesPlugins.isNotEmpty()
-            if (hasLibraries) {
-                val firstLibrary = producesLibraries.firstOrNull()
-                val projectName = if (firstLibrary != null) firstLibrary.coordinates.name else build.projectNames.next()
-                project(projectName) {
-                    requiresPlugins(build.usesPlugins)
-                    requiresExternalLibraries(build.usesLibraries)
-                    requiresLibraries(internalLibraries)
-                    producesLibrary(firstLibrary)
-                }
-                for (library in producesLibraries.drop(1)) {
+                for (index in build.producesLibraries.indices) {
+                    val library = build.producesLibraries[index]
                     project(library.coordinates.name) {
                         requiresPlugins(build.usesPlugins)
-                        requiresLibraries(internalLibraries)
+                        if (index == 0) {
+                            requiresExternalLibraries(build.usesLibraries)
+                        }
+                        requiresLibrary(internalLibrary)
                         producesLibrary(library)
+                    }
+                }
+                for (app in build.producesApps) {
+                    project(app.baseName.camelCase) {
+                        requiresPlugins(build.usesPlugins)
+                        requiresExternalLibraries(build.usesLibraries)
+                        requiresLibrary(internalLibrary)
                     }
                 }
                 if (build.producesPlugins.isNotEmpty()) {
                     project("plugins") {
                         producesPlugins(build.producesPlugins)
                     }
-                }
-            } else if (producesLibraries.isNotEmpty()) {
-                for (library in producesLibraries) {
-                    project(library.coordinates.name) {
-                        requiresLibraries(internalLibraries)
-                        producesLibrary(library)
-                    }
-                }
-                if (build.producesPlugins.isNotEmpty()) {
-                    project("plugins") {
-                        requiresLibraries(internalLibraries)
-                        producesPlugins(build.producesPlugins)
-                    }
-                }
-            } else {
-                root {
-                    producesPlugins(build.producesPlugins)
                 }
             }
         }
