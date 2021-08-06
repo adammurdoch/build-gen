@@ -8,6 +8,7 @@ repositories {
 }
 
 application {
+    applicationName = "build-gen"
     mainClass.set("net.rubygrapefruit.gen.MainKt")
 }
 
