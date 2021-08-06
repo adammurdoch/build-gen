@@ -1,9 +1,5 @@
 package net.rubygrapefruit.gen.builders
 
-import net.rubygrapefruit.gen.specs.ExternalLibrariesUseSpec
-import net.rubygrapefruit.gen.specs.ExternalLibraryUseSpec
-import net.rubygrapefruit.gen.specs.PluginUseSpec
-
 /**
  * A mutable builder for the structure of a build in the tree.
  */
@@ -41,27 +37,27 @@ interface BuildBuilder {
     /**
      * Adds a plugin that this build should produce.
      */
-    fun producesPlugin(): PluginUseSpec
+    fun producesPlugin(): PluginRef
 
     /**
      * Adds a library that this build should produce.
      */
-    fun producesLibrary(): ExternalLibraryUseSpec
+    fun producesLibrary(): LibraryRef
 
     /**
      * Adds multiple libraries that this build should produce.
      */
-    fun producesLibraries(): ExternalLibrariesUseSpec
+    fun producesLibraries(): LibrariesRef
 
     /**
      * The projects of this build should use the given plugin.
      */
-    fun requires(plugin: PluginUseSpec)
+    fun requires(plugin: PluginRef)
 
     /**
      * The projects of this build should use the given library.
      */
-    fun requires(library: ExternalLibraryUseSpec)
+    fun requires(library: LibraryRef)
 
     /**
      * Defines some project names to use for this build

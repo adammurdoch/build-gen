@@ -60,6 +60,9 @@ class BuildContentsGenerator(
                         if (build.topLevelLibraries.contains(library)) {
                             requiresExternalLibraries(build.usesLibraries)
                         }
+                        for (required in library.requires) {
+                            requiresLibrary(required.toUseSpec())
+                        }
                         requiresLibrary(internalLibrary)
                         producesLibrary(library)
                     }

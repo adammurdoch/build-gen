@@ -20,11 +20,3 @@ class ExternalLibraryProductionSpec(
 ) {
     fun toUseSpec(): ExternalLibraryUseSpec = ExternalLibraryUseSpec(coordinates, spec.toApiSpec())
 }
-
-/**
- * Multiple libraries produced by a build, where the top library depends on the bottom library, possibly indirectly.
- */
-class ExternalLibrariesUseSpec(
-    val top: ExternalLibraryUseSpec,
-    val bottom: ExternalLibraryUseSpec
-)

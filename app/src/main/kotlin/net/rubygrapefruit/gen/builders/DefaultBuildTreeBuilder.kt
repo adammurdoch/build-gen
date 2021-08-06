@@ -36,6 +36,19 @@ class DefaultBuildTreeBuilder(
         override val builds: List<BuildSpec>
     ) : BuildTreeSpec
 
+    private class PluginRefImpl(
+        val plugin: PluginUseSpec
+    ) : PluginRef
+
+    private class LibraryRefImpl(
+        val library: ExternalLibraryUseSpec
+    ) : LibraryRef
+
+    private class LibrariesRefImpl(
+        override val top: LibraryRef,
+        override val bottom: LibraryRef
+    ) : LibrariesRef
+
     private inner class BuildBuilderImpl(
         val owner: BuildBuilderImpl?,
         override val displayName: String,
@@ -89,27 +102,27 @@ class DefaultBuildTreeBuilder(
             return build
         }
 
-        override fun producesPlugin(): PluginUseSpec {
+        override fun producesPlugin(): PluginRef {
             val plugin = pluginSpecFactory.plugin(baseName, artifactType, "test.${baseName.lowerCaseDotSeparator}")
             producesPlugins.add(plugin)
-            return plugin.toUseSpec()
+            return PluginRefImpl(plugin.toUseSpec())
         }
 
         override fun producesApp() {
             producesApps.add(AppProductionSpec(BaseName(projectNames.next())))
         }
 
-        override fun producesLibrary(): ExternalLibraryUseSpec {
+        override fun producesLibrary(): LibraryRef {
             val library = addLibrary()
             topLevelLibraries.add(library)
-            return library.toUseSpec()
+            return LibraryRefImpl(library.toUseSpec())
         }
 
-        override fun producesLibraries(): ExternalLibrariesUseSpec {
+        override fun producesLibraries(): LibrariesRef {
             val bottom = addLibrary().toUseSpec()
             val top = addLibrary(listOf(bottom))
             topLevelLibraries.add(top)
-            return ExternalLibrariesUseSpec(top.toUseSpec(), bottom)
+            return LibrariesRefImpl(LibraryRefImpl(top.toUseSpec()), LibraryRefImpl(bottom))
         }
 
         private fun addLibrary(requires: List<ExternalLibraryUseSpec> = emptyList()): ExternalLibraryProductionSpec {
@@ -128,12 +141,14 @@ class DefaultBuildTreeBuilder(
             return result
         }
 
-        override fun requires(plugin: PluginUseSpec) {
-            usesPlugins.add(plugin)
+        override fun requires(plugin: PluginRef) {
+            val refImpl = plugin as PluginRefImpl
+            usesPlugins.add(refImpl.plugin)
         }
 
-        override fun requires(library: ExternalLibraryUseSpec) {
-            usesLibraries.add(library)
+        override fun requires(library: LibraryRef) {
+            val refImpl = library as LibraryRefImpl
+            usesLibraries.add(refImpl.library)
         }
 
         override fun projectNames(names: List<String>) {
