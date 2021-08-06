@@ -13,9 +13,11 @@ class BuildMutationFuncTest: AbstractFuncTest() {
         val dir = testDir.newFolder()
 
         generate(dir.toPath(), BuildTreeTemplate.MainBuildWithBuildSrc, Implementation.Custom, Theme.None, DslLanguage.GroovyDsl, GeneratedDirectoryContentsSynchronizer())
+        application(dir)
         runBuild(dir, "assemble")
 
         generate(dir.toPath(), BuildTreeTemplate.ChildBuildsWithPluginChildBuild, Implementation.Custom, Theme.None, DslLanguage.GroovyDsl, GeneratedDirectoryContentsSynchronizer())
+        application(dir)
         runBuild(dir, "assemble")
     }
 }

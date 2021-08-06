@@ -18,18 +18,21 @@ class NoBuildLogicFuncTest : AbstractFuncTest() {
     @Test
     fun canGenerateBuildWithGroovyDsl() {
         val dir = generate(BuildTreeTemplate.MainBuildNoBuildLogic)
+        buildTree(dir)
         runBuild(dir, "help")
     }
 
     @Test
     fun canGenerateBuildWithKotlinDsl() {
         val dir = generate(BuildTreeTemplate.MainBuildNoBuildLogic, dsl = DslLanguage.KotlinDsl)
+        buildTree(dir)
         runBuild(dir, "help")
     }
 
     @Test
     fun canGenerateTreeWithGroovyDsl() {
         val dir = generate(BuildTreeTemplate.ChildBuildsNoBuildLogic)
+        buildTree(dir)
         runBuild(dir, "help")
     }
 }
