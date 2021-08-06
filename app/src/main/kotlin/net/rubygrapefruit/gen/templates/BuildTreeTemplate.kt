@@ -14,20 +14,26 @@ enum class BuildTreeTemplate {
     MainBuildWithBuildSrc {
         override fun BuildTreeBuilder.applyTo() {
             val builder = MainBuildOnlyBuilder(this)
-            builder.buildSrcPlugin()
+            builder.apply {
+                buildSrcPlugin()
+            }
         }
     },
     MainBuildWithPluginChildBuild {
         override fun BuildTreeBuilder.applyTo() {
             val builder = MainBuildOnlyBuilder(this)
-            builder.childBuildPlugin()
+            builder.apply {
+                childBuildPlugin()
+            }
         }
     },
     MainBuildWithBuildSrcAndPluginChildBuild {
         override fun BuildTreeBuilder.applyTo() {
             val builder = MainBuildOnlyBuilder(this)
-            builder.buildSrcPlugin()
-            builder.childBuildPlugin()
+            builder.apply {
+                buildSrcPlugin()
+                childBuildPlugin()
+            }
         }
     },
     ChildBuildsNoBuildLogic {
@@ -38,90 +44,100 @@ enum class BuildTreeTemplate {
     ChildBuildsWithBuildSrc {
         override fun BuildTreeBuilder.applyTo() {
             val builder = ChildBuildsBuilder(this)
-            builder.buildSrcPlugin()
-            builder.main {
-                val dataLibrary = builder.child1 {
+            builder.apply {
+                buildSrcPlugin()
+                val dataLibrary = child1 {
                     producesLibrary()
                 }
-                val uiLibrary = builder.child2 {
+                val uiLibrary = child2 {
                     producesLibrary()
                 }
-                requires(dataLibrary)
-                requires(uiLibrary)
+                main {
+                    requires(dataLibrary)
+                    requires(uiLibrary)
+                }
             }
         }
     },
     ChildBuildsWithPluginChildBuild {
         override fun BuildTreeBuilder.applyTo() {
             val builder = ChildBuildsBuilder(this)
-            builder.childBuildPlugin()
-            builder.main {
-                val dataLibrary = builder.child1 {
+            builder.apply {
+                childBuildPlugin()
+                val dataLibrary = child1 {
                     producesLibrary()
                 }
-                val uiLibrary = builder.child2 {
+                val uiLibrary = child2 {
                     producesLibrary()
                 }
-                requires(dataLibrary)
-                requires(uiLibrary)
+                main {
+                    requires(dataLibrary)
+                    requires(uiLibrary)
+                }
             }
         }
     },
     ChildBuildsWithPluginChildBuildAndSharedLibrary {
         override fun BuildTreeBuilder.applyTo() {
             val builder = ChildBuildsBuilder(this)
-            builder.main {
-                val (plugin, sharedLibrary) = pluginBuild("shared") {
+            builder.apply {
+                val (plugin, sharedLibrary) = main.pluginBuild("shared") {
                     projectNames(listOf("generator", "common"))
                     val plugin = producesPlugin()
                     val library = producesLibrary()
                     Pair(plugin, library)
                 }
-                val dataLibrary = builder.child1 {
+                val dataLibrary = child1 {
                     requires(plugin)
                     producesLibrary()
                 }
-                val uiLibrary = builder.child2 {
+                val uiLibrary = child2 {
                     requires(plugin)
                     producesLibrary()
                 }
-                requires(plugin)
-                requires(dataLibrary)
-                requires(uiLibrary)
-                requires(sharedLibrary)
+                main {
+                    requires(plugin)
+                    requires(dataLibrary)
+                    requires(uiLibrary)
+                    requires(sharedLibrary)
+                }
             }
         }
     },
     NestedChildBuildsWithPluginChildBuild {
         override fun BuildTreeBuilder.applyTo() {
             val builder = NestedChildBuildsBuilder(this)
-            builder.childBuildPlugin()
-            builder.main {
-                val dataLibrary = builder.nestedChild {
+            builder.apply {
+                childBuildPlugin()
+                val dataLibrary = nestedChild {
                     producesLibrary()
                 }
-                val uiLibrary = builder.child {
+                val uiLibrary = child {
                     requires(dataLibrary)
                     producesLibrary()
                 }
-                requires(uiLibrary)
+                main {
+                    requires(uiLibrary)
+                }
             }
         }
     },
     CyclicChildBuildsWithPluginChildBuild {
         override fun BuildTreeBuilder.applyTo() {
             val builder = ChildBuildsBuilder(this)
-            builder.childBuildPlugin()
-            builder.main {
-                val dataLibrary = builder.child1 {
+            builder.apply {
+                childBuildPlugin()
+                val dataLibrary = child1 {
                     producesLibrary()
                 }
-                val uiLibrary = builder.child2 {
+                val uiLibrary = child2 {
                     requires(dataLibrary)
                     producesLibrary()
                     producesLibrary()
                 }
-                requires(uiLibrary)
+                main {
+                    requires(uiLibrary)
+                }
             }
         }
     };
