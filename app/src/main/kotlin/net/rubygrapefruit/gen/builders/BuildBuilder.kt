@@ -8,9 +8,19 @@ import net.rubygrapefruit.gen.specs.PluginUseSpec
  */
 interface BuildBuilder {
     /**
-     * The build should have a buildSrc build
+     * Adds a buildSrc build
      */
     fun <T> buildSrc(body: BuildBuilder.() -> T): T
+
+    /**
+     * Adds a child build that produces plugins.
+     */
+    fun <T> pluginBuild(name: String, body: BuildBuilder.() -> T): T
+
+    /**
+     * Adds a child build.
+     */
+    fun build(name: String): BuildBuilder
 
     /**
      * Adds a child build.

@@ -21,7 +21,7 @@ fun main() {
         System.exit(1)
     }
     val prompter = Prompter(terminals)
-    val treeStructure = prompter.select("Select build tree structure", ProductionBuildTreeStructure.values())
+    val treeStructure = prompter.select("Select production build tree structure", ProductionBuildTreeStructure.values())
     val buildLogic = prompter.select("Select build logic structure", BuildTreeTemplate.buildLogicOptionsFor(treeStructure))
     val implementation = prompter.select("Select implementation", BuildTreeTemplate.implementationsFor(treeStructure, buildLogic))
     val theme = prompter.select("Select theme", Theme.values())

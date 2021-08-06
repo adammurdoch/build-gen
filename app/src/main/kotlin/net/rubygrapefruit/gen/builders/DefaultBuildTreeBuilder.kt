@@ -12,10 +12,13 @@ class DefaultBuildTreeBuilder(
     private val librarySpecFactory: LibrarySpecFactory
 ) : BuildTreeBuilder {
     private val builds = mutableListOf<BuildBuilderImpl>()
-    private val mainBuild = BuildBuilderImpl(null, "main build", BaseName("main"), "main", rootDir)
+    private val main = BuildBuilderImpl(null, "main build", BaseName("main"), "main", rootDir)
+
+    override val mainBuild: BuildBuilder
+        get() = main
 
     init {
-        builds.add(mainBuild)
+        builds.add(main)
     }
 
     override var includeConfigurationCacheProblems = false
@@ -40,11 +43,14 @@ class DefaultBuildTreeBuilder(
         val artifactType: String,
         override val rootDir: Path
     ) : BuildSpec, BuildBuilder {
+        private val children = mutableListOf<BuildBuilderImpl>()
+        private var pluginBuilds = 0
+
         override val producesPlugins = mutableListOf<PluginProductionSpec>()
         override val usesPlugins = mutableListOf<PluginUseSpec>()
         override val usesLibraries = mutableListOf<ExternalLibraryUseSpec>()
         override var producesLibraries = mutableListOf<ExternalLibraryProductionSpec>()
-        override val childBuilds = mutableListOf<BuildSpec>()
+        override val childBuilds: List<BuildSpec> = children
         override var projectNames: NameProvider = FixedNames(emptyList(), baseName.camelCase)
 
         override fun toString(): String {
@@ -54,13 +60,28 @@ class DefaultBuildTreeBuilder(
         override val includeConfigurationCacheProblems: Boolean
             get() = this@DefaultBuildTreeBuilder.includeConfigurationCacheProblems
 
-        override fun <T> build(name: String, body: BuildBuilder.() -> T): T {
+        override fun <T> pluginBuild(name: String, body: BuildBuilder.() -> T): T {
+            val build = addBuild(name, pluginBuilds)
+            pluginBuilds++
+            return body(build)
+        }
+
+        override fun build(name: String): BuildBuilder {
+            return addBuild(name, children.size)
+        }
+
+        private fun addBuild(name: String, index: Int): BuildBuilderImpl {
             require(!name.contains(':') && !name.contains('/'))
+            require(!children.any { it.baseName.camelCase == BaseName(name).camelCase })
             val build = BuildBuilderImpl(this, "build $name", BaseName(name), name, rootDir.resolve(name))
-            val result = body(build)
-            childBuilds.add(build)
+            children.add(index, build)
             builds.add(build)
-            return result
+            return build
+        }
+
+        override fun <T> build(name: String, body: BuildBuilder.() -> T): T {
+            val build = build(name)
+            return body(build)
         }
 
         override fun producesPlugin(): PluginUseSpec {

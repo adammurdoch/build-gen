@@ -35,6 +35,7 @@ class JavaConventionPluginProductionSpec(baseName: BaseName, id: String) : Plugi
 
 class PluginUseSpec(
     val id: String,
+
     /**
      * The name of a task added by the plugin.
      */
