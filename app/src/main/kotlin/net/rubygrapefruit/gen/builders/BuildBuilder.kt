@@ -15,6 +15,11 @@ interface BuildBuilder {
     /**
      * Adds a child build that produces plugins.
      */
+    fun pluginBuild(name: String): BuildBuilder
+
+    /**
+     * Adds a child build that produces plugins.
+     */
     fun <T> pluginBuild(name: String, body: BuildBuilder.() -> T): T
 
     /**

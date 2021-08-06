@@ -60,14 +60,22 @@ class DefaultBuildTreeBuilder(
         override val includeConfigurationCacheProblems: Boolean
             get() = this@DefaultBuildTreeBuilder.includeConfigurationCacheProblems
 
-        override fun <T> pluginBuild(name: String, body: BuildBuilder.() -> T): T {
+        override fun pluginBuild(name: String): BuildBuilder {
             val build = addBuild(name, pluginBuilds)
             pluginBuilds++
-            return body(build)
+            return build
+        }
+
+        override fun <T> pluginBuild(name: String, body: BuildBuilder.() -> T): T {
+            return body(pluginBuild(name))
         }
 
         override fun build(name: String): BuildBuilder {
             return addBuild(name, children.size)
+        }
+
+        override fun <T> build(name: String, body: BuildBuilder.() -> T): T {
+            return body(build(name))
         }
 
         private fun addBuild(name: String, index: Int): BuildBuilderImpl {
@@ -77,11 +85,6 @@ class DefaultBuildTreeBuilder(
             children.add(index, build)
             builds.add(build)
             return build
-        }
-
-        override fun <T> build(name: String, body: BuildBuilder.() -> T): T {
-            val build = build(name)
-            return body(build)
         }
 
         override fun producesPlugin(): PluginUseSpec {

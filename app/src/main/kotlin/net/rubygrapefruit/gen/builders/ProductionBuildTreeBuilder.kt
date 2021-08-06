@@ -59,33 +59,51 @@ class ChildBuildsBuilder(builder: BuildTreeBuilder) : ProductionBuildTreeBuilder
                 producesPlugin()
             }
             requires(mainPlugin)
-            child1 {
-                val plugin = buildSrc {
-                    producesPlugin()
-                }
-                requires(plugin)
-            }
-            child2 {
-                val plugin = buildSrc {
-                    producesPlugin()
-                }
-                requires(plugin)
-            }
         }
-    }
-
-    fun childBuildPlugin() {
-        main {
-            val plugin = pluginBuild("plugins") {
+        child1 {
+            val plugin = buildSrc {
                 producesPlugin()
             }
             requires(plugin)
-            child1 {
-                requires(plugin)
+        }
+        child2 {
+            val plugin = buildSrc {
+                producesPlugin()
             }
-            child2 {
-                requires(plugin)
-            }
+            requires(plugin)
+        }
+    }
+
+    fun childBuildPlugin(): BuildBuilder {
+        val pluginBuild = main.pluginBuild("plugins")
+        val plugin = pluginBuild.producesPlugin()
+        main {
+            requires(plugin)
+        }
+        child1 {
+            requires(plugin)
+        }
+        child2 {
+            requires(plugin)
+        }
+        return pluginBuild
+    }
+
+    fun <T> childBuildPlugin(builder: BuildBuilder.() -> T): T {
+        val pluginBuild = childBuildPlugin()
+        return builder(pluginBuild)
+    }
+
+    fun mainBuildUsesChildren() {
+        val dataLibrary = child1 {
+            producesLibrary()
+        }
+        val uiLibrary = child2 {
+            producesLibrary()
+        }
+        main {
+            requires(dataLibrary)
+            requires(uiLibrary)
         }
     }
 }
@@ -108,17 +126,17 @@ class NestedChildBuildsBuilder(builder: BuildTreeBuilder) : ProductionBuildTreeB
     }
 
     fun childBuildPlugin() {
+        val plugin = main.pluginBuild("plugins") {
+            producesPlugin()
+        }
         main {
-            val plugin = pluginBuild("plugins") {
-                producesPlugin()
-            }
             requires(plugin)
-            child {
-                requires(plugin)
-            }
-            nestedChild {
-                requires(plugin)
-            }
+        }
+        child {
+            requires(plugin)
+        }
+        nestedChild {
+            requires(plugin)
         }
     }
 }

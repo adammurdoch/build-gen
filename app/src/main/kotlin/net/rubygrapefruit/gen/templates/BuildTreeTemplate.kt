@@ -46,16 +46,7 @@ enum class BuildTreeTemplate {
             val builder = ChildBuildsBuilder(this)
             builder.apply {
                 buildSrcPlugin()
-                val dataLibrary = child1 {
-                    producesLibrary()
-                }
-                val uiLibrary = child2 {
-                    producesLibrary()
-                }
-                main {
-                    requires(dataLibrary)
-                    requires(uiLibrary)
-                }
+                mainBuildUsesChildren()
             }
         }
     },
@@ -64,16 +55,7 @@ enum class BuildTreeTemplate {
             val builder = ChildBuildsBuilder(this)
             builder.apply {
                 childBuildPlugin()
-                val dataLibrary = child1 {
-                    producesLibrary()
-                }
-                val uiLibrary = child2 {
-                    producesLibrary()
-                }
-                main {
-                    requires(dataLibrary)
-                    requires(uiLibrary)
-                }
+                mainBuildUsesChildren()
             }
         }
     },
@@ -81,24 +63,12 @@ enum class BuildTreeTemplate {
         override fun BuildTreeBuilder.applyTo() {
             val builder = ChildBuildsBuilder(this)
             builder.apply {
-                val (plugin, sharedLibrary) = main.pluginBuild("shared") {
+                val sharedLibrary = childBuildPlugin {
                     projectNames(listOf("generator", "common"))
-                    val plugin = producesPlugin()
-                    val library = producesLibrary()
-                    Pair(plugin, library)
-                }
-                val dataLibrary = child1 {
-                    requires(plugin)
                     producesLibrary()
                 }
-                val uiLibrary = child2 {
-                    requires(plugin)
-                    producesLibrary()
-                }
+                mainBuildUsesChildren()
                 main {
-                    requires(plugin)
-                    requires(dataLibrary)
-                    requires(uiLibrary)
                     requires(sharedLibrary)
                 }
             }
