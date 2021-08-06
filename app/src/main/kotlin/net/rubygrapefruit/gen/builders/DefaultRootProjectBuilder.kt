@@ -10,7 +10,7 @@ class DefaultRootProjectBuilder(
     private val librarySpecFactory: LibrarySpecFactory
 ) : RootProjectBuilder {
     private val root = ProjectBuilderImpl("root")
-    private val children = mutableListOf<ProjectBuilderImpl>()
+    private val children = LinkedHashMap<String, ProjectBuilderImpl>()
 
     override fun root(body: ProjectBuilder.() -> Unit) {
         body(root)
@@ -18,14 +18,12 @@ class DefaultRootProjectBuilder(
 
     override fun <T> project(name: String, body: ProjectBuilder.() -> T): T {
         require(!name.contains(':') && !name.contains('/'))
-        val project = ProjectBuilderImpl(name)
-        val result = body(project)
-        children.add(project)
-        return result
+        val project = children.getOrPut(name) { ProjectBuilderImpl(name) }
+        return body(project)
     }
 
     fun build(): RootProjectSpec {
-        val childSpecs = children.map {
+        val childSpecs = children.values.map {
             ChildProjectSpec(it.name, build.rootDir.resolve(it.name), it.usesPlugins, it.producesPlugins, it.producesLibrary, it.usesLibraries, build.includeConfigurationCacheProblems)
         }
         return RootProjectSpec(build.rootDir, childSpecs, root.usesPlugins, root.producesPlugins, root.producesLibrary, root.usesLibraries, build.includeConfigurationCacheProblems)

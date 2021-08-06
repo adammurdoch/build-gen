@@ -16,7 +16,10 @@ class ExternalLibraryUseSpec(
 class ExternalLibraryProductionSpec(
     val coordinates: ExternalLibraryCoordinates,
     val spec: LibraryProductionSpec,
-    val requires: List<ExternalLibraryUseSpec>
-) {
-    fun toUseSpec(): ExternalLibraryUseSpec = ExternalLibraryUseSpec(coordinates, spec.toApiSpec())
-}
+
+    // Libraries from other builds that are used by the library implementation
+    val usesLibraries: List<ExternalLibraryUseSpec>,
+
+    // Libraries from the same builds that are used by the library implementation
+    val usesLibrariesFromSameBuild: List<ExternalLibraryProductionSpec>
+)

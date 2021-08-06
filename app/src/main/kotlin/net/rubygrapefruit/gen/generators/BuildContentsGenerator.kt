@@ -3,9 +3,7 @@ package net.rubygrapefruit.gen.generators
 import net.rubygrapefruit.gen.builders.BuildContentsBuilder
 import net.rubygrapefruit.gen.files.FileGenerationContext
 import net.rubygrapefruit.gen.files.ScriptGenerator
-import net.rubygrapefruit.gen.specs.BuildSpec
-import net.rubygrapefruit.gen.specs.ProjectSpec
-import net.rubygrapefruit.gen.specs.RootProjectSpec
+import net.rubygrapefruit.gen.specs.*
 import java.nio.file.Files
 
 class BuildContentsGenerator(
@@ -54,23 +52,26 @@ class BuildContentsGenerator(
                     requiresPlugins(build.usesPlugins)
                     producesLibrary()
                 }
+                val projectForLib = mutableMapOf<ExternalLibraryProductionSpec, LibraryUseSpec>()
+                for (library in build.producesLibraries) {
+                    project(library.coordinates.name) {
+                        projectForLib[library] = producesLibrary(library)
+                    }
+                }
                 for (library in build.producesLibraries) {
                     project(library.coordinates.name) {
                         requiresPlugins(build.usesPlugins)
-                        if (build.topLevelLibraries.contains(library)) {
-                            requiresExternalLibraries(build.usesLibraries)
-                        }
-                        for (required in library.requires) {
-                            requiresLibrary(required.toUseSpec())
+                        requiresExternalLibraries(library.usesLibraries)
+                        for (required in library.usesLibrariesFromSameBuild) {
+                            requiresLibrary(projectForLib.getValue(required))
                         }
                         requiresLibrary(internalLibrary)
-                        producesLibrary(library)
                     }
                 }
                 for (app in build.producesApps) {
                     project(app.baseName.camelCase) {
                         requiresPlugins(build.usesPlugins)
-                        requiresExternalLibraries(build.usesLibraries)
+                        requiresExternalLibraries(app.usesLibraries)
                         requiresLibrary(internalLibrary)
                     }
                 }

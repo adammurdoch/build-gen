@@ -12,13 +12,8 @@ class BuildSpec(
     val childBuilds: List<BuildSpec>,
     val usesPlugins: List<PluginUseSpec>,
     val producesPlugins: List<PluginProductionSpec>,
-    val usesLibraries: List<ExternalLibraryUseSpec>,
     val producesLibraries: List<ExternalLibraryProductionSpec>,
     val producesApps: List<AppProductionSpec>,
-
-    // TODO - delete this
-    val topLevelLibraries: List<ExternalLibraryProductionSpec>,
-
     val projectNames: NameProvider,
     private val librarySpecFactory: LibrarySpecFactory
 ) {
