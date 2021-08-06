@@ -28,7 +28,8 @@ class DefaultBuildTreeBuilder(
     }
 
     fun build(): BuildTreeSpec {
-        return BuildTreeSpecImpl(rootDir, builds)
+        val mapper = SpecMapper()
+        return BuildTreeSpecImpl(rootDir, builds.map { mapper.map(it) })
     }
 
     private class BuildTreeSpecImpl(
@@ -49,31 +50,48 @@ class DefaultBuildTreeBuilder(
         override val bottom: LibraryRef
     ) : LibrariesRef
 
+    private class SpecMapper() {
+        private val mappedBuilds = mutableMapOf<BuildBuilderImpl, BuildSpec>()
+        private val visiting = mutableSetOf<BuildBuilderImpl>()
+
+        fun map(build: BuildBuilderImpl): BuildSpec {
+            val result = mappedBuilds.get(build)
+            if (result != null) {
+                return result
+            }
+            if (!visiting.add(build)) {
+                throw IllegalStateException("Cycle in build tree.")
+            }
+            try {
+                val mapped = build.toSpec(this)
+                mappedBuilds.put(build, mapped)
+                return mapped
+            } finally {
+                visiting.remove(build)
+            }
+        }
+    }
+
     private inner class BuildBuilderImpl(
         val owner: BuildBuilderImpl?,
-        override val displayName: String,
+        val displayName: String,
         val baseName: BaseName,
         val artifactType: String,
-        override val rootDir: Path
-    ) : BuildSpec, BuildBuilder {
+        val rootDir: Path
+    ) : BuildBuilder {
         private val children = mutableListOf<BuildBuilderImpl>()
         private var pluginBuilds = 0
-
-        override val producesPlugins = mutableListOf<PluginProductionSpec>()
-        override val usesPlugins = mutableListOf<PluginUseSpec>()
-        override val usesLibraries = mutableListOf<ExternalLibraryUseSpec>()
-        override var producesLibraries = mutableListOf<ExternalLibraryProductionSpec>()
-        override val topLevelLibraries = mutableListOf<ExternalLibraryProductionSpec>()
-        override val producesApps = mutableListOf<AppProductionSpec>()
-        override val childBuilds: List<BuildSpec> = children
-        override var projectNames: NameProvider = FixedNames(emptyList(), baseName.camelCase)
+        private val producesPlugins = mutableListOf<PluginProductionSpec>()
+        private val usesPlugins = mutableListOf<PluginUseSpec>()
+        private val usesLibraries = mutableListOf<ExternalLibraryUseSpec>()
+        private var producesLibraries = mutableListOf<ExternalLibraryProductionSpec>()
+        private val topLevelLibraries = mutableListOf<ExternalLibraryProductionSpec>()
+        private val producesApps = mutableListOf<AppProductionSpec>()
+        private var projectNames: NameProvider = FixedNames(emptyList(), baseName.camelCase)
 
         override fun toString(): String {
             return displayName
         }
-
-        override val includeConfigurationCacheProblems: Boolean
-            get() = this@DefaultBuildTreeBuilder.includeConfigurationCacheProblems
 
         override fun pluginBuild(name: String): BuildBuilder {
             val build = addBuild(name, pluginBuilds)
@@ -155,10 +173,21 @@ class DefaultBuildTreeBuilder(
             projectNames = FixedNames(names, baseName.camelCase)
         }
 
-        override fun projects(body: RootProjectBuilder.() -> Unit): RootProjectSpec {
-            val builder = DefaultRootProjectBuilder(this, librarySpecFactory)
-            body(builder)
-            return builder.build()
+        fun toSpec(mapper: SpecMapper): BuildSpec {
+            return BuildSpec(
+                displayName,
+                rootDir,
+                includeConfigurationCacheProblems,
+                children.map { mapper.map(it) },
+                usesPlugins,
+                producesPlugins,
+                usesLibraries,
+                producesLibraries,
+                producesApps,
+                topLevelLibraries,
+                projectNames,
+                librarySpecFactory
+            )
         }
     }
 }
