@@ -1,6 +1,7 @@
 package net.rubygrapefruit.gen
 
 import net.rubygrapefruit.gen.files.DslLanguage
+import net.rubygrapefruit.gen.files.GeneratedDirectoryContentsSynchronizer
 import net.rubygrapefruit.gen.templates.BuildTreeTemplate
 import net.rubygrapefruit.gen.templates.Implementation
 import net.rubygrapefruit.gen.templates.Theme
@@ -9,7 +10,7 @@ import kotlin.test.Test
 
 class NoBuildLogicFuncTest : AbstractFuncTest() {
     fun generate(dir: File, template: BuildTreeTemplate, theme: Theme = Theme.None, dsl: DslLanguage = DslLanguage.GroovyDsl) {
-        generate(dir.toPath(), template, Implementation.None, theme, dsl)
+        generate(dir.toPath(), template, Implementation.None, theme, dsl, GeneratedDirectoryContentsSynchronizer())
     }
 
     @Test

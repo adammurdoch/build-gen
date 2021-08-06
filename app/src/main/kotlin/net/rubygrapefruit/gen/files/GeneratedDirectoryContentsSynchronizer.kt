@@ -8,14 +8,19 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.CopyOnWriteArraySet
+import kotlin.io.path.exists
 
 private const val filesHeader = "[generated files]"
 private const val dirsHeader = "[directories to clean]"
 
 class GeneratedDirectoryContentsSynchronizer {
+    fun isGenerated(rootDir: Path): Boolean {
+        return stateFile(rootDir).exists()
+    }
+
     fun sync(rootDir: Path, action: (FileGenerationContext) -> Unit) {
         Files.createDirectories(rootDir)
-        val stateFile = rootDir.resolve("generation-state.txt")
+        val stateFile = stateFile(rootDir)
         val previous = previousFiles(stateFile, rootDir)
         val previousFiles = previous.files.toMutableSet()
         stateFile.toFile().bufferedWriter().use {
@@ -42,6 +47,8 @@ class GeneratedDirectoryContentsSynchronizer {
             removeIfEmpty(parent, rootDir)
         }
     }
+
+    private fun stateFile(rootDir: Path) = rootDir.resolve("generation-state.txt")
 
     private fun removeIfEmpty(dir: Path?, rootDir: Path) {
         if (dir == null || dir == rootDir) {

@@ -14,6 +14,7 @@ application {
 
 dependencies {
     implementation("net.rubygrapefruit:native-platform:0.22-milestone-7")
+    implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.2")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
     testImplementation(gradleTestKit())

@@ -46,7 +46,7 @@ enum class BuildTreeTemplate {
             val builder = ChildBuildsBuilder(this)
             builder.apply {
                 buildSrcPlugin()
-                mainBuildUsesChildren()
+                mainBuildUsesLibrariesFromChildren()
             }
         }
     },
@@ -55,7 +55,7 @@ enum class BuildTreeTemplate {
             val builder = ChildBuildsBuilder(this)
             builder.apply {
                 childBuildPlugin()
-                mainBuildUsesChildren()
+                mainBuildUsesLibrariesFromChildren()
             }
         }
     },
@@ -67,7 +67,7 @@ enum class BuildTreeTemplate {
                     projectNames(listOf("generator", "common"))
                     producesLibrary()
                 }
-                mainBuildUsesChildren()
+                mainBuildUsesLibrariesFromChildren()
                 main {
                     requires(sharedLibrary)
                 }

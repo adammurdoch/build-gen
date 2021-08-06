@@ -94,7 +94,7 @@ class ChildBuildsBuilder(builder: BuildTreeBuilder) : ProductionBuildTreeBuilder
         return builder(pluginBuild)
     }
 
-    fun mainBuildUsesChildren() {
+    fun mainBuildUsesLibrariesFromChildren() {
         val dataLibrary = child1 {
             producesLibrary()
         }
