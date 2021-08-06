@@ -25,13 +25,13 @@ fun main(args: Array<String>) {
     val dirName by parser.option(ArgType.String, fullName = "dir", description = "Directory to generate build into").default(".")
     parser.parse(args)
 
-    val rootDir = File(dirName).absoluteFile.toPath()
+    val rootDir = File(dirName).canonicalFile.toPath()
     val synchronizer = GeneratedDirectoryContentsSynchronizer()
     if (rootDir.isRegularFile()) {
-        throw IllegalArgumentException("Target directory $rootDir already exists and is a file.")
+        throw IllegalArgumentException("Target directory '$rootDir' already exists and is a file.")
     }
     if (rootDir.isDirectory() && !rootDir.listDirectoryEntries().isEmpty() && !synchronizer.isGenerated(rootDir)) {
-        throw IllegalArgumentException("Target directory $rootDir is not empty and does not contain a generated build.")
+        throw IllegalArgumentException("Target directory '$rootDir' is not empty and does not contain a generated build.")
     }
     println("Generating into $rootDir")
 

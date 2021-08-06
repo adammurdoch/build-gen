@@ -101,6 +101,12 @@ class DefaultBuildTreeBuilder(
             return library.toUseSpec()
         }
 
+        override fun producesLibraries(): ExternalLibrariesSpec {
+            val top = producesLibrary()
+            val bottom = producesLibrary()
+            return ExternalLibrariesSpec(top, bottom)
+        }
+
         override fun <T> buildSrc(body: BuildBuilder.() -> T): T {
             val buildSrcBaseName = if (owner == null) BaseName("buildSrc") else baseName + "buildSrc"
             val build = BuildBuilderImpl(this, "buildSrc build", buildSrcBaseName, "buildSrc", rootDir.resolve("buildSrc"))

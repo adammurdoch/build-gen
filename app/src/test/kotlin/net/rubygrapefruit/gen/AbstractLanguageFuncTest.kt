@@ -8,71 +8,65 @@ import net.rubygrapefruit.gen.templates.Theme
 import java.io.File
 import kotlin.test.Test
 
-class CustomPluginFuncTest : AbstractFuncTest() {
-    fun generate(dir: File, template: BuildTreeTemplate, theme: Theme = Theme.None, dsl: DslLanguage = DslLanguage.GroovyDsl) {
-        generate(dir.toPath(), template, Implementation.Custom, theme, dsl, GeneratedDirectoryContentsSynchronizer())
+abstract class AbstractLanguageFuncTest(private val implementation: Implementation) : AbstractFuncTest() {
+
+    fun generate(template: BuildTreeTemplate, theme: Theme = Theme.None, dsl: DslLanguage = DslLanguage.GroovyDsl): File {
+        val dir = testDir.newFolder()
+        generate(dir.toPath(), template, implementation, theme, dsl, GeneratedDirectoryContentsSynchronizer())
+        return dir
     }
 
     @Test
     fun canGenerateBuildWithBuildLogicInBuildSrcWithGroovyDsl() {
-        val dir = testDir.newFolder()
-        generate(dir, BuildTreeTemplate.MainBuildWithBuildSrc)
+        val dir = generate(BuildTreeTemplate.MainBuildWithBuildSrc)
         runBuild(dir, "assemble")
     }
 
     @Test
     fun canGenerateBuildWithBuildLogicInChildWithGroovyDsl() {
-        val dir = testDir.newFolder()
-        generate(dir, BuildTreeTemplate.MainBuildWithPluginChildBuild)
+        val dir = generate(BuildTreeTemplate.MainBuildWithPluginChildBuild)
         runBuild(dir, "assemble")
     }
 
     @Test
     fun canGenerateBuildWithBuildLogicInBuildSrcAndChildWithGroovyDsl() {
-        val dir = testDir.newFolder()
-        generate(dir, BuildTreeTemplate.MainBuildWithBuildSrcAndPluginChildBuild)
+        val dir = generate(BuildTreeTemplate.MainBuildWithBuildSrcAndPluginChildBuild)
         runBuild(dir, "assemble")
     }
 
     @Test
     fun canGenerateBuildWithBuildLogicInBuildSrcAndChildWithKotlinDsl() {
-        val dir = testDir.newFolder()
-        generate(dir, BuildTreeTemplate.MainBuildWithBuildSrcAndPluginChildBuild, dsl = DslLanguage.KotlinDsl)
+        val dir = generate(BuildTreeTemplate.MainBuildWithBuildSrcAndPluginChildBuild, dsl = DslLanguage.KotlinDsl)
         runBuild(dir, "assemble")
     }
 
     @Test
     fun canGenerateTreeWithBuildLogicInChildWithGroovyDsl() {
-        val dir = testDir.newFolder()
-        generate(dir, BuildTreeTemplate.ChildBuildsWithPluginChildBuild)
+        val dir = generate(BuildTreeTemplate.ChildBuildsWithPluginChildBuild)
         runBuild(dir, "assemble")
     }
 
     @Test
     fun canGenerateTreeWithBuildLogicInBuildSrcWithGroovyDsl() {
-        val dir = testDir.newFolder()
-        generate(dir, BuildTreeTemplate.ChildBuildsWithBuildSrc)
+        val dir = generate(BuildTreeTemplate.ChildBuildsWithBuildSrc)
         runBuild(dir, "assemble")
     }
 
     @Test
     fun canGenerateTreeWithNestedChildBuildsWithGroovyDsl() {
-        val dir = testDir.newFolder()
-        generate(dir, BuildTreeTemplate.NestedChildBuildsWithPluginChildBuild)
+        val dir = generate(BuildTreeTemplate.NestedChildBuildsWithPluginChildBuild)
         runBuild(dir, "assemble")
     }
 
     @Test
     fun canGenerateTreeWithCyclicChildBuildsWithGroovyDsl() {
-        val dir = testDir.newFolder()
-        generate(dir, BuildTreeTemplate.CyclicChildBuildsWithPluginChildBuild)
+        val dir = generate(BuildTreeTemplate.CyclicChildBuildsWithPluginChildBuild)
         runBuild(dir, "assemble")
     }
 
     @Test
     fun canGenerateBuildWithBuildLogicInBuildSrcAndChildWithConfigurationCacheProblemsAndKotlinDsl() {
-        val dir = testDir.newFolder()
-        generate(dir, BuildTreeTemplate.MainBuildWithBuildSrcAndPluginChildBuild, theme = Theme.ConfigurationCacheProblems, dsl = DslLanguage.KotlinDsl)
+        val dir = generate(BuildTreeTemplate.MainBuildWithBuildSrcAndPluginChildBuild, theme = Theme.ConfigurationCacheProblems, dsl = DslLanguage.KotlinDsl)
         runBuild(dir, "assemble")
     }
 }

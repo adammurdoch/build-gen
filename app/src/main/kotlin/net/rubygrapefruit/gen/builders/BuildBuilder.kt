@@ -1,5 +1,6 @@
 package net.rubygrapefruit.gen.builders
 
+import net.rubygrapefruit.gen.specs.ExternalLibrariesSpec
 import net.rubygrapefruit.gen.specs.ExternalLibraryUseSpec
 import net.rubygrapefruit.gen.specs.PluginUseSpec
 
@@ -41,6 +42,11 @@ interface BuildBuilder {
      * Adds a library that this build should produce.
      */
     fun producesLibrary(): ExternalLibraryUseSpec
+
+    /**
+     * Adds multiple libraries that this build should produce.
+     */
+    fun producesLibraries(): ExternalLibrariesSpec
 
     /**
      * The projects of this build should use the given plugin.

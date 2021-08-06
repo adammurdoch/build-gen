@@ -97,16 +97,20 @@ enum class BuildTreeTemplate {
             val builder = ChildBuildsBuilder(this)
             builder.apply {
                 childBuildPlugin()
-                val dataLibrary = child1 {
+                val child1Library = child1 {
                     producesLibrary()
                 }
-                val uiLibrary = child2 {
-                    requires(dataLibrary)
-                    producesLibrary()
-                    producesLibrary()
+                val child2Library = child2 {
+                    producesLibraries()
+                }
+                child1 {
+                    requires(child2Library.bottom)
+                }
+                child2 {
+                    requires(child1Library)
                 }
                 main {
-                    requires(uiLibrary)
+                    requires(child2Library.top)
                 }
             }
         }
