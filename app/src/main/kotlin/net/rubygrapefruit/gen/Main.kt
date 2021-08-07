@@ -8,7 +8,6 @@ import net.rubygrapefruit.gen.files.*
 import net.rubygrapefruit.gen.generators.*
 import net.rubygrapefruit.gen.templates.BuildTreeTemplate
 import net.rubygrapefruit.gen.templates.Implementation
-import net.rubygrapefruit.gen.templates.ProductionBuildTreeStructure
 import net.rubygrapefruit.gen.templates.Theme
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.prompts.Prompter
@@ -41,13 +40,12 @@ fun main(args: Array<String>) {
         System.exit(1)
     }
     val prompter = Prompter(terminals)
-    val treeStructure = prompter.select("Select production build tree structure", ProductionBuildTreeStructure.values())
-    val buildLogic = prompter.select("Select build logic structure", BuildTreeTemplate.buildLogicOptionsFor(treeStructure))
-    val implementation = prompter.select("Select implementation", BuildTreeTemplate.implementationsFor(treeStructure, buildLogic))
-    val theme = prompter.select("Select theme", Theme.values())
-    val dsl = prompter.select("Select DSL language", DslLanguage.values())
-    val treeTemplate = BuildTreeTemplate.templateFor(treeStructure, buildLogic)
-    generate(rootDir, treeTemplate, implementation, theme, dsl, synchronizer)
+    val treeStructure = prompter.select("Select production build tree structure", BuildTreeTemplate.productionStructures())
+    val buildLogic = prompter.select("Select build logic structure", treeStructure.buildLogicOptions)
+    val implementation = prompter.select("Select implementation", buildLogic.implementationOptions)
+    val theme = prompter.select("Select theme", implementation.themeOptions)
+    val dsl = prompter.select("Select DSL language", implementation.dslOptions)
+    generate(rootDir, implementation.treeTemplate, implementation.implementation, theme, dsl, synchronizer)
 }
 
 fun generate(rootDir: Path, layout: BuildTreeTemplate, implementation: Implementation, theme: Theme, dsl: DslLanguage, synchronizer: GeneratedDirectoryContentsSynchronizer) {
