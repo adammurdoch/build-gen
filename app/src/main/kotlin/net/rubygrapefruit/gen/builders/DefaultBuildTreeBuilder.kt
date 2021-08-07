@@ -109,6 +109,7 @@ class DefaultBuildTreeBuilder(
         private val producesLibraries = mutableListOf<LibraryRefImpl>()
         private val producesApps = mutableListOf<AppImpl>()
         private var projectNames: NameProvider = FixedNames(emptyList(), baseName.camelCase)
+        private var includeSelf = false
 
         override fun toString(): String {
             return displayName
@@ -162,20 +163,24 @@ class DefaultBuildTreeBuilder(
             return implementationLibraries
         }
 
+        override fun includeSelf() {
+            includeSelf = true
+        }
+
         override fun producesLibrary(): LibraryRef {
-            return addLibrary(true)
+            return addLibrary(true, implementationLibs())
         }
 
         override fun producesLibraries(): LibrariesRef {
-            val bottom = addLibrary(false)
-            val top = addLibrary(true, listOf(bottom))
+            val bottom = addLibrary(false, implementationLibs())
+            val top = addLibrary(true, emptyList(), listOf(bottom))
             return LibrariesRefImpl(top, bottom)
         }
 
-        private fun addLibrary(useIncomingLibraries: Boolean, requiresLibrariesFromThisBuild: List<LibraryRefImpl> = emptyList()): LibraryRefImpl {
+        private fun addLibrary(useIncomingLibraries: Boolean, implementationLibs: List<InternalLibrariesSpec>, requiresLibrariesFromThisBuild: List<LibraryRefImpl> = emptyList()): LibraryRefImpl {
             val coordinates = ExternalLibraryCoordinates("test.${baseName.lowerCaseDotSeparator}", projectNames.next(), "1.0")
             val libraryApi = librarySpecFactory.library(baseName.camelCase)
-            val library = LibraryRefImpl(coordinates, libraryApi, useIncomingLibraries, requiresLibrariesFromThisBuild, implementationLibs())
+            val library = LibraryRefImpl(coordinates, libraryApi, useIncomingLibraries, requiresLibrariesFromThisBuild, implementationLibs)
             producesLibraries.add(library)
             return library
         }
@@ -208,12 +213,13 @@ class DefaultBuildTreeBuilder(
                 displayName,
                 rootDir,
                 includeConfigurationCacheProblems,
-                mapper.map(children),
                 usesPlugins,
                 producesPlugins,
                 libMapper.map(producesLibraries),
                 producesApps.map { it.toSpec(usesLibraries) },
-                implementationLibraries
+                implementationLibraries,
+                mapper.map(children),
+                includeSelf
             )
         }
     }

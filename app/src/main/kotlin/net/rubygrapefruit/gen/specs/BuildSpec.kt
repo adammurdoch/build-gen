@@ -8,13 +8,21 @@ class BuildSpec(
     val displayName: String,
     val rootDir: Path,
     val includeConfigurationCacheProblems: Boolean,
-    val childBuilds: List<BuildSpec>,
     val usesPlugins: List<PluginUseSpec>,
     val producesPlugins: List<PluginProductionSpec>,
     val producesLibraries: List<ExternalLibraryProductionSpec>,
     val producesApps: List<AppProductionSpec>,
     val implementationLibraries: List<InternalLibrariesSpec>,
+    private val childBuilds: List<BuildSpec>,
+    private val includeSelf: Boolean
 ) {
+    val includedBuilds: List<BuildSpec>
+        get() = if (includeSelf) {
+            listOf(this) + childBuilds
+        } else {
+            childBuilds
+        }
+
     /**
      * Creates a project tree for this build.
      */

@@ -30,6 +30,11 @@ interface BuildBuilder {
     fun <T> build(name: String, body: BuildBuilder.() -> T): T
 
     /**
+     * Includes this build in itself
+     */
+    fun includeSelf()
+
+    /**
      * Adds an application.
      */
     fun producesApp()

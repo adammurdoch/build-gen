@@ -7,7 +7,6 @@ import net.rubygrapefruit.gen.templates.Implementation
 import net.rubygrapefruit.gen.templates.Theme
 import java.io.File
 import kotlin.test.Test
-import kotlin.test.assertTrue
 
 abstract class AbstractLanguageFuncTest(private val implementation: Implementation) : AbstractFuncTest() {
 
@@ -100,7 +99,16 @@ abstract class AbstractLanguageFuncTest(private val implementation: Implementati
 
     @Test
     fun canGenerateTreeWithCyclicChildBuildsWithGroovyDsl() {
-        val dir = generate(BuildTreeTemplate.CyclicChildBuildsWithPluginChildBuild)
+        val dir = generate(BuildTreeTemplate.ChildBuildsWithCycleAndPluginChildBuild)
+
+        application(dir)
+
+        runBuild(dir, "assemble")
+    }
+
+    @Test
+    fun canGenerateTreeWithChildBuildsThatUseMainBuildWithGroovyDsl() {
+        val dir = generate(BuildTreeTemplate.ChildBuildsUseMainBuildAndWithPluginChildBuild)
 
         application(dir)
 

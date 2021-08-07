@@ -20,8 +20,12 @@ class BuildContentsGenerator(
 
         val settings = scriptGenerator.settings(rootDir)
         settings.apply {
-            for (childBuild in childBuilds) {
-                includeBuild(rootDir.relativize(childBuild.rootDir).toString())
+            for (childBuild in includedBuilds) {
+                if (rootDir == childBuild.rootDir) {
+                    includeBuild(".")
+                } else {
+                    includeBuild(rootDir.relativize(childBuild.rootDir).toString())
+                }
             }
             for (project in rootProject.children) {
                 includeProject(project.name)

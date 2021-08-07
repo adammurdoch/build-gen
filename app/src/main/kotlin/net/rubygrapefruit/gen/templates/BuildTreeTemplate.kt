@@ -92,7 +92,7 @@ enum class BuildTreeTemplate {
             }
         }
     },
-    CyclicChildBuildsWithPluginChildBuild {
+    ChildBuildsWithCycleAndPluginChildBuild {
         override fun BuildTreeBuilder.applyTo() {
             val builder = ChildBuildsBuilder(this)
             builder.apply {
@@ -114,6 +114,28 @@ enum class BuildTreeTemplate {
                 }
             }
         }
+    },
+    ChildBuildsUseMainBuildAndWithPluginChildBuild {
+        override fun BuildTreeBuilder.applyTo() {
+            val builder = ChildBuildsBuilder(this)
+            builder.apply {
+                childBuildPlugin()
+                val mainLibraries = main.producesLibraries()
+                val child1Library = child1 {
+                    requires(mainLibraries.bottom)
+                    producesLibrary()
+                }
+                val child2Library = child2 {
+                    requires(mainLibraries.bottom)
+                    producesLibrary()
+                }
+                main {
+                    includeSelf()
+                    requires(child1Library)
+                    requires(child2Library)
+                }
+            }
+        }
     };
 
     companion object {
@@ -128,7 +150,8 @@ enum class BuildTreeTemplate {
                 treeStructure == ProductionBuildTreeStructure.ChildBuilds && buildLogic == BuildLogic.ChildBuild -> ChildBuildsWithPluginChildBuild
                 treeStructure == ProductionBuildTreeStructure.ChildBuilds && buildLogic == BuildLogic.ChildBuildAndSharedLibrary -> ChildBuildsWithPluginChildBuildAndSharedLibrary
                 treeStructure == ProductionBuildTreeStructure.NestedChildBuilds && buildLogic == BuildLogic.ChildBuild -> NestedChildBuildsWithPluginChildBuild
-                treeStructure == ProductionBuildTreeStructure.CyclicChildBuilds && buildLogic == BuildLogic.ChildBuild -> CyclicChildBuildsWithPluginChildBuild
+                treeStructure == ProductionBuildTreeStructure.ChildBuildsWithCycle && buildLogic == BuildLogic.ChildBuild -> ChildBuildsWithCycleAndPluginChildBuild
+                treeStructure == ProductionBuildTreeStructure.ChildBuildsUsesMainBuild && buildLogic == BuildLogic.ChildBuild -> ChildBuildsUseMainBuildAndWithPluginChildBuild
                 else -> throw UnsupportedOperationException()
             }
         }
@@ -138,13 +161,15 @@ enum class BuildTreeTemplate {
                 ProductionBuildTreeStructure.MainBuild -> listOf(BuildLogic.None, BuildLogic.BuildSrc, BuildLogic.ChildBuild, BuildLogic.BuildSrcAndChildBuild)
                 ProductionBuildTreeStructure.ChildBuilds -> listOf(BuildLogic.None, BuildLogic.BuildSrc, BuildLogic.ChildBuild, BuildLogic.ChildBuildAndSharedLibrary)
                 ProductionBuildTreeStructure.NestedChildBuilds -> listOf(BuildLogic.ChildBuild)
-                ProductionBuildTreeStructure.CyclicChildBuilds -> listOf(BuildLogic.ChildBuild)
+                ProductionBuildTreeStructure.ChildBuildsUsesMainBuild -> listOf(BuildLogic.ChildBuild)
+                ProductionBuildTreeStructure.ChildBuildsWithCycle -> listOf(BuildLogic.ChildBuild)
             }
         }
 
         fun implementationsFor(treeStructure: ProductionBuildTreeStructure, buildLogic: BuildLogic): List<Implementation> {
             return when (buildLogic) {
                 BuildLogic.None -> listOf(Implementation.None)
+                BuildLogic.ChildBuildAndSharedLibrary -> listOf(Implementation.Java)
                 else -> listOf(Implementation.Custom, Implementation.Java)
             }
         }
