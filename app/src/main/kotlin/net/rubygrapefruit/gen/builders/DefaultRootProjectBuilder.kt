@@ -6,8 +6,7 @@ import net.rubygrapefruit.gen.specs.*
  * A builder for the root project of a build.
  */
 class DefaultRootProjectBuilder(
-    private val build: BuildSpec,
-    private val librarySpecFactory: LibrarySpecFactory
+    private val build: BuildSpec
 ) : RootProjectBuilder {
     private val root = ProjectBuilderImpl("root")
     private val children = LinkedHashMap<String, ProjectBuilderImpl>()
@@ -44,19 +43,15 @@ class DefaultRootProjectBuilder(
             producesPlugins.addAll(plugins)
         }
 
-        override fun producesLibrary(): LibraryUseSpec? {
-            val spec = librarySpecFactory.maybeLibrary(name)
-            if (spec == null) {
-                producesLibrary = null
-                return null
-            } else {
-                producesLibrary = LibraryImplementationSpec(localCoordinates, null, spec)
-                return LibraryUseSpec(localCoordinates, spec.toApiSpec())
-            }
+        override fun producesLibrary(library: LibraryProductionSpec): LibraryUseSpec {
+            require(producesLibrary == null)
+            producesLibrary = LibraryImplementationSpec(localCoordinates, null, library)
+            return LibraryUseSpec(localCoordinates, library.toApiSpec())
         }
 
         override fun producesLibrary(library: ExternalLibraryProductionSpec): LibraryUseSpec {
-            this.producesLibrary = LibraryImplementationSpec(localCoordinates, library.coordinates, library.spec)
+            require(producesLibrary == null)
+            producesLibrary = LibraryImplementationSpec(localCoordinates, library.coordinates, library.spec)
             return LibraryUseSpec(localCoordinates, library.spec.toApiSpec())
         }
 
@@ -70,10 +65,8 @@ class DefaultRootProjectBuilder(
             usesLibraries.addAll(libraries)
         }
 
-        override fun requiresLibrary(library: LibraryUseSpec?) {
-            if (library != null) {
-                usesLibraries.add(library)
-            }
+        override fun requiresLibrary(library: LibraryUseSpec) {
+            usesLibraries.add(library)
         }
     }
 }

@@ -153,7 +153,11 @@ class DefaultBuildTreeBuilder(
 
         private fun implementationLibs(): List<InternalLibrariesSpec> {
             if (implementationLibraries.isEmpty()) {
-                implementationLibraries.add(InternalLibrariesSpec(BaseName(projectNames.next())))
+                val libraryName = BaseName(projectNames.next())
+                val spec = librarySpecFactory.maybeLibrary(libraryName.camelCase)
+                if (spec != null) {
+                    implementationLibraries.add(InternalLibrariesSpec(libraryName, spec))
+                }
             }
             return implementationLibraries
         }
@@ -209,9 +213,7 @@ class DefaultBuildTreeBuilder(
                 producesPlugins,
                 libMapper.map(producesLibraries),
                 producesApps.map { it.toSpec(usesLibraries) },
-                implementationLibraries,
-                projectNames,
-                librarySpecFactory
+                implementationLibraries
             )
         }
     }

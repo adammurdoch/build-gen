@@ -1,7 +1,6 @@
 package net.rubygrapefruit.gen.specs
 
 import net.rubygrapefruit.gen.builders.DefaultRootProjectBuilder
-import net.rubygrapefruit.gen.builders.LibrarySpecFactory
 import net.rubygrapefruit.gen.builders.RootProjectBuilder
 import java.nio.file.Path
 
@@ -15,14 +14,12 @@ class BuildSpec(
     val producesLibraries: List<ExternalLibraryProductionSpec>,
     val producesApps: List<AppProductionSpec>,
     val implementationLibraries: List<InternalLibrariesSpec>,
-    val projectNames: NameProvider,
-    private val librarySpecFactory: LibrarySpecFactory
 ) {
     /**
      * Creates a project tree for this build.
      */
     fun projects(body: RootProjectBuilder.() -> Unit): RootProjectSpec {
-        val builder = DefaultRootProjectBuilder(this, librarySpecFactory)
+        val builder = DefaultRootProjectBuilder(this)
         body(builder)
         return builder.build()
     }

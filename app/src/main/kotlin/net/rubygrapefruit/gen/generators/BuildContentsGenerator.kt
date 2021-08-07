@@ -50,11 +50,11 @@ class BuildContentsGenerator(
                 // Produces libraries and maybe plugins too
 
                 // Implementation libraries
-                val projectForInternalLib = mutableMapOf<InternalLibrariesSpec, LibraryUseSpec?>()
+                val projectForInternalLib = mutableMapOf<InternalLibrariesSpec, LibraryUseSpec>()
                 for (library in build.implementationLibraries) {
                     project(library.baseName.camelCase) {
                         requiresPlugins(build.usesPlugins)
-                        projectForInternalLib[library] = producesLibrary()
+                        projectForInternalLib[library] = producesLibrary(library.spec)
                     }
                 }
 
@@ -73,7 +73,7 @@ class BuildContentsGenerator(
                             requiresLibrary(projectForExternalLib.getValue(required))
                         }
                         for (required in library.usesImplementationLibraries) {
-                            requiresLibrary(projectForInternalLib[required])
+                            requiresLibrary(projectForInternalLib.getValue(required))
                         }
                     }
                 }
@@ -84,7 +84,7 @@ class BuildContentsGenerator(
                         requiresPlugins(build.usesPlugins)
                         requiresExternalLibraries(app.usesLibraries)
                         for (required in app.usesImplementationLibraries) {
-                            requiresLibrary(projectForInternalLib[required])
+                            requiresLibrary(projectForInternalLib.getValue(required))
                         }
                     }
                 }
