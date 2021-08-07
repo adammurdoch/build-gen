@@ -33,7 +33,7 @@ class LocalLibraryCoordinates(
     val producedByProject: String
 ) : LibraryCoordinates()
 
-class ExternalLibraryCoordinates(
+data class ExternalLibraryCoordinates(
     val group: String,
     val name: String,
     val version: String

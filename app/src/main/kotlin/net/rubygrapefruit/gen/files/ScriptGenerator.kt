@@ -140,6 +140,7 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
 
         override fun complete() {
             textFileGenerator.file(dir.resolve("settings.${dsl.extension}")) {
+                println("// GENERATED FILE")
                 renderElements("")
             }
         }
@@ -224,6 +225,7 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
 
         override fun complete() {
             textFileGenerator.file(dir.resolve("build.${dsl.extension}")) {
+                println("// GENERATED FILE")
                 renderElements("")
             }
         }

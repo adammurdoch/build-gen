@@ -9,7 +9,6 @@ class TextFileGenerator(private val listener: FileGenerationContext) {
         Files.createDirectories(file.parent)
         file.toFile().bufferedWriter().use {
             PrintWriter(it).apply {
-                println("// GENERATED FILE")
                 body(this)
                 println()
             }.also { it.flush() }

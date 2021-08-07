@@ -57,6 +57,7 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
 
         override fun complete() {
             textFileGenerator.file(srcDir.resolve(className.name.replace(".", "/") + ".java")) {
+                println("// GENERATED FILE")
                 if (className.packageName.isNotEmpty()) {
                     println()
                     print("package ")

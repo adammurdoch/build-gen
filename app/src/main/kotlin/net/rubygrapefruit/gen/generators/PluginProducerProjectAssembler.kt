@@ -29,7 +29,7 @@ class PluginProducerProjectAssembler(
                 }
             }
 
-            generationContext.apply(plugins, generator)
+            generationContext.generateInParallel(plugins, generator)
         }
     }
 }

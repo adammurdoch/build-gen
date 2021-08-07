@@ -8,6 +8,7 @@ import net.rubygrapefruit.gen.files.*
 import net.rubygrapefruit.gen.generators.*
 import net.rubygrapefruit.gen.templates.BuildTreeTemplate
 import net.rubygrapefruit.gen.templates.Implementation
+import net.rubygrapefruit.gen.generators.ReportGenerator
 import net.rubygrapefruit.gen.templates.Theme
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.prompts.Prompter
@@ -84,18 +85,11 @@ fun generate(rootDir: Path, layout: BuildTreeTemplate, implementation: Implement
             listOf(problemGenerator.buildContents()),
             projectGenerator.projectContents()
         )
-        val buildTreeGenerator = BuildTreeContentsGenerator(buildContentsGenerator.buildContents())
+        val reportGenerator = ReportGenerator(HtmlGenerator(textFileGenerator))
+        val buildTreeGenerator = BuildTreeContentsGenerator(buildContentsGenerator.buildContents(), reportGenerator.treeContents())
         ParallelGenerationContext().use {
             buildTreeGenerator.generate(buildTree, it)
         }
-    }
-}
-
-fun <T> Prompter.select(prompt: String, values: Array<T>): T {
-    return if (values.size == 1) {
-        values[0]
-    } else {
-        values.get(select(prompt, values.map { it.toString() }, 0))
     }
 }
 

@@ -9,13 +9,13 @@ import java.util.concurrent.TimeUnit
 class ParallelGenerationContext : GenerationContext, Closeable {
     private val executor = Executors.newCachedThreadPool()
 
-    override fun <T> apply(models: Collection<T>, generator: Generator<T>) {
+    override fun <T> generateInParallel(models: Collection<T>, generator: Generator<T>) {
         apply(models) {
             generator.generate(it, this)
         }
     }
 
-    override fun <T> apply(model: T, generators: Collection<Generator<T>>) {
+    override fun <T> generateInParallel(model: T, generators: Collection<Generator<T>>) {
         apply(generators) {
             it.generate(model, this)
         }

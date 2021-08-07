@@ -39,7 +39,7 @@ class BuildContentsGenerator(
 
         settings.complete()
 
-        generationContext.apply(rootProject.projects, projectGenerator)
+        generationContext.generateInParallel(rootProject.projects, projectGenerator)
     }
 
     private fun projects(build: BuildSpec): RootProjectSpec {
