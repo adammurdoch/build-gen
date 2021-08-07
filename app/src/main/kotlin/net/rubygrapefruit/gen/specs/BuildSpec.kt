@@ -14,6 +14,7 @@ class BuildSpec(
     val producesPlugins: List<PluginProductionSpec>,
     val producesLibraries: List<ExternalLibraryProductionSpec>,
     val producesApps: List<AppProductionSpec>,
+    val implementationLibraries: List<InternalLibrariesSpec>,
     val projectNames: NameProvider,
     private val librarySpecFactory: LibrarySpecFactory
 ) {

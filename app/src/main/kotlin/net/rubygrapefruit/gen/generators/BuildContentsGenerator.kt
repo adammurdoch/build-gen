@@ -40,7 +40,7 @@ class BuildContentsGenerator(
 
     private fun projects(build: BuildSpec): RootProjectSpec {
         return build.projects {
-            val hasProductionCode = build.producesLibraries.isNotEmpty() || build.producesApps.isNotEmpty()
+            val hasProductionCode = build.producesLibraries.isNotEmpty() || build.producesApps.isNotEmpty() || build.implementationLibraries.isNotEmpty()
             if (build.producesPlugins.isNotEmpty() && !hasProductionCode) {
                 // Produces plugins and not libraries -> root project contains plugin
                 root {
@@ -48,14 +48,21 @@ class BuildContentsGenerator(
                 }
             } else if (hasProductionCode) {
                 // Produces libraries and maybe plugins too
-                val internalLibrary = project(build.projectNames.next()) {
-                    requiresPlugins(build.usesPlugins)
-                    producesLibrary()
+
+                // Implementation libraries
+                val projectForInternalLib = mutableMapOf<InternalLibrariesSpec, LibraryUseSpec?>()
+                for (library in build.implementationLibraries) {
+                    project(library.baseName.camelCase) {
+                        requiresPlugins(build.usesPlugins)
+                        projectForInternalLib[library] = producesLibrary()
+                    }
                 }
-                val projectForLib = mutableMapOf<ExternalLibraryProductionSpec, LibraryUseSpec>()
+
+                // Exported libraries
+                val projectForExternalLib = mutableMapOf<ExternalLibraryProductionSpec, LibraryUseSpec>()
                 for (library in build.producesLibraries) {
                     project(library.coordinates.name) {
-                        projectForLib[library] = producesLibrary(library)
+                        projectForExternalLib[library] = producesLibrary(library)
                     }
                 }
                 for (library in build.producesLibraries) {
@@ -63,18 +70,26 @@ class BuildContentsGenerator(
                         requiresPlugins(build.usesPlugins)
                         requiresExternalLibraries(library.usesLibraries)
                         for (required in library.usesLibrariesFromSameBuild) {
-                            requiresLibrary(projectForLib.getValue(required))
+                            requiresLibrary(projectForExternalLib.getValue(required))
                         }
-                        requiresLibrary(internalLibrary)
+                        for (required in library.usesImplementationLibraries) {
+                            requiresLibrary(projectForInternalLib[required])
+                        }
                     }
                 }
+
+                // Apps
                 for (app in build.producesApps) {
                     project(app.baseName.camelCase) {
                         requiresPlugins(build.usesPlugins)
                         requiresExternalLibraries(app.usesLibraries)
-                        requiresLibrary(internalLibrary)
+                        for (required in app.usesImplementationLibraries) {
+                            requiresLibrary(projectForInternalLib[required])
+                        }
                     }
                 }
+
+                // Plugins
                 if (build.producesPlugins.isNotEmpty()) {
                     project("plugins") {
                         producesPlugins(build.producesPlugins)

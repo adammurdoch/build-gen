@@ -21,5 +21,8 @@ class ExternalLibraryProductionSpec(
     val usesLibraries: List<ExternalLibraryUseSpec>,
 
     // Libraries from the same builds that are used by the library implementation
-    val usesLibrariesFromSameBuild: List<ExternalLibraryProductionSpec>
+    val usesLibrariesFromSameBuild: List<ExternalLibraryProductionSpec>,
+
+    // Implementation libraries from the same build
+    val usesImplementationLibraries: List<InternalLibrariesSpec>
 )
