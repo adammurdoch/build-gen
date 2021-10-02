@@ -39,8 +39,8 @@ class DefaultRootProjectBuilder(
             usesPlugins.addAll(plugins)
         }
 
-        override fun producesPlugins(plugins: List<PluginProductionSpec>) {
-            producesPlugins.addAll(plugins)
+        override fun producesPlugin(plugin: PluginProductionSpec) {
+            producesPlugins.add(plugin)
         }
 
         override fun producesLibrary(library: LibraryProductionSpec): LibraryUseSpec {

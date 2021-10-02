@@ -48,7 +48,10 @@ class BuildContentsGenerator(
             if (build.producesPlugins.isNotEmpty() && !hasProductionCode) {
                 // Produces plugins and not libraries -> root project contains plugin
                 root {
-                    producesPlugins(build.producesPlugins)
+                    for (plugin in build.producesPlugins) {
+                        producesPlugin(plugin)
+                        requiresPlugins(plugin.usesPlugins)
+                    }
                 }
             } else if (hasProductionCode) {
                 // Produces libraries and maybe plugins too
@@ -96,7 +99,10 @@ class BuildContentsGenerator(
                 // Plugins
                 if (build.producesPlugins.isNotEmpty()) {
                     project("plugins") {
-                        producesPlugins(build.producesPlugins)
+                        for (plugin in build.producesPlugins) {
+                            producesPlugin(plugin)
+                            requiresPlugins(plugin.usesPlugins)
+                        }
                     }
                 }
             }
