@@ -99,7 +99,7 @@ class BuildContentsGenerator(
                 }
             } else if (allPlugins.isNotEmpty() && hasProductionCode) {
                 project("plugins") {
-                    for (plugin in build.producesPlugins) {
+                    for (plugin in allPlugins) {
                         producesPlugin(plugin)
                         requiresPlugins(plugin.usesPlugins)
                     }

@@ -11,7 +11,7 @@ class BuildSpec(
     val producesPlugins: List<PluginProductionSpec>,
     val producesLibraries: List<ExternalLibraryProductionSpec>,
     val producesApps: List<AppProductionSpec>,
-    val implementationLibraries: List<InternalLibraryProductionSpec>,
+    val producesInternalLibraries: List<InternalLibraryProductionSpec>,
     private val childBuilds: List<BuildSpec>,
     private val includeSelf: Boolean
 ) {
@@ -27,7 +27,7 @@ class BuildSpec(
      */
     fun visit(visitor: BuildComponentVisitor) {
         val queue = mutableListOf<BuildComponentProductionSpec>()
-        queue.addAll(implementationLibraries)
+        queue.addAll(producesInternalLibraries)
         queue.addAll(producesLibraries)
         queue.addAll(producesApps)
         queue.addAll(producesPlugins)

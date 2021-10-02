@@ -19,31 +19,47 @@ class ReportGenerator(
             for (build in builds) {
                 val id = ids.id(build)
                 println("  subgraph $id [${build.displayName}]")
-                for (plugin in build.producesPlugins) {
-                    val pluginId = ids.id(plugin)
-                    println("  $pluginId([plugin ${plugin.id}])")
-                }
-                for (app in build.producesApps) {
-                    val appId = ids.id(app)
-                    println("  $appId([app ${app.baseName.camelCase}])")
-                }
-                for (library in build.producesLibraries) {
-                    val libId = ids.id(library)
-                    println("  $libId([lib ${library.coordinates.group}:${library.coordinates.name}:${library.coordinates.version}])")
-                }
-                for (library in build.implementationLibraries) {
-                    val libId = ids.id(library)
-                    println("  $libId([internal lib ${library.baseName.camelCase}])")
-                }
+                build.visit(object : BuildComponentVisitor {
+                    override fun visitPlugin(plugin: PluginProductionSpec) {
+                        val pluginId = ids.id(plugin)
+                        println("  $pluginId([plugin ${plugin.id}])")
+                    }
+
+                    override fun visitApp(app: AppProductionSpec) {
+                        val appId = ids.id(app)
+                        println("  $appId([app ${app.baseName.camelCase}])")
+                    }
+
+                    override fun visitLibrary(library: ExternalLibraryProductionSpec) {
+                        val libId = ids.id(library)
+                        println("  $libId([lib ${library.coordinates.group}:${library.coordinates.name}:${library.coordinates.version}])")
+                    }
+
+                    override fun visitInternalLibrary(library: InternalLibraryProductionSpec) {
+                        val libId = ids.id(library)
+                        println("  $libId([internal lib ${library.baseName.camelCase}])")
+                    }
+                })
                 println("  end")
             }
             for (build in builds) {
-                for (app in build.producesApps) {
-                    edgesForComponent(app, ids, this@ReportGenerator, builds)
-                }
-                for (library in build.producesLibraries) {
-                    edgesForComponent(library, ids, this@ReportGenerator, builds)
-                }
+                build.visit(object : BuildComponentVisitor {
+                    override fun visitPlugin(plugin: PluginProductionSpec) {
+                        edgesForComponent(plugin, ids, this@ReportGenerator, builds)
+                    }
+
+                    override fun visitApp(app: AppProductionSpec) {
+                        edgesForComponent(app, ids, this@ReportGenerator, builds)
+                    }
+
+                    override fun visitLibrary(library: ExternalLibraryProductionSpec) {
+                        edgesForComponent(library, ids, this@ReportGenerator, builds)
+                    }
+
+                    override fun visitInternalLibrary(library: InternalLibraryProductionSpec) {
+                        edgesForComponent(library, ids, this@ReportGenerator, builds)
+                    }
+                })
             }
             println("</div>")
             println("</body>")
