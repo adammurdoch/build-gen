@@ -16,7 +16,8 @@ class ExternalLibraryUseSpec(
 class ExternalLibraryProductionSpec(
     val coordinates: ExternalLibraryCoordinates,
     val spec: LibraryProductionSpec,
+    usesPlugins: List<PluginUseSpec>,
     usesLibraries: List<ExternalLibraryUseSpec>,
     usesLibrariesFromSameBuild: List<ExternalLibraryProductionSpec>,
     usesImplementationLibraries: List<InternalLibrarySpec>
-) : BuildComponentProductionSpec(emptyList(), usesLibraries, usesLibrariesFromSameBuild, usesImplementationLibraries)
+) : BuildComponentProductionSpec(usesPlugins, usesLibraries, usesLibrariesFromSameBuild, usesImplementationLibraries)

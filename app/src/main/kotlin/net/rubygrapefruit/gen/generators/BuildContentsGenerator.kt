@@ -71,7 +71,7 @@ class BuildContentsGenerator(
                 }
                 for (library in build.producesLibraries) {
                     project(library.coordinates.name) {
-                        requiresPlugins(build.usesPlugins)
+                        requiresPlugins(library.usesPlugins)
                         requiresExternalLibraries(library.usesLibraries)
                         for (required in library.usesLibrariesFromSameBuild) {
                             requiresLibrary(projectForExternalLib.getValue(required))

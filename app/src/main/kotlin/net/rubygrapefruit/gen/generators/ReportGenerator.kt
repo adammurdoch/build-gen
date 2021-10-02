@@ -2,6 +2,7 @@ package net.rubygrapefruit.gen.generators
 
 import net.rubygrapefruit.gen.files.HtmlGenerator
 import net.rubygrapefruit.gen.specs.*
+import java.io.PrintWriter
 
 class ReportGenerator(
     val htmlGenerator: HtmlGenerator
@@ -37,35 +38,36 @@ class ReportGenerator(
                 println("  end")
             }
             for (build in builds) {
-                for (plugin in build.usesPlugins) {
-                    println("  ${ids.id(build)}-->${ids.id(findProducer(builds, plugin))}")
-                }
                 for (app in build.producesApps) {
-                    for (plugin in app.usesPlugins) {
-                        println("  ${ids.id(app)}-->${ids.id(findProducer(builds, plugin))}")
-                    }
-                    for (required in app.usesLibraries) {
-                        println("  ${ids.id(app)}-->${ids.id(findProducer(builds, required))}")
-                    }
-                    for (required in app.usesImplementationLibraries) {
-                        println("  ${ids.id(app)}-->${ids.id(required)}")
-                    }
+                    edgesForComponent(app, ids, this@ReportGenerator, builds)
                 }
                 for (library in build.producesLibraries) {
-                    for (required in library.usesLibraries) {
-                        println("  ${ids.id(library)}-->${ids.id(findProducer(builds, required))}")
-                    }
-                    for (required in library.usesLibrariesFromSameBuild) {
-                        println("  ${ids.id(library)}-->${ids.id(required)}")
-                    }
-                    for (required in library.usesImplementationLibraries) {
-                        println("  ${ids.id(library)}-->${ids.id(required)}")
-                    }
+                    edgesForComponent(library, ids, this@ReportGenerator, builds)
                 }
             }
             println("</div>")
             println("</body>")
             println("</html>")
+        }
+    }
+
+    private fun PrintWriter.edgesForComponent(
+        component: BuildComponentProductionSpec,
+        ids: Ids,
+        reportGenerator: ReportGenerator,
+        builds: List<BuildSpec>
+    ) {
+        for (plugin in component.usesPlugins) {
+            println("  ${ids.id(component)}-->${ids.id(reportGenerator.findProducer(builds, plugin))}")
+        }
+        for (required in component.usesLibraries) {
+            println("  ${ids.id(component)}-->${ids.id(reportGenerator.findProducer(builds, required))}")
+        }
+        for (required in component.usesLibrariesFromSameBuild) {
+            println("  ${ids.id(component)}-->${ids.id(required)}")
+        }
+        for (required in component.usesImplementationLibraries) {
+            println("  ${ids.id(component)}-->${ids.id(required)}")
         }
     }
 
