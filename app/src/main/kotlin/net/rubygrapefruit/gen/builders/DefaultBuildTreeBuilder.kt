@@ -7,9 +7,7 @@ import java.nio.file.Path
  * A mutable builder for the build tree structure.
  */
 class DefaultBuildTreeBuilder(
-    private val rootDir: Path,
-    private val pluginSpecFactory: PluginSpecFactory,
-    private val librarySpecFactory: LibrarySpecFactory
+    private val rootDir: Path, private val pluginSpecFactory: PluginSpecFactory, private val librarySpecFactory: LibrarySpecFactory
 ) : BuildTreeBuilder {
     private val builds = mutableListOf<BuildBuilderImpl>()
     private val main = BuildBuilderImpl(null, "main build", BaseName("main"), "main", rootDir)
@@ -33,8 +31,7 @@ class DefaultBuildTreeBuilder(
     }
 
     private class BuildTreeSpecImpl(
-        override val rootDir: Path,
-        override val builds: List<BuildSpec>
+        override val rootDir: Path, override val builds: List<BuildSpec>
     ) : BuildTreeSpec
 
     private class PluginRefImpl(
@@ -98,19 +95,22 @@ class DefaultBuildTreeBuilder(
     }
 
     private class LibrariesRefImpl(
-        override val top: LibraryRefImpl,
-        override val bottom: LibraryRefImpl
+        override val top: LibraryRefImpl, override val bottom: LibraryRefImpl
     ) : LibrariesRef
 
-    private class AppImpl(val baseName: BaseName, val implementationLibraries: List<InternalLibrarySpec>) {
-        fun toSpec(usesLibraries: List<ExternalLibraryUseSpec>, usesPlugins: List<PluginUseSpec>) = AppProductionSpec(baseName, usesPlugins, usesLibraries, implementationLibraries)
+    private class AppImpl(
+        val baseName: BaseName, val usesPlugins: LazyValue<List<PluginUseSpec>>, val implementationLibraries: List<InternalLibrarySpec>, val incomingLibraries: LazyValue<List<ExternalLibraryUseSpec>>
+    ) : Mappable<AppProductionSpec> {
+        override fun toSpec(mapper: Mapper<AppProductionSpec>): AppProductionSpec {
+            return AppProductionSpec(baseName, usesPlugins.get(), incomingLibraries.get(), implementationLibraries)
+        }
     }
 
     private interface Mappable<T> {
         fun toSpec(mapper: Mapper<T>): T
     }
 
-    private class Mapper<T>() {
+    private class Mapper<T> {
         private val mappedItems = mutableMapOf<Mappable<T>, T>()
         private val visiting = mutableSetOf<Mappable<T>>()
 
@@ -135,11 +135,7 @@ class DefaultBuildTreeBuilder(
     }
 
     private inner class BuildBuilderImpl(
-        val owner: BuildBuilderImpl?,
-        val displayName: String,
-        val baseName: BaseName,
-        val artifactType: String,
-        val rootDir: Path
+        val owner: BuildBuilderImpl?, val displayName: String, val baseName: BaseName, val artifactType: String, val rootDir: Path
     ) : BuildBuilder, Mappable<BuildSpec> {
         private val children = mutableListOf<BuildBuilderImpl>()
         private var pluginBuilds = 0
@@ -190,7 +186,7 @@ class DefaultBuildTreeBuilder(
         }
 
         override fun producesApp() {
-            producesApps.add(AppImpl(BaseName(projectNames.next()), implementationLibs()))
+            producesApps.add(AppImpl(BaseName(projectNames.next()), usesPlugins, implementationLibs(), usesLibraries))
         }
 
         private fun implementationLibs(): List<InternalLibrarySpec> {
@@ -251,19 +247,11 @@ class DefaultBuildTreeBuilder(
 
         override fun toSpec(mapper: Mapper<BuildSpec>): BuildSpec {
             val libMapper = Mapper<ExternalLibraryProductionSpec>()
+            val appMapper = Mapper<AppProductionSpec>()
             usesPlugins.finished()
             usesLibraries.finished()
             return BuildSpec(
-                displayName,
-                rootDir,
-                includeConfigurationCacheProblems,
-                usesPlugins.get(),
-                producesPlugins,
-                libMapper.map(producesLibraries),
-                producesApps.map { it.toSpec(usesLibraries.get(), usesPlugins.get()) },
-                implementationLibraries,
-                mapper.map(children),
-                includeSelf
+                displayName, rootDir, includeConfigurationCacheProblems, usesPlugins.get(), producesPlugins, libMapper.map(producesLibraries), appMapper.map(producesApps), implementationLibraries, mapper.map(children), includeSelf
             )
         }
     }
