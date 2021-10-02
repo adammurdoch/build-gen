@@ -8,7 +8,6 @@ class BuildSpec(
     val displayName: String,
     val rootDir: Path,
     val includeConfigurationCacheProblems: Boolean,
-    val usesPlugins: List<PluginUseSpec>,
     val producesPlugins: List<PluginProductionSpec>,
     val producesLibraries: List<ExternalLibraryProductionSpec>,
     val producesApps: List<AppProductionSpec>,

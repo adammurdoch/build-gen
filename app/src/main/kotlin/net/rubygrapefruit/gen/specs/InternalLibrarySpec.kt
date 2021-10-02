@@ -2,5 +2,6 @@ package net.rubygrapefruit.gen.specs
 
 class InternalLibrarySpec(
     val baseName: BaseName,
-    val spec: LibraryProductionSpec
-) : BuildComponentProductionSpec(emptyList(), emptyList(), emptyList(), emptyList())
+    val spec: LibraryProductionSpec,
+    usesPlugins: List<PluginUseSpec>
+) : BuildComponentProductionSpec(usesPlugins, emptyList(), emptyList(), emptyList())
