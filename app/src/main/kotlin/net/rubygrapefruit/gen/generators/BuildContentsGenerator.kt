@@ -54,7 +54,7 @@ class BuildContentsGenerator(
                 // Produces libraries and maybe plugins too
 
                 // Implementation libraries
-                val projectForInternalLib = mutableMapOf<InternalLibrariesSpec, LibraryUseSpec>()
+                val projectForInternalLib = mutableMapOf<InternalLibrarySpec, LibraryUseSpec>()
                 for (library in build.implementationLibraries) {
                     project(library.baseName.camelCase) {
                         requiresPlugins(build.usesPlugins)

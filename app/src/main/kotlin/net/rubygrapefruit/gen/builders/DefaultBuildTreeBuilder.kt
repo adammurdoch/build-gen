@@ -46,7 +46,7 @@ class DefaultBuildTreeBuilder(
         val api: LibraryProductionSpec,
         val useIncomingLibraries: Boolean,
         val requiresLibrariesFromThisBuild: List<LibraryRefImpl>,
-        val implementationLibraries: List<InternalLibrariesSpec>
+        val implementationLibraries: List<InternalLibrarySpec>
     ) : LibraryRef, Mappable<ExternalLibraryProductionSpec, List<ExternalLibraryUseSpec>> {
         val useSpec = ExternalLibraryUseSpec(coordinates, api.toApiSpec())
 
@@ -61,7 +61,7 @@ class DefaultBuildTreeBuilder(
         override val bottom: LibraryRefImpl
     ) : LibrariesRef
 
-    private class AppImpl(val baseName: BaseName, val implementationLibraries: List<InternalLibrariesSpec>) {
+    private class AppImpl(val baseName: BaseName, val implementationLibraries: List<InternalLibrarySpec>) {
         fun toSpec(usesLibraries: List<ExternalLibraryUseSpec>) = AppProductionSpec(baseName, usesLibraries, implementationLibraries)
     }
 
@@ -102,7 +102,7 @@ class DefaultBuildTreeBuilder(
     ) : BuildBuilder, Mappable<BuildSpec, Any> {
         private val children = mutableListOf<BuildBuilderImpl>()
         private var pluginBuilds = 0
-        private var implementationLibraries = mutableListOf<InternalLibrariesSpec>()
+        private var implementationLibraries = mutableListOf<InternalLibrarySpec>()
         private val producesPlugins = mutableListOf<PluginProductionSpec>()
         private val usesPlugins = mutableListOf<PluginUseSpec>()
         private val usesLibraries = mutableListOf<ExternalLibraryUseSpec>()
@@ -152,12 +152,12 @@ class DefaultBuildTreeBuilder(
             producesApps.add(AppImpl(BaseName(projectNames.next()), implementationLibs()))
         }
 
-        private fun implementationLibs(): List<InternalLibrariesSpec> {
+        private fun implementationLibs(): List<InternalLibrarySpec> {
             if (implementationLibraries.isEmpty()) {
                 val libraryName = BaseName(projectNames.next())
                 val spec = librarySpecFactory.maybeLibrary(libraryName.camelCase)
                 if (spec != null) {
-                    implementationLibraries.add(InternalLibrariesSpec(libraryName, spec))
+                    implementationLibraries.add(InternalLibrarySpec(libraryName, spec))
                 }
             }
             return implementationLibraries
@@ -177,7 +177,7 @@ class DefaultBuildTreeBuilder(
             return LibrariesRefImpl(top, bottom)
         }
 
-        private fun addLibrary(useIncomingLibraries: Boolean, implementationLibs: List<InternalLibrariesSpec>, requiresLibrariesFromThisBuild: List<LibraryRefImpl> = emptyList()): LibraryRefImpl {
+        private fun addLibrary(useIncomingLibraries: Boolean, implementationLibs: List<InternalLibrarySpec>, requiresLibrariesFromThisBuild: List<LibraryRefImpl> = emptyList()): LibraryRefImpl {
             val coordinates = ExternalLibraryCoordinates("test.${baseName.lowerCaseDotSeparator}", projectNames.next(), "1.0")
             val libraryApi = librarySpecFactory.library(baseName.camelCase)
             val library = LibraryRefImpl(coordinates, libraryApi, useIncomingLibraries, requiresLibrariesFromThisBuild, implementationLibs)

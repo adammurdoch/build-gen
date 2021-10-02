@@ -3,7 +3,7 @@ package net.rubygrapefruit.gen.specs
 sealed class PluginProductionSpec(
     protected val baseName: BaseName,
     val id: String,
-) {
+): BuildComponentProductionSpec(emptyList(), emptyList(), emptyList(), emptyList()) {
     abstract fun toUseSpec(): PluginUseSpec
 
     /**
