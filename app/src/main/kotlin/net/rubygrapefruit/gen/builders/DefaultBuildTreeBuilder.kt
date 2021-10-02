@@ -62,7 +62,7 @@ class DefaultBuildTreeBuilder(
     ) : LibrariesRef
 
     private class AppImpl(val baseName: BaseName, val implementationLibraries: List<InternalLibrarySpec>) {
-        fun toSpec(usesLibraries: List<ExternalLibraryUseSpec>) = AppProductionSpec(baseName, usesLibraries, implementationLibraries)
+        fun toSpec(usesLibraries: List<ExternalLibraryUseSpec>, usesPlugins: List<PluginUseSpec>) = AppProductionSpec(baseName, usesPlugins, usesLibraries, implementationLibraries)
     }
 
     private interface Mappable<T, P> {
@@ -216,7 +216,7 @@ class DefaultBuildTreeBuilder(
                 usesPlugins,
                 producesPlugins,
                 libMapper.map(producesLibraries),
-                producesApps.map { it.toSpec(usesLibraries) },
+                producesApps.map { it.toSpec(usesLibraries, usesPlugins) },
                 implementationLibraries,
                 mapper.map(children),
                 includeSelf

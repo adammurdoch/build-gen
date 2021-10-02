@@ -85,7 +85,7 @@ class BuildContentsGenerator(
                 // Apps
                 for (app in build.producesApps) {
                     project(app.baseName.camelCase) {
-                        requiresPlugins(build.usesPlugins)
+                        requiresPlugins(app.usesPlugins)
                         requiresExternalLibraries(app.usesLibraries)
                         for (required in app.usesImplementationLibraries) {
                             requiresLibrary(projectForInternalLib.getValue(required))

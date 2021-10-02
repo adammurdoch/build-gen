@@ -41,6 +41,9 @@ class ReportGenerator(
                     println("  ${ids.id(build)}-->${ids.id(findProducer(builds, plugin))}")
                 }
                 for (app in build.producesApps) {
+                    for (plugin in app.usesPlugins) {
+                        println("  ${ids.id(app)}-->${ids.id(findProducer(builds, plugin))}")
+                    }
                     for (required in app.usesLibraries) {
                         println("  ${ids.id(app)}-->${ids.id(findProducer(builds, required))}")
                     }

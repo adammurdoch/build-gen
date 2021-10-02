@@ -2,6 +2,7 @@ package net.rubygrapefruit.gen.specs
 
 class AppProductionSpec(
     val baseName: BaseName,
+    usesPlugins: List<PluginUseSpec>,
     usesLibraries: List<ExternalLibraryUseSpec>,
     usesImplementationLibraries: List<InternalLibrarySpec>
-) : BuildComponentProductionSpec(emptyList(), usesLibraries, emptyList(), usesImplementationLibraries)
+) : BuildComponentProductionSpec(usesPlugins, usesLibraries, emptyList(), usesImplementationLibraries)
