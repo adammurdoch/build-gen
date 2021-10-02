@@ -19,5 +19,9 @@ class ExternalLibraryProductionSpec(
     usesPlugins: List<PluginUseSpec>,
     usesLibraries: List<ExternalLibraryUseSpec>,
     usesLibrariesFromSameBuild: List<ExternalLibraryProductionSpec>,
-    usesImplementationLibraries: List<InternalLibrarySpec>
-) : BuildComponentProductionSpec(usesPlugins, usesLibraries, usesLibrariesFromSameBuild, usesImplementationLibraries)
+    usesImplementationLibraries: List<InternalLibraryProductionSpec>
+) : BuildComponentProductionSpec(usesPlugins, usesLibraries, usesLibrariesFromSameBuild, usesImplementationLibraries) {
+    override fun accept(visitor: BuildComponentVisitor) {
+        visitor.visitLibrary(this)
+    }
+}

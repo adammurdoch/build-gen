@@ -44,36 +44,31 @@ class BuildContentsGenerator(
 
     private fun projects(build: BuildSpec): RootProjectSpec {
         return build.projects {
-            val hasProductionCode = build.producesLibraries.isNotEmpty() || build.producesApps.isNotEmpty() || build.implementationLibraries.isNotEmpty()
-            if (build.producesPlugins.isNotEmpty() && !hasProductionCode) {
-                // Produces plugins and not libraries -> root project contains plugin
-                root {
-                    for (plugin in build.producesPlugins) {
-                        producesPlugin(plugin)
-                        requiresPlugins(plugin.usesPlugins)
-                    }
-                }
-            } else if (hasProductionCode) {
-                // Produces libraries and maybe plugins too
+            val projectForInternalLib = mutableMapOf<InternalLibraryProductionSpec, LibraryUseSpec>()
+            val projectForExternalLib = mutableMapOf<ExternalLibraryProductionSpec, LibraryUseSpec>()
+            val allPlugins = mutableListOf<PluginProductionSpec>()
+            var hasProductionCode = false
 
-                // Implementation libraries
-                val projectForInternalLib = mutableMapOf<InternalLibrarySpec, LibraryUseSpec>()
-                for (library in build.implementationLibraries) {
-                    project(library.baseName.camelCase) {
-                        requiresPlugins(library.usesPlugins)
-                        projectForInternalLib[library] = producesLibrary(library.spec)
-                    }
+            build.visit(object : BuildComponentVisitor {
+                override fun visitPlugin(plugin: PluginProductionSpec) {
+                    allPlugins.add(plugin)
                 }
 
-                // Exported libraries
-                val projectForExternalLib = mutableMapOf<ExternalLibraryProductionSpec, LibraryUseSpec>()
-                for (library in build.producesLibraries) {
+                override fun visitApp(app: AppProductionSpec) {
+                    hasProductionCode = true
+                    project(app.baseName.camelCase) {
+                        requiresPlugins(app.usesPlugins)
+                        requiresExternalLibraries(app.usesLibraries)
+                        for (required in app.usesImplementationLibraries) {
+                            requiresLibrary(projectForInternalLib.getValue(required))
+                        }
+                    }
+                }
+
+                override fun visitLibrary(library: ExternalLibraryProductionSpec) {
+                    hasProductionCode = true
                     project(library.coordinates.name) {
                         projectForExternalLib[library] = producesLibrary(library)
-                    }
-                }
-                for (library in build.producesLibraries) {
-                    project(library.coordinates.name) {
                         requiresPlugins(library.usesPlugins)
                         requiresExternalLibraries(library.usesLibraries)
                         for (required in library.usesLibrariesFromSameBuild) {
@@ -85,24 +80,28 @@ class BuildContentsGenerator(
                     }
                 }
 
-                // Apps
-                for (app in build.producesApps) {
-                    project(app.baseName.camelCase) {
-                        requiresPlugins(app.usesPlugins)
-                        requiresExternalLibraries(app.usesLibraries)
-                        for (required in app.usesImplementationLibraries) {
-                            requiresLibrary(projectForInternalLib.getValue(required))
-                        }
+                override fun visitInternalLibrary(library: InternalLibraryProductionSpec) {
+                    hasProductionCode = true
+                    project(library.baseName.camelCase) {
+                        requiresPlugins(library.usesPlugins)
+                        projectForInternalLib[library] = producesLibrary(library.spec)
                     }
                 }
+            })
 
-                // Plugins
-                if (build.producesPlugins.isNotEmpty()) {
-                    project("plugins") {
-                        for (plugin in build.producesPlugins) {
-                            producesPlugin(plugin)
-                            requiresPlugins(plugin.usesPlugins)
-                        }
+            if (allPlugins.isNotEmpty() && !hasProductionCode) {
+                // Produces plugins and nothing else -> root project contains plugin
+                root {
+                    for (plugin in allPlugins) {
+                        producesPlugin(plugin)
+                        requiresPlugins(plugin.usesPlugins)
+                    }
+                }
+            } else if (allPlugins.isNotEmpty() && hasProductionCode) {
+                project("plugins") {
+                    for (plugin in build.producesPlugins) {
+                        producesPlugin(plugin)
+                        requiresPlugins(plugin.usesPlugins)
                     }
                 }
             }

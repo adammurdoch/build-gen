@@ -14,5 +14,7 @@ sealed class BuildComponentProductionSpec(
     val usesLibrariesFromSameBuild: List<ExternalLibraryProductionSpec>,
 
     // Implementation libraries from the same build that are used by the implementation
-    val usesImplementationLibraries: List<InternalLibrarySpec>
-)
+    val usesImplementationLibraries: List<InternalLibraryProductionSpec>
+) {
+    abstract fun accept(visitor: BuildComponentVisitor)
+}

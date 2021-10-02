@@ -84,7 +84,7 @@ class DefaultBuildTreeBuilder(
         val api: LibraryProductionSpec,
         val usesPlugins: LazyValue<List<PluginUseSpec>>,
         val requiresLibrariesFromThisBuild: List<ExportedLibrarySpec>,
-        val implementationLibraries: LazyValue<List<InternalLibrarySpec>>,
+        val implementationLibraries: LazyValue<List<InternalLibraryProductionSpec>>,
         val incomingLibraries: LazyValue<List<ExternalLibraryUseSpec>>
     ) : LibraryRef, Mappable<ExternalLibraryProductionSpec> {
         val useSpec = ExternalLibraryUseSpec(coordinates, api.toApiSpec())
@@ -97,9 +97,9 @@ class DefaultBuildTreeBuilder(
         val baseName: BaseName,
         val spec: LibraryProductionSpec,
         val usesPlugins: LazyValue<List<PluginUseSpec>>
-    ) : Mappable<InternalLibrarySpec> {
-        override fun toSpec(mapper: Mapper<InternalLibrarySpec>): InternalLibrarySpec {
-            return InternalLibrarySpec(baseName, spec, usesPlugins.get())
+    ) : Mappable<InternalLibraryProductionSpec> {
+        override fun toSpec(mapper: Mapper<InternalLibraryProductionSpec>): InternalLibraryProductionSpec {
+            return InternalLibraryProductionSpec(baseName, spec, usesPlugins.get())
         }
     }
 
@@ -110,7 +110,7 @@ class DefaultBuildTreeBuilder(
     private class AppImpl(
         val baseName: BaseName,
         val usesPlugins: LazyValue<List<PluginUseSpec>>,
-        val implementationLibraries: LazyValue<List<InternalLibrarySpec>>,
+        val implementationLibraries: LazyValue<List<InternalLibraryProductionSpec>>,
         val incomingLibraries: LazyValue<List<ExternalLibraryUseSpec>>
     ) : Mappable<AppProductionSpec> {
         override fun toSpec(mapper: Mapper<AppProductionSpec>) = AppProductionSpec(baseName, usesPlugins.get(), incomingLibraries.get(), implementationLibraries.get())
@@ -150,7 +150,7 @@ class DefaultBuildTreeBuilder(
         private val children = mutableListOf<BuildBuilderImpl>()
         private var pluginBuilds = 0
         private var implementationLibraries = mutableListOf<InternalLibraryImpl>()
-        private var implementationLibrariesProvider = DeferredLazyValue<List<InternalLibrarySpec>>()
+        private var implementationLibrariesProvider = DeferredLazyValue<List<InternalLibraryProductionSpec>>()
         private val producesPlugins = mutableListOf<PluginProductionSpec>()
         private val usesPlugins = CollectionLazyValue<PluginUseSpec>()
         private val usesLibraries = CollectionLazyValue<ExternalLibraryUseSpec>()
@@ -200,7 +200,7 @@ class DefaultBuildTreeBuilder(
             producesApps.add(AppImpl(BaseName(projectNames.next()), usesPlugins, implementationLibs(), usesLibraries))
         }
 
-        private fun implementationLibs(): LazyValue<List<InternalLibrarySpec>> {
+        private fun implementationLibs(): LazyValue<List<InternalLibraryProductionSpec>> {
             if (implementationLibraries.isEmpty()) {
                 val libraryName = BaseName(projectNames.next())
                 val spec = librarySpecFactory.maybeLibrary(libraryName.camelCase)
@@ -225,7 +225,7 @@ class DefaultBuildTreeBuilder(
             return LibrariesRefImpl(top, bottom)
         }
 
-        private fun addLibrary(useIncomingLibraries: Boolean, implementationLibs: LazyValue<List<InternalLibrarySpec>>, requiresLibrariesFromThisBuild: List<ExportedLibrarySpec> = emptyList()): ExportedLibrarySpec {
+        private fun addLibrary(useIncomingLibraries: Boolean, implementationLibs: LazyValue<List<InternalLibraryProductionSpec>>, requiresLibrariesFromThisBuild: List<ExportedLibrarySpec> = emptyList()): ExportedLibrarySpec {
             val coordinates = ExternalLibraryCoordinates("test.${baseName.lowerCaseDotSeparator}", projectNames.next(), "1.0")
             val libraryApi = librarySpecFactory.library(baseName.camelCase)
             val incomingLibraries = if (useIncomingLibraries) usesLibraries else FixedValue(emptyList())
@@ -259,7 +259,7 @@ class DefaultBuildTreeBuilder(
         override fun toSpec(mapper: Mapper<BuildSpec>): BuildSpec {
             val libMapper = Mapper<ExternalLibraryProductionSpec>()
             val appMapper = Mapper<AppProductionSpec>()
-            val internalLibMapper = Mapper<InternalLibrarySpec>()
+            val internalLibMapper = Mapper<InternalLibraryProductionSpec>()
             usesPlugins.finished()
             usesLibraries.finished()
             implementationLibrariesProvider.set(internalLibMapper.map(implementationLibraries))

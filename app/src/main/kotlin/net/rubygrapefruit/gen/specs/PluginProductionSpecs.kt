@@ -17,6 +17,10 @@ sealed class PluginProductionSpec(
     fun className(classNameSuffix: String): JvmClassName {
         return JvmClassName(baseName.lowerCaseDotSeparator + ".plugin." + classNameSuffix.capitalize())
     }
+
+    override fun accept(visitor: BuildComponentVisitor) {
+        visitor.visitPlugin(this)
+    }
 }
 
 class CustomPluginProductionSpec(baseName: BaseName, val artifactType: String, id: String) : PluginProductionSpec(baseName, id) {

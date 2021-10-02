@@ -11,7 +11,7 @@ class BuildSpec(
     val producesPlugins: List<PluginProductionSpec>,
     val producesLibraries: List<ExternalLibraryProductionSpec>,
     val producesApps: List<AppProductionSpec>,
-    val implementationLibraries: List<InternalLibrarySpec>,
+    val implementationLibraries: List<InternalLibraryProductionSpec>,
     private val childBuilds: List<BuildSpec>,
     private val includeSelf: Boolean
 ) {
@@ -21,6 +21,31 @@ class BuildSpec(
         } else {
             childBuilds
         }
+
+    /**
+     * Visits the components of this build. Visits the dependencies of a component before visiting the component
+     */
+    fun visit(visitor: BuildComponentVisitor) {
+        val queue = mutableListOf<BuildComponentProductionSpec>()
+        queue.addAll(implementationLibraries)
+        queue.addAll(producesLibraries)
+        queue.addAll(producesApps)
+        queue.addAll(producesPlugins)
+        val seen = mutableSetOf<BuildComponentProductionSpec>()
+        val visited = mutableSetOf<BuildComponentProductionSpec>()
+        while (queue.isNotEmpty()) {
+            val component = queue.first()
+            if (seen.add(component)) {
+                queue.addAll(component.usesLibrariesFromSameBuild)
+                queue.addAll(component.usesImplementationLibraries)
+            } else {
+                queue.removeFirst()
+                if (visited.add(component)) {
+                    component.accept(visitor)
+                }
+            }
+        }
+    }
 
     /**
      * Creates a project tree for this build.
