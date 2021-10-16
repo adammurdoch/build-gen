@@ -73,11 +73,13 @@ class ReportGenerator(
         reportGenerator: ReportGenerator,
         builds: List<BuildSpec>
     ) {
+        val pluginsById = builds.flatMap { it.producesPlugins }.associateBy { it.id }
+        val librariesByCoords = builds.flatMap { it.producesLibraries }.associateBy { it.coordinates }
         for (plugin in component.usesPlugins) {
-            println("  ${ids.id(component)}-->${ids.id(reportGenerator.findProducer(builds, plugin))}")
+            println("  ${ids.id(component)}-->${ids.id(reportGenerator.findProducer(pluginsById, plugin))}")
         }
         for (required in component.usesLibraries) {
-            println("  ${ids.id(component)}-->${ids.id(reportGenerator.findProducer(builds, required))}")
+            println("  ${ids.id(component)}-->${ids.id(reportGenerator.findProducer(librariesByCoords, required))}")
         }
         for (required in component.usesLibrariesFromSameBuild) {
             println("  ${ids.id(component)}-->${ids.id(required)}")
@@ -87,26 +89,12 @@ class ReportGenerator(
         }
     }
 
-    private fun findProducer(builds: List<BuildSpec>, useSpec: PluginUseSpec): PluginProductionSpec {
-        for (build in builds) {
-            for (plugin in build.producesPlugins) {
-                if (plugin.id == useSpec.id) {
-                    return plugin
-                }
-            }
-        }
-        throw IllegalArgumentException()
+    private fun findProducer(pluginsById: Map<String, PluginProductionSpec>, useSpec: PluginUseSpec): PluginProductionSpec {
+        return pluginsById.getValue(useSpec.id)
     }
 
-    private fun findProducer(builds: List<BuildSpec>, useSpec: ExternalLibraryUseSpec): ExternalLibraryProductionSpec {
-        for (build in builds) {
-            for (library in build.producesLibraries) {
-                if (library.coordinates == useSpec.coordinates) {
-                    return library
-                }
-            }
-        }
-        throw IllegalArgumentException()
+    private fun findProducer(librariesByCoords: Map<ExternalLibraryCoordinates, ExternalLibraryProductionSpec>, useSpec: ExternalLibraryUseSpec): ExternalLibraryProductionSpec {
+        return librariesByCoords.getValue(useSpec.coordinates)
     }
 
     private class Ids {

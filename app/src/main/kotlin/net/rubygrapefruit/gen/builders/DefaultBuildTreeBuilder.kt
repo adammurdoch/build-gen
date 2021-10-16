@@ -263,14 +263,17 @@ class DefaultBuildTreeBuilder(
             usesPlugins.finished()
             usesLibraries.finished()
             implementationLibrariesProvider.set(internalLibMapper.map(implementationLibraries))
+            val components = FixedComponentsSpec(
+                producesPlugins,
+                libMapper.map(producesLibraries),
+                appMapper.map(producesApps),
+                implementationLibrariesProvider.get()
+            )
             return BuildSpec(
                 displayName,
                 rootDir,
                 includeConfigurationCacheProblems,
-                producesPlugins,
-                libMapper.map(producesLibraries),
-                appMapper.map(producesApps),
-                implementationLibrariesProvider.get(),
+                components,
                 mapper.map(children),
                 includeSelf
             )

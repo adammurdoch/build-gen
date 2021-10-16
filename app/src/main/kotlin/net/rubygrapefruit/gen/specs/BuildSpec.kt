@@ -8,10 +8,7 @@ class BuildSpec(
     val displayName: String,
     val rootDir: Path,
     val includeConfigurationCacheProblems: Boolean,
-    val producesPlugins: List<PluginProductionSpec>,
-    val producesLibraries: List<ExternalLibraryProductionSpec>,
-    val producesApps: List<AppProductionSpec>,
-    val producesInternalLibraries: List<InternalLibraryProductionSpec>,
+    private val components: BuildComponentsSpec,
     private val childBuilds: List<BuildSpec>,
     private val includeSelf: Boolean
 ) {
@@ -22,15 +19,26 @@ class BuildSpec(
             childBuilds
         }
 
+    val producesPlugins: List<PluginProductionSpec>
+        get() {
+            val plugins = mutableListOf<PluginProductionSpec>()
+            components.visit { spec -> if (spec is PluginProductionSpec) plugins.add(spec) }
+            return plugins
+        }
+
+    val producesLibraries: List<ExternalLibraryProductionSpec>
+        get() {
+            val libraries = mutableListOf<ExternalLibraryProductionSpec>()
+            components.visit { spec -> if (spec is ExternalLibraryProductionSpec) libraries.add(spec) }
+            return libraries
+        }
+
     /**
      * Visits the components of this build. Visits the dependencies of a component before visiting the component
      */
     fun visit(visitor: BuildComponentVisitor) {
         val queue = mutableListOf<BuildComponentProductionSpec>()
-        queue.addAll(producesInternalLibraries)
-        queue.addAll(producesLibraries)
-        queue.addAll(producesApps)
-        queue.addAll(producesPlugins)
+        components.visit(queue::add)
         val seen = mutableSetOf<BuildComponentProductionSpec>()
         val visited = mutableSetOf<BuildComponentProductionSpec>()
         while (queue.isNotEmpty()) {
