@@ -5,32 +5,36 @@ import net.rubygrapefruit.gen.builders.ChildBuildsBuilder
 import net.rubygrapefruit.gen.builders.MainBuildOnlyBuilder
 import net.rubygrapefruit.gen.builders.NestedChildBuildsBuilder
 
-enum class BuildTreeTemplate(
-    private val productionBuildTreeStructure: ProductionBuildTreeStructure,
-    private val buildLogic: BuildLogic
+sealed class BuildTreeTemplate(
+    val productionBuildTreeStructure: ProductionBuildTreeStructure,
+    val buildLogic: BuildLogic
 ) {
-    MainBuildNoBuildLogic(ProductionBuildTreeStructure.MainBuild, BuildLogic.None) {
+    object MainBuildNoBuildLogic : BuildTreeTemplate(ProductionBuildTreeStructure.MainBuild, BuildLogic.None) {
         override fun BuildTreeBuilder.applyTo() {
             MainBuildOnlyBuilder(this)
         }
-    },
-    MainBuildWithBuildSrc(ProductionBuildTreeStructure.MainBuild, BuildLogic.BuildSrc) {
+    }
+
+    object MainBuildWithBuildSrc : BuildTreeTemplate(ProductionBuildTreeStructure.MainBuild, BuildLogic.BuildSrc) {
         override fun BuildTreeBuilder.applyTo() {
             val builder = MainBuildOnlyBuilder(this)
             builder.apply {
                 buildSrcPlugin()
             }
         }
-    },
-    MainBuildWithPluginChildBuild(ProductionBuildTreeStructure.MainBuild, BuildLogic.ChildBuild) {
+    }
+
+
+    object MainBuildWithPluginChildBuild : BuildTreeTemplate(ProductionBuildTreeStructure.MainBuild, BuildLogic.ChildBuild) {
         override fun BuildTreeBuilder.applyTo() {
             val builder = MainBuildOnlyBuilder(this)
             builder.apply {
                 childBuildPlugin()
             }
         }
-    },
-    MainBuildWithBuildSrcAndPluginChildBuild(ProductionBuildTreeStructure.MainBuild, BuildLogic.BuildSrcAndChildBuild) {
+    }
+
+    object MainBuildWithBuildSrcAndPluginChildBuild : BuildTreeTemplate(ProductionBuildTreeStructure.MainBuild, BuildLogic.BuildSrcAndChildBuild) {
         override fun BuildTreeBuilder.applyTo() {
             val builder = MainBuildOnlyBuilder(this)
             builder.apply {
@@ -38,13 +42,15 @@ enum class BuildTreeTemplate(
                 childBuildPlugin()
             }
         }
-    },
-    ChildBuildsNoBuildLogic(ProductionBuildTreeStructure.ChildBuilds, BuildLogic.None) {
+    }
+
+    object ChildBuildsNoBuildLogic : BuildTreeTemplate(ProductionBuildTreeStructure.ChildBuilds, BuildLogic.None) {
         override fun BuildTreeBuilder.applyTo() {
             ChildBuildsBuilder(this)
         }
-    },
-    ChildBuildsWithBuildSrc(ProductionBuildTreeStructure.ChildBuilds, BuildLogic.BuildSrc) {
+    }
+
+    object ChildBuildsWithBuildSrc : BuildTreeTemplate(ProductionBuildTreeStructure.ChildBuilds, BuildLogic.BuildSrc) {
         override fun BuildTreeBuilder.applyTo() {
             val builder = ChildBuildsBuilder(this)
             builder.apply {
@@ -52,8 +58,9 @@ enum class BuildTreeTemplate(
                 mainBuildUsesLibrariesFromChildren()
             }
         }
-    },
-    ChildBuildsWithPluginChildBuild(ProductionBuildTreeStructure.ChildBuilds, BuildLogic.ChildBuild) {
+    }
+
+    object ChildBuildsWithPluginChildBuild : BuildTreeTemplate(ProductionBuildTreeStructure.ChildBuilds, BuildLogic.ChildBuild) {
         override fun BuildTreeBuilder.applyTo() {
             val builder = ChildBuildsBuilder(this)
             builder.apply {
@@ -61,8 +68,9 @@ enum class BuildTreeTemplate(
                 mainBuildUsesLibrariesFromChildren()
             }
         }
-    },
-    ChildBuildsWithPluginChildBuildAndSharedLibrary(ProductionBuildTreeStructure.ChildBuilds, BuildLogic.ChildBuildAndSharedLibrary) {
+    }
+
+    object ChildBuildsWithPluginChildBuildAndSharedLibrary : BuildTreeTemplate(ProductionBuildTreeStructure.ChildBuilds, BuildLogic.ChildBuildAndSharedLibrary) {
         override fun BuildTreeBuilder.applyTo() {
             val builder = ChildBuildsBuilder(this)
             builder.apply {
@@ -76,8 +84,9 @@ enum class BuildTreeTemplate(
                 }
             }
         }
-    },
-    NestedChildBuildsWithPluginChildBuild(ProductionBuildTreeStructure.NestedChildBuilds, BuildLogic.ChildBuild) {
+    }
+
+    object NestedChildBuildsWithPluginChildBuild : BuildTreeTemplate(ProductionBuildTreeStructure.NestedChildBuilds, BuildLogic.ChildBuild) {
         override fun BuildTreeBuilder.applyTo() {
             val builder = NestedChildBuildsBuilder(this)
             builder.apply {
@@ -94,8 +103,9 @@ enum class BuildTreeTemplate(
                 }
             }
         }
-    },
-    ChildBuildsWithCycleAndPluginChildBuild(ProductionBuildTreeStructure.ChildBuildsWithCycle, BuildLogic.ChildBuild) {
+    }
+
+    object ChildBuildsWithCycleAndPluginChildBuild : BuildTreeTemplate(ProductionBuildTreeStructure.ChildBuildsWithCycle, BuildLogic.ChildBuild) {
         override fun BuildTreeBuilder.applyTo() {
             val builder = ChildBuildsBuilder(this)
             builder.apply {
@@ -117,8 +127,9 @@ enum class BuildTreeTemplate(
                 }
             }
         }
-    },
-    ChildBuildsUseMainBuildAndWithPluginChildBuild(ProductionBuildTreeStructure.ChildBuildsUsesMainBuild, BuildLogic.ChildBuild) {
+    }
+
+    object ChildBuildsUseMainBuildAndWithPluginChildBuild : BuildTreeTemplate(ProductionBuildTreeStructure.ChildBuildsUsesMainBuild, BuildLogic.ChildBuild) {
         override fun BuildTreeBuilder.applyTo() {
             val builder = ChildBuildsBuilder(this)
             builder.apply {
@@ -139,14 +150,27 @@ enum class BuildTreeTemplate(
                 }
             }
         }
-    };
+    }
 
     companion object {
         fun productionStructures(): List<TreeWithProductionStructure> {
+            val values = listOf(
+                MainBuildNoBuildLogic,
+                MainBuildWithBuildSrc,
+                MainBuildWithPluginChildBuild,
+                MainBuildWithBuildSrcAndPluginChildBuild,
+                ChildBuildsNoBuildLogic,
+                ChildBuildsWithBuildSrc,
+                ChildBuildsWithPluginChildBuild,
+                ChildBuildsWithPluginChildBuildAndSharedLibrary,
+                NestedChildBuildsWithPluginChildBuild,
+                ChildBuildsWithCycleAndPluginChildBuild,
+                ChildBuildsUseMainBuildAndWithPluginChildBuild
+            )
             return ProductionBuildTreeStructure.values().map { production ->
                 val trees = BuildLogic.values().map { buildLogic ->
                     val implementations = implementationsFor(buildLogic)
-                    val trees = values().filter { it.productionBuildTreeStructure == production && it.buildLogic == buildLogic }.flatMap { template ->
+                    val trees = values.filter { it.productionBuildTreeStructure == production && it.buildLogic == buildLogic }.flatMap { template ->
                         implementations.map { implementation ->
                             TreeWithImplementation(template, implementation, TemplateOption.values().toList(), emptyList())
                         }
