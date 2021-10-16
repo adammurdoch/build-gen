@@ -2,14 +2,15 @@ package net.rubygrapefruit.gen.templates
 
 import net.rubygrapefruit.gen.builders.BuildTreeBuilder
 
-enum class Theme(private val displayName: String) {
-    None("None") {
-        override fun applyTo(builder: BuildTreeBuilder) {
-        }
-    },
+enum class TemplateOption(private val displayName: String) {
     ConfigurationCacheProblems("Configuration cache problems") {
         override fun applyTo(builder: BuildTreeBuilder) {
             builder.includeConfigurationCacheProblems = true
+        }
+    },
+    LargeBuild("Large build") {
+        override fun applyTo(builder: BuildTreeBuilder) {
+            TODO("Not yet implemented")
         }
     };
 

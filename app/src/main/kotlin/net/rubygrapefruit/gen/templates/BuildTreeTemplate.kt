@@ -148,7 +148,7 @@ enum class BuildTreeTemplate(
                     val implementations = implementationsFor(buildLogic)
                     val trees = values().filter { it.productionBuildTreeStructure == production && it.buildLogic == buildLogic }.flatMap { template ->
                         implementations.map { implementation ->
-                            TreeWithImplementation(template, implementation)
+                            TreeWithImplementation(template, implementation, TemplateOption.values().toList(), emptyList())
                         }
                     }
                     if (trees.isEmpty()) {

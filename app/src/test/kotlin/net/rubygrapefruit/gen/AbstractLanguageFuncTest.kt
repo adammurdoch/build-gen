@@ -4,15 +4,15 @@ import net.rubygrapefruit.gen.files.DslLanguage
 import net.rubygrapefruit.gen.files.GeneratedDirectoryContentsSynchronizer
 import net.rubygrapefruit.gen.templates.BuildTreeTemplate
 import net.rubygrapefruit.gen.templates.Implementation
-import net.rubygrapefruit.gen.templates.Theme
+import net.rubygrapefruit.gen.templates.TemplateOption
 import java.io.File
 import kotlin.test.Test
 
 abstract class AbstractLanguageFuncTest(private val implementation: Implementation) : AbstractFuncTest() {
 
-    fun generate(template: BuildTreeTemplate, theme: Theme = Theme.None, dsl: DslLanguage = DslLanguage.GroovyDsl): File {
+    fun generate(template: BuildTreeTemplate, templateOptions: List<TemplateOption> = emptyList(), dsl: DslLanguage = DslLanguage.GroovyDsl): File {
         val dir = testDir.newFolder()
-        generate(dir.toPath(), template, implementation, theme, dsl, GeneratedDirectoryContentsSynchronizer())
+        generate(dir.toPath(), template, implementation, templateOptions, dsl, GeneratedDirectoryContentsSynchronizer())
         return dir
     }
 
@@ -61,7 +61,7 @@ abstract class AbstractLanguageFuncTest(private val implementation: Implementati
 
     @Test
     fun canGenerateBuildWithBuildLogicInBuildSrcAndChildWithConfigurationCacheProblemsAndKotlinDsl() {
-        val dir = generate(BuildTreeTemplate.MainBuildWithBuildSrcAndPluginChildBuild, theme = Theme.ConfigurationCacheProblems, dsl = DslLanguage.KotlinDsl)
+        val dir = generate(BuildTreeTemplate.MainBuildWithBuildSrcAndPluginChildBuild, templateOptions = listOf(TemplateOption.ConfigurationCacheProblems), dsl = DslLanguage.KotlinDsl)
 
         val app = application(dir, dsl = DslLanguage.KotlinDsl)
         app.assertHasBuildSrc()

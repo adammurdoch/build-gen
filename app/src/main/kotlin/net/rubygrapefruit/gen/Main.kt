@@ -8,8 +8,8 @@ import net.rubygrapefruit.gen.files.*
 import net.rubygrapefruit.gen.generators.*
 import net.rubygrapefruit.gen.templates.BuildTreeTemplate
 import net.rubygrapefruit.gen.templates.Implementation
-import net.rubygrapefruit.gen.generators.ReportGenerator
-import net.rubygrapefruit.gen.templates.Theme
+import net.rubygrapefruit.gen.templates.TemplateOption
+import net.rubygrapefruit.gen.templates.TreeWithImplementation
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.prompts.Prompter
 import net.rubygrapefruit.platform.terminal.Terminals
@@ -44,15 +44,43 @@ fun main(args: Array<String>) {
     val treeStructure = prompter.select("Select production build tree structure", BuildTreeTemplate.productionStructures())
     val buildLogic = prompter.select("Select build logic structure", treeStructure.buildLogicOptions)
     val implementation = prompter.select("Select implementation", buildLogic.implementationOptions)
-    val theme = prompter.select("Select theme", implementation.themeOptions)
+    val configuredImplementation = selectOptions(implementation, prompter)
     val dsl = prompter.select("Select DSL language", implementation.dslOptions)
-    generate(rootDir, implementation.treeTemplate, implementation.implementation, theme, dsl, synchronizer)
+    generate(rootDir, implementation.treeTemplate, configuredImplementation.implementation, configuredImplementation.enabledOptions, dsl, synchronizer)
 }
 
-fun generate(rootDir: Path, layout: BuildTreeTemplate, implementation: Implementation, theme: Theme, dsl: DslLanguage, synchronizer: GeneratedDirectoryContentsSynchronizer) {
+private sealed class OptionPrompt
+
+private class ThemePrompt(val templateOption: TemplateOption, val enabled: Boolean) : OptionPrompt() {
+    override fun toString(): String {
+        return "$templateOption - " + if (enabled) "disable" else "enable"
+    }
+}
+
+private object Finished : OptionPrompt() {
+    override fun toString(): String {
+        return "No further changes"
+    }
+}
+
+private fun selectOptions(implementation: TreeWithImplementation, prompter: Prompter): TreeWithImplementation {
+    var result = implementation
+    while (true) {
+        val options = listOf(Finished) + result.availableOptions.map { ThemePrompt(it, result.enabledOptions.contains(it)) }
+        val selected = prompter.select("Select option", options)
+        when (selected) {
+            Finished -> return result
+            is ThemePrompt -> result = if (selected.enabled) result.disable(selected.templateOption) else result.enable(selected.templateOption)
+        }
+    }
+}
+
+fun generate(rootDir: Path, layout: BuildTreeTemplate, implementation: Implementation, templateOptions: List<TemplateOption>, dsl: DslLanguage, synchronizer: GeneratedDirectoryContentsSynchronizer) {
     val builder = DefaultBuildTreeBuilder(rootDir, implementation.pluginSpecFactory, implementation.librarySpecFactory)
     layout.run { builder.applyTo() }
-    theme.applyTo(builder)
+    for (theme in templateOptions) {
+        theme.applyTo(builder)
+    }
     val buildTree = builder.build()
 
     synchronizer.sync(buildTree.rootDir) { fileContext ->

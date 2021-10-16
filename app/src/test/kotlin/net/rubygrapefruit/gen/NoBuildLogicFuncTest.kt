@@ -4,14 +4,14 @@ import net.rubygrapefruit.gen.files.DslLanguage
 import net.rubygrapefruit.gen.files.GeneratedDirectoryContentsSynchronizer
 import net.rubygrapefruit.gen.templates.BuildTreeTemplate
 import net.rubygrapefruit.gen.templates.Implementation
-import net.rubygrapefruit.gen.templates.Theme
+import net.rubygrapefruit.gen.templates.TemplateOption
 import java.io.File
 import kotlin.test.Test
 
 class NoBuildLogicFuncTest : AbstractFuncTest() {
-    fun generate(template: BuildTreeTemplate, theme: Theme = Theme.None, dsl: DslLanguage = DslLanguage.GroovyDsl): File {
+    fun generate(template: BuildTreeTemplate, templateOptions: List<TemplateOption> = emptyList(), dsl: DslLanguage = DslLanguage.GroovyDsl): File {
         val dir = testDir.newFolder()
-        generate(dir.toPath(), template, Implementation.None, theme, dsl, GeneratedDirectoryContentsSynchronizer())
+        generate(dir.toPath(), template, Implementation.None, templateOptions, dsl, GeneratedDirectoryContentsSynchronizer())
         return dir
     }
 
