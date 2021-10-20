@@ -65,6 +65,11 @@ interface BuildBuilder {
     fun requires(library: LibraryRef)
 
     /**
+     * Include the given number of components, adding internal libraries to make up any shortfall.
+     */
+    fun includeComponents(componentCount: Int)
+
+    /**
      * Defines some project names to use for this build
      */
     fun projectNames(names: List<String>)

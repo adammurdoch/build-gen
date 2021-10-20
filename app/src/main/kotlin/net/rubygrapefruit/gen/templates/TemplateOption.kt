@@ -1,20 +1,22 @@
 package net.rubygrapefruit.gen.templates
 
-import net.rubygrapefruit.gen.builders.BuildTreeBuilder
+import net.rubygrapefruit.gen.builders.ProductionBuildTreeBuilder
 
-enum class TemplateOption(private val displayName: String) {
-    ConfigurationCacheProblems("Configuration cache problems") {
-        override fun applyTo(builder: BuildTreeBuilder) {
-            builder.includeConfigurationCacheProblems = true
+abstract class TemplateOption(private val displayName: String) {
+    companion object {
+        val configurationCacheProblems = object : TemplateOption("Configuration cache problems") {
+            override fun ProductionBuildTreeBuilder.applyTo() {
+                includeConfigurationCacheProblems()
+            }
         }
-    },
-    LargeBuild("Large build") {
-        override fun applyTo(builder: BuildTreeBuilder) {
-            TODO("Not yet implemented")
-        }
-    };
+        val largeBuild = object : TemplateOption("Large build (10 projects)") {
+            override fun ProductionBuildTreeBuilder.applyTo() {
+                main.includeComponents(10)
+            }
+        };
+    }
 
     override fun toString(): String = displayName
 
-    abstract fun applyTo(builder: BuildTreeBuilder)
+    abstract fun ProductionBuildTreeBuilder.applyTo()
 }

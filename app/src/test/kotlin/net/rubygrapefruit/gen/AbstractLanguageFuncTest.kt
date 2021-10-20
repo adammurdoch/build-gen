@@ -61,7 +61,7 @@ abstract class AbstractLanguageFuncTest(private val implementation: Implementati
 
     @Test
     fun canGenerateBuildWithBuildLogicInBuildSrcAndChildWithConfigurationCacheProblemsAndKotlinDsl() {
-        val dir = generate(BuildTreeTemplate.MainBuildWithBuildSrcAndPluginChildBuild, templateOptions = listOf(TemplateOption.ConfigurationCacheProblems), dsl = DslLanguage.KotlinDsl)
+        val dir = generate(BuildTreeTemplate.MainBuildWithBuildSrcAndPluginChildBuild, templateOptions = listOf(TemplateOption.configurationCacheProblems), dsl = DslLanguage.KotlinDsl)
 
         val app = application(dir, dsl = DslLanguage.KotlinDsl)
         app.assertHasBuildSrc()

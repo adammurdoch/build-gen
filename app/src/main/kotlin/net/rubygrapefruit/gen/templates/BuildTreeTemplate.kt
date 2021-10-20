@@ -1,9 +1,6 @@
 package net.rubygrapefruit.gen.templates
 
-import net.rubygrapefruit.gen.builders.BuildTreeBuilder
-import net.rubygrapefruit.gen.builders.ChildBuildsBuilder
-import net.rubygrapefruit.gen.builders.MainBuildOnlyBuilder
-import net.rubygrapefruit.gen.builders.NestedChildBuildsBuilder
+import net.rubygrapefruit.gen.builders.*
 
 abstract class BuildTreeTemplate(
     val productionBuildTreeStructure: ProductionBuildTreeStructure,
@@ -101,11 +98,12 @@ abstract class BuildTreeTemplate(
 
         fun withMainBuild(buildLogic: BuildLogic, body: MainBuildOnlyBuilder.() -> Unit): BuildTreeTemplate {
             return object : BuildTreeTemplate(ProductionBuildTreeStructure.MainBuild, buildLogic) {
-                override fun BuildTreeBuilder.applyTo() {
+                override fun BuildTreeBuilder.applyTo(): ProductionBuildTreeBuilder {
                     val builder = MainBuildOnlyBuilder(this)
                     builder.apply {
                         body(builder)
                     }
+                    return builder
                 }
             }
         }
@@ -116,22 +114,24 @@ abstract class BuildTreeTemplate(
 
         fun withChildBuilds(structure: ProductionBuildTreeStructure, buildLogic: BuildLogic, body: ChildBuildsBuilder.() -> Unit): BuildTreeTemplate {
             return object : BuildTreeTemplate(structure, buildLogic) {
-                override fun BuildTreeBuilder.applyTo() {
+                override fun BuildTreeBuilder.applyTo(): ProductionBuildTreeBuilder {
                     val builder = ChildBuildsBuilder(this)
                     builder.apply {
                         body(builder)
                     }
+                    return builder
                 }
             }
         }
 
         fun withNestedBuilds(buildLogic: BuildLogic, body: NestedChildBuildsBuilder.() -> Unit): BuildTreeTemplate {
             return object : BuildTreeTemplate(ProductionBuildTreeStructure.NestedChildBuilds, buildLogic) {
-                override fun BuildTreeBuilder.applyTo() {
+                override fun BuildTreeBuilder.applyTo(): ProductionBuildTreeBuilder {
                     val builder = NestedChildBuildsBuilder(this)
                     builder.apply {
                         body(builder)
                     }
+                    return builder
                 }
             }
         }
@@ -150,12 +150,13 @@ abstract class BuildTreeTemplate(
                 ChildBuildsWithCycleAndPluginChildBuild,
                 ChildBuildsUseMainBuildAndWithPluginChildBuild
             )
+            val options = listOf(TemplateOption.configurationCacheProblems, TemplateOption.largeBuild)
             return ProductionBuildTreeStructure.values().map { production ->
                 val trees = BuildLogic.values().map { buildLogic ->
                     val implementations = implementationsFor(buildLogic)
                     val trees = values.filter { it.productionBuildTreeStructure == production && it.buildLogic == buildLogic }.flatMap { template ->
                         implementations.map { implementation ->
-                            TreeWithImplementation(template, implementation, TemplateOption.values().toList(), emptyList())
+                            TreeWithImplementation(template, implementation, options, emptyList())
                         }
                     }
                     if (trees.isEmpty()) {
@@ -178,5 +179,12 @@ abstract class BuildTreeTemplate(
         }
     }
 
-    abstract fun BuildTreeBuilder.applyTo()
+    abstract fun BuildTreeBuilder.applyTo(): ProductionBuildTreeBuilder
+
+    fun applyTo(builder: BuildTreeBuilder, options: List<TemplateOption>) {
+        val treeBuilder = run { builder.applyTo() }
+        for (option in options) {
+            option.run { treeBuilder.applyTo() }
+        }
+    }
 }

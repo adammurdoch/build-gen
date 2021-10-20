@@ -282,6 +282,10 @@ class DefaultBuildTreeBuilder(
             projectNames = FixedNames(names, baseName.camelCase)
         }
 
+        override fun includeComponents(componentCount: Int) {
+            TODO("Not yet implemented")
+        }
+
         override fun toSpec(mapper: Mapper<BuildSpec>): BuildSpec {
             usesPlugins.finished()
             usesLibraries.finished()

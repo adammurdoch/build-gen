@@ -15,6 +15,10 @@ sealed class ProductionBuildTreeBuilder(val builder: BuildTreeBuilder) {
     fun <T> main(builder: BuildBuilder.() -> T): T {
         return builder(main)
     }
+
+    fun includeConfigurationCacheProblems() {
+        builder.includeConfigurationCacheProblems = true
+    }
 }
 
 class MainBuildOnlyBuilder(builder: BuildTreeBuilder) : ProductionBuildTreeBuilder(builder) {

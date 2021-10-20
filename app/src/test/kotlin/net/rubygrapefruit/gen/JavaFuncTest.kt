@@ -16,7 +16,7 @@ class JavaFuncTest : AbstractLanguageFuncTest(Implementation.Java) {
 
     @Test
     fun canGenerateTreeWithBuildLogicAndLibraryInChildWithConfigurationCacheProblemsAndKotlinDsl() {
-        val dir = generate(BuildTreeTemplate.ChildBuildsWithPluginChildBuildAndSharedLibrary, templateOptions = listOf(TemplateOption.ConfigurationCacheProblems), dsl = DslLanguage.KotlinDsl)
+        val dir = generate(BuildTreeTemplate.ChildBuildsWithPluginChildBuildAndSharedLibrary, templateOptions = listOf(TemplateOption.configurationCacheProblems), dsl = DslLanguage.KotlinDsl)
         application(dir, dsl = DslLanguage.KotlinDsl)
         runBuild(dir, "assemble")
     }
