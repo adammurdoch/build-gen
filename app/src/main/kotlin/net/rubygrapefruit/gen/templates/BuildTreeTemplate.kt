@@ -7,7 +7,7 @@ abstract class BuildTreeTemplate(
     val buildLogic: BuildLogic
 ) {
     companion object {
-        val MainBuildNoBuildLogic = withMainBuild(BuildLogic.None) {}
+        val MainBuildNoBuildLogic = withEmptyMainBuild {}
 
         val MainBuildWithBuildSrc = withMainBuild(BuildLogic.BuildSrc) {
             buildSrcPlugin()
@@ -22,7 +22,7 @@ abstract class BuildTreeTemplate(
             childBuildPlugin()
         }
 
-        val ChildBuildsNoBuildLogic = withChildBuilds(BuildLogic.None) {}
+        val ChildBuildsNoBuildLogic = withEmptyChildBuilds {}
 
         val ChildBuildsWithBuildSrc = withChildBuilds(BuildLogic.BuildSrc) {
             buildSrcPlugin()
@@ -93,6 +93,30 @@ abstract class BuildTreeTemplate(
                 includeSelf()
                 requires(child1Library)
                 requires(child2Library)
+            }
+        }
+
+        fun withEmptyMainBuild(body: EmptyMainBuildOnlyBuilder.() -> Unit): BuildTreeTemplate {
+            return object : BuildTreeTemplate(ProductionBuildTreeStructure.MainBuild, BuildLogic.None) {
+                override fun BuildTreeBuilder.applyTo(): ProductionBuildTreeBuilder {
+                    val builder = EmptyMainBuildOnlyBuilder(this)
+                    builder.apply {
+                        body(builder)
+                    }
+                    return builder
+                }
+            }
+        }
+
+        fun withEmptyChildBuilds(body: EmptyChildBuildsBuilder.() -> Unit): BuildTreeTemplate {
+            return object : BuildTreeTemplate(ProductionBuildTreeStructure.ChildBuilds, BuildLogic.None) {
+                override fun BuildTreeBuilder.applyTo(): ProductionBuildTreeBuilder {
+                    val builder = EmptyChildBuildsBuilder(this)
+                    builder.apply {
+                        body(builder)
+                    }
+                    return builder
+                }
             }
         }
 

@@ -70,6 +70,16 @@ abstract class AbstractLanguageFuncTest(private val implementation: Implementati
     }
 
     @Test
+    fun canGenerateLargeBuildWithBuildLogicInBuildSrcWithGroovyDsl() {
+        val dir = generate(BuildTreeTemplate.MainBuildWithBuildSrc, templateOptions = listOf(TemplateOption.largeBuild))
+
+        val app = application(dir)
+        app.assertHasBuildSrc()
+
+        runBuild(dir, "help")
+    }
+
+    @Test
     fun canGenerateTreeWithBuildLogicInChildWithGroovyDsl() {
         val dir = generate(BuildTreeTemplate.ChildBuildsWithPluginChildBuild)
 

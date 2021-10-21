@@ -7,11 +7,6 @@ private val uiBuildNames = listOf("entry", "render")
 sealed class ProductionBuildTreeBuilder(val builder: BuildTreeBuilder) {
     val main = builder.mainBuild
 
-    init {
-        main.projectNames(mainBuildNames)
-        main.producesApp()
-    }
-
     fun <T> main(builder: BuildBuilder.() -> T): T {
         return builder(main)
     }
@@ -21,7 +16,17 @@ sealed class ProductionBuildTreeBuilder(val builder: BuildTreeBuilder) {
     }
 }
 
-class MainBuildOnlyBuilder(builder: BuildTreeBuilder) : ProductionBuildTreeBuilder(builder) {
+sealed class ProductionBuildTreeBuilderWithSource(builder: BuildTreeBuilder) : ProductionBuildTreeBuilder(builder) {
+    init {
+        main.projectNames(mainBuildNames)
+        main.producesApp()
+    }
+}
+
+class EmptyMainBuildOnlyBuilder(builder: BuildTreeBuilder) : ProductionBuildTreeBuilder(builder) {
+}
+
+class MainBuildOnlyBuilder(builder: BuildTreeBuilder) : ProductionBuildTreeBuilderWithSource(builder) {
     fun buildSrcPlugin() {
         main {
             val plugin = buildSrc {
@@ -41,7 +46,12 @@ class MainBuildOnlyBuilder(builder: BuildTreeBuilder) : ProductionBuildTreeBuild
     }
 }
 
-class ChildBuildsBuilder(builder: BuildTreeBuilder) : ProductionBuildTreeBuilder(builder) {
+class EmptyChildBuildsBuilder(builder: BuildTreeBuilder) : ProductionBuildTreeBuilder(builder) {
+    val child1 = main.build("ui")
+    val child2 = main.build("data")
+}
+
+class ChildBuildsBuilder(builder: BuildTreeBuilder) : ProductionBuildTreeBuilderWithSource(builder) {
     val child1 = main.build("ui")
     val child2 = main.build("data")
 
@@ -113,7 +123,7 @@ class ChildBuildsBuilder(builder: BuildTreeBuilder) : ProductionBuildTreeBuilder
     }
 }
 
-class NestedChildBuildsBuilder(builder: BuildTreeBuilder) : ProductionBuildTreeBuilder(builder) {
+class NestedChildBuildsBuilder(builder: BuildTreeBuilder) : ProductionBuildTreeBuilderWithSource(builder) {
     val child = main.build("ui")
     val nestedChild = child.build("data")
 

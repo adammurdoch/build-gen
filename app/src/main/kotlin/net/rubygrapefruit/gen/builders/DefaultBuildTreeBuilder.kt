@@ -243,19 +243,16 @@ class DefaultBuildTreeBuilder(
             return internalComponents.implementationLibraries
         }
 
-        private fun addInternalLibrary(): Boolean {
+        private fun addInternalLibrary() {
             val libraryName = BaseName(projectNames.next())
-            val spec = librarySpecFactory.maybeLibrary(libraryName.camelCase)
-            if (spec != null) {
-                internalComponents.implementationLibraries.add(InternalLibraryImpl(libraryName, spec, usesPlugins))
-                return true
-            } else {
-                return false
-            }
+            val spec = librarySpecFactory.library(libraryName.camelCase)
+            internalComponents.implementationLibraries.add(InternalLibraryImpl(libraryName, spec, usesPlugins))
         }
 
         private fun addInternalComponent() {
-            if (!addInternalLibrary()) {
+            if (librarySpecFactory.canCreate) {
+                addInternalLibrary()
+            } else {
                 emptyComponents.add(EmptyComponentProductionSpec(BaseName(projectNames.next())))
             }
         }
@@ -312,10 +309,8 @@ class DefaultBuildTreeBuilder(
         override fun toSpec(mapper: Mapper<BuildSpec>): BuildSpec {
             val targetComponents = targetComponentCount
             if (targetComponents != null) {
-                println("-> target = $targetComponents, current = $currentComponentCount")
                 while (currentComponentCount < targetComponents) {
                     addInternalComponent()
-                    println("-> added library, current = $currentComponentCount")
                 }
             }
 

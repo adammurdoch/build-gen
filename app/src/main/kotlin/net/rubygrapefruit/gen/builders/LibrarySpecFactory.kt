@@ -3,13 +3,15 @@ package net.rubygrapefruit.gen.builders
 import net.rubygrapefruit.gen.specs.*
 
 interface LibrarySpecFactory {
-    fun library(baseName: String): LibraryProductionSpec
+    val canCreate: Boolean
+        get() = true
 
-    fun maybeLibrary(baseName: String): LibraryProductionSpec? = library(baseName)
+    fun library(baseName: String): LibraryProductionSpec
 }
 
 class NothingLibrarySpecFactory : LibrarySpecFactory {
-    override fun maybeLibrary(baseName: String) = null
+    override val canCreate: Boolean
+        get() = false
 
     override fun library(baseName: String) = throw IllegalStateException()
 }

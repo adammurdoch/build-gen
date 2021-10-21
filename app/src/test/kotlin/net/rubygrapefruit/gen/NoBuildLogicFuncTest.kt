@@ -30,6 +30,13 @@ class NoBuildLogicFuncTest : AbstractFuncTest() {
     }
 
     @Test
+    fun canGenerateLargeBuildWithGroovyDsl() {
+        val dir = generate(BuildTreeTemplate.MainBuildNoBuildLogic, templateOptions = listOf(TemplateOption.largeBuild))
+        buildTree(dir)
+        runBuild(dir, "help")
+    }
+
+    @Test
     fun canGenerateTreeWithGroovyDsl() {
         val dir = generate(BuildTreeTemplate.ChildBuildsNoBuildLogic)
         buildTree(dir)
