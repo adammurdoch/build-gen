@@ -2,10 +2,10 @@ package net.rubygrapefruit.gen.generators
 
 import net.rubygrapefruit.gen.builders.PluginImplementationBuilder
 import net.rubygrapefruit.gen.files.JavaSourceFileBuilder
+import net.rubygrapefruit.gen.files.JvmType
 import net.rubygrapefruit.gen.files.PluginSourceBuilder
 import net.rubygrapefruit.gen.files.SourceFileGenerator
 import net.rubygrapefruit.gen.specs.PluginImplementationSpec
-import java.util.LinkedHashSet
 import kotlin.reflect.KClass
 
 class PluginImplementationGenerator(
@@ -17,19 +17,21 @@ class PluginImplementationGenerator(
         for (assembler in assemblers) {
             assembler.assemble(builder, generationContext)
         }
-        builder.applyMethodBody { addEntryPoint(project, this) }
+        builder.applyMethodBody { addEntryPoint(project) }
         sourceFileGenerator.java(project.projectDir.resolve("src/main/java"), pluginImplementationClass) {
+            val projectType = JvmType.type("org.gradle.api.Project")
             imports("org.gradle.api.Plugin")
-            imports("org.gradle.api.Project")
             imports(LinkedHashSet::class)
             for (import in builder.imports) {
                 imports(import)
             }
             implements("Plugin<Project>")
-            method("public void apply(Project project)") {
-                log("apply `${spec.id}`")
-                for (action in builder.applyMethodBody) {
-                    action(this)
+            method("apply", "project", projectType) { project ->
+                body {
+                    log("apply `${spec.id}`")
+                    for (action in builder.applyMethodBody) {
+                        action(this)
+                    }
                 }
             }
         }

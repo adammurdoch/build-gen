@@ -20,7 +20,7 @@ class JavaAppImplementationAssembler(
                 staticMethod("main", "args", JvmType.type(String::class).asVarargs) { args ->
                     body {
                         log("greetings from `${spec.name}`")
-                        addEntryPoint(spec, this)
+                        addEntryPoint(spec)
                     }
                 }
             }

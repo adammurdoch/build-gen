@@ -58,31 +58,78 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             methods.add(MethodImpl(text))
         }
 
-        override fun method(signature: String, statements: JavaSourceFileBuilder.Statements.() -> Unit) {
+        override fun method(name: String, param1: String, paramType1: JvmType, param2: String, paramType2: JvmType, builder: JavaSourceFileBuilder.MethodBuilder.(LocalVariable, LocalVariable) -> Unit) {
+            addImportsFor(paramType1)
+            addImportsFor(paramType2)
+
+            val builderImpl = MethodBuilderImpl(this, StringBuilder())
+            builder(builderImpl, LocalVariable(param1, paramType1), LocalVariable(param2, paramType2))
+
             val body = StringBuilder()
-            body.append(signature.trim())
-            body.append(" {\n")
-            statements(StatementsImpl(this, body, "    "))
-            body.append("}")
+            body.append(builderImpl.visibility)
+            body.append(" ")
+            body.append(builderImpl.returnType.typeDeclaration)
+            body.append(" ")
+            body.append(name)
+            body.append("(")
+            body.append(paramType1.typeDeclaration)
+            body.append(" ")
+            body.append(param1)
+            body.append(", ")
+            body.append(paramType2.typeDeclaration)
+            body.append(" ")
+            body.append(param2)
+            body.append(") {\n")
+            body.append(builderImpl.body)
+            body.append("}\n")
             methods.add(MethodImpl(body.toString()))
         }
 
-        override fun staticMethod(name: String, param1: String, paramType1: JvmType, builder: JavaSourceFileBuilder.MethodBuilder.(LocalVariable) -> Unit) {
+        override fun method(name: String, param1: String, paramType1: JvmType, builder: JavaSourceFileBuilder.MethodBuilder.(LocalVariable) -> Unit) {
             addImportsFor(paramType1)
+
+            val builderImpl = MethodBuilderImpl(this, StringBuilder())
+            builder(builderImpl, LocalVariable(param1, paramType1))
+
             val body = StringBuilder()
-            body.append("public static void ")
+            body.append(builderImpl.visibility)
+            body.append(" ")
+            body.append(builderImpl.returnType.typeDeclaration)
+            body.append(" ")
             body.append(name)
             body.append("(")
             body.append(paramType1.typeDeclaration)
             body.append(" ")
             body.append(param1)
             body.append(") {\n")
-            builder(MethodBuilderImpl(this, body), LocalVariable(param1, paramType1))
+            body.append(builderImpl.body)
             body.append("}\n")
             methods.add(MethodImpl(body.toString()))
         }
 
-        override fun complete() {
+        override fun staticMethod(name: String, param1: String, paramType1: JvmType, builder: JavaSourceFileBuilder.MethodBuilder.(LocalVariable) -> Unit) {
+            addImportsFor(paramType1)
+
+            val builderImpl = MethodBuilderImpl(this, StringBuilder())
+            builder(builderImpl, LocalVariable(param1, paramType1))
+
+            val body = StringBuilder()
+            body.append(builderImpl.visibility)
+            body.append(" static ")
+            body.append(builderImpl.returnType.typeDeclaration)
+            body.append(" ")
+            body.append(name)
+            body.append("(")
+            body.append(paramType1.typeDeclaration)
+            body.append(" ")
+            body.append(param1)
+            body.append(") {\n")
+            body.append(builderImpl.body)
+            body.append("}\n")
+            methods.add(MethodImpl(body.toString()))
+        }
+
+        fun complete() {
             textFileGenerator.file(srcDir.resolve(className.name.replace(".", "/") + ".java")) {
                 println("// GENERATED FILE")
                 if (className.packageName.isNotEmpty()) {
@@ -127,6 +174,25 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
         val classBuilder: JavaSourceFileBuilderImpl,
         val body: StringBuilder
     ) : JavaSourceFileBuilder.MethodBuilder {
+        var visibility = "public"
+        var returnType: JvmType = JvmType.voidType
+
+        override fun private() {
+            visibility = "private"
+        }
+
+        override fun returnType(type: JvmType) {
+            returnType = type
+        }
+
+        override fun annotation(type: RawType) {
+            TODO("Not yet implemented")
+        }
+
+        override fun throwsException(type: JvmType) {
+            TODO("Not yet implemented")
+        }
+
         override fun body(builder: JavaSourceFileBuilder.Statements.() -> Unit) {
             builder(StatementsImpl(classBuilder, body, "    "))
         }

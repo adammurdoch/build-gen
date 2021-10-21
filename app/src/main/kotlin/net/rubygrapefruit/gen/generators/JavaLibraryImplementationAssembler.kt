@@ -18,7 +18,7 @@ class JavaLibraryImplementationAssembler(
                 val set = JvmType.type(Set::class, String::class)
                 staticMethod(api.method.methodName, "seen", set) { seen ->
                     body {
-                        addReferences(spec, seen, this)
+                        addReferences(spec, seen)
                     }
                 }
             }

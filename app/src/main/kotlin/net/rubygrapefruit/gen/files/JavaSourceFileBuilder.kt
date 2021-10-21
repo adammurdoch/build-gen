@@ -20,13 +20,26 @@ interface JavaSourceFileBuilder {
 
     fun method(text: String)
 
-    fun method(signature: String, statements: Statements.() -> Unit)
+    /**
+     * public void method by default
+     */
+    fun method(name: String, param1: String, paramType1: JvmType, builder: MethodBuilder.(LocalVariable) -> Unit)
 
+    /**
+     * public void method by default
+     */
+    fun method(name: String, param1: String, paramType1: JvmType, param2: String, paramType2: JvmType, builder: MethodBuilder.(LocalVariable, LocalVariable) -> Unit)
+
+    /**
+     * public static void method by default
+     */
     fun staticMethod(name: String, param1: String, paramType1: JvmType, builder: MethodBuilder.(LocalVariable) -> Unit)
 
-    fun complete()
-
     interface MethodBuilder {
+        fun private()
+        fun annotation(type: RawType)
+        fun returnType(type: JvmType)
+        fun throwsException(type: JvmType)
         fun body(builder: Statements.() -> Unit)
     }
 
