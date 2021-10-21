@@ -37,19 +37,21 @@ class ToolingApiClientImplementationAssembler(
                 val executorType = JvmType.type("org.gradle.tooling.BuildActionExecuter", String::class)
                 val mainActionType = JvmType.type(mainActionName)
                 imports(File::class)
-                method("public static void main(String... args)") {
-                    log("Calling tooling API on `${spec.producesApp.targetRootDir}`")
-                    val connector = variableDefinition(connectorType, "connector", connectorType.staticMethod("newConnector"))
-                    methodCall("connector.forProjectDirectory(new File(\"${spec.producesApp.targetRootDir}\"))")
-                    methodCall("connector.useGradleVersion(\"7.2\")")
-                    val connection = variableDefinition(connectionType, "connection", connector.methodCall("connect"))
-                    val action = variableDefinition(executorType, "action", connection.methodCall("action", mainActionType.newInstance()))
-                    methodCall("action.setStandardOutput(System.out)")
-                    methodCall("action.setStandardError(System.err)")
-                    log("Starting action:")
-                    methodCall("action.run()")
-                    log("Action finished")
-                    methodCall("connection.close()")
+                staticMethod("main", "args", JvmType.type(String::class).asVarargs) { args ->
+                    body {
+                        log("Calling tooling API on `${spec.producesApp.targetRootDir}`")
+                        val connector = variableDefinition(connectorType, "connector", connectorType.callStaticMethod("newConnector"))
+                        methodCall("connector.forProjectDirectory(new File(\"${spec.producesApp.targetRootDir}\"))")
+                        methodCall("connector.useGradleVersion(\"7.2\")")
+                        val connection = variableDefinition(connectionType, "connection", connector.methodCall("connect"))
+                        val action = variableDefinition(executorType, "action", connection.methodCall("action", mainActionType.newInstance()))
+                        methodCall("action.setStandardOutput(System.out)")
+                        methodCall("action.setStandardError(System.err)")
+                        log("Starting action:")
+                        methodCall("action.run()")
+                        log("Action finished")
+                        methodCall("connection.close()")
+                    }
                 }
             }
 

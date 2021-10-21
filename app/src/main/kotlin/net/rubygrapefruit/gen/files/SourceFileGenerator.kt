@@ -37,6 +37,10 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             }
         }
 
+        fun addImportsFor(type: JvmType) {
+            type.visitTypes { t -> imports(t) }
+        }
+
         override fun implements(name: String) {
             implements.add(name)
         }
@@ -58,8 +62,23 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             val body = StringBuilder()
             body.append(signature.trim())
             body.append(" {\n")
-            statements(MethodBodyImpl(this, body, "    "))
+            statements(StatementsImpl(this, body, "    "))
             body.append("}")
+            methods.add(MethodImpl(body.toString()))
+        }
+
+        override fun staticMethod(name: String, param1: String, paramType1: JvmType, builder: JavaSourceFileBuilder.MethodBuilder.(LocalVariable) -> Unit) {
+            addImportsFor(paramType1)
+            val body = StringBuilder()
+            body.append("public static void ")
+            body.append(name)
+            body.append("(")
+            body.append(paramType1.typeDeclaration)
+            body.append(" ")
+            body.append(param1)
+            body.append(") {\n")
+            builder(MethodBuilderImpl(this, body), LocalVariable(param1, paramType1))
+            body.append("}\n")
             methods.add(MethodImpl(body.toString()))
         }
 
@@ -104,8 +123,17 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
         }
     }
 
-    private class MethodBodyImpl(
-        val classBuilder: JavaSourceFileBuilder,
+    private class MethodBuilderImpl(
+        val classBuilder: JavaSourceFileBuilderImpl,
+        val body: StringBuilder
+    ) : JavaSourceFileBuilder.MethodBuilder {
+        override fun body(builder: JavaSourceFileBuilder.Statements.() -> Unit) {
+            builder(StatementsImpl(classBuilder, body, "    "))
+        }
+    }
+
+    private class StatementsImpl(
+        val classBuilder: JavaSourceFileBuilderImpl,
         val body: StringBuilder,
         val indent: String
     ) : JavaSourceFileBuilder.Statements {
@@ -123,13 +151,7 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
         }
 
         override fun variableDefinition(type: JvmType, name: String, initializer: Expression?): LocalVariable {
-            when (type) {
-                is RawType -> classBuilder.imports(type.name)
-                is ParameterizedType -> {
-                    classBuilder.imports(type.name)
-                    classBuilder.imports(type.param)
-                }
-            }
+            classBuilder.addImportsFor(type)
             body.append(indent)
             body.append(type.typeDeclaration);
             body.append(" ");
@@ -155,7 +177,7 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             body.append("if (")
             body.append(condition)
             body.append(") {\n")
-            builder(MethodBodyImpl(classBuilder, body, "$indent    "))
+            builder(StatementsImpl(classBuilder, body, "$indent    "))
             body.append(indent)
             body.append("}\n")
         }
@@ -169,7 +191,7 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             body.append(": ")
             body.append(valuesExpression)
             body.append(") {\n")
-            builder(MethodBodyImpl(classBuilder, body, "$indent    "))
+            builder(StatementsImpl(classBuilder, body, "$indent    "))
             body.append(indent)
             body.append("}\n")
         }

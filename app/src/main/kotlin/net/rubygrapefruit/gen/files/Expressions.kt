@@ -4,18 +4,23 @@ import net.rubygrapefruit.gen.specs.JvmClassName
 import kotlin.reflect.KClass
 
 sealed class JvmType {
+    abstract val typeDeclaration: String
+
+    abstract val asVarargs: JvmType
+
     abstract fun newInstance(): Expression
 
-    abstract val typeDeclaration: String
+    abstract fun visitTypes(consumer: (JvmClassName) -> Unit)
 
     companion object {
         fun type(name: String): RawType = RawType(JvmClassName(name))
         fun type(name: JvmClassName): RawType = RawType(name)
-        fun type(name: String, param: String): JvmType = ParameterizedType(JvmClassName(name), JvmClassName(param))
-        fun type(name: String, param: JvmClassName): JvmType = ParameterizedType(JvmClassName(name), param)
-        fun type(rawType: KClass<*>, param: JvmClassName): JvmType = ParameterizedType(javaType(rawType), param)
-        fun type(name: String, param: KClass<*>): JvmType = ParameterizedType(JvmClassName(name), javaType(param))
-        fun type(rawType: KClass<*>, param: KClass<*>): JvmType = ParameterizedType(javaType(rawType), javaType(param))
+        fun type(rawType: KClass<*>): RawType = RawType(javaType(rawType))
+        fun type(name: String, param: String): JvmType = ParameterizedType(JvmClassName(name), type(param))
+        fun type(name: String, param: JvmClassName): JvmType = ParameterizedType(JvmClassName(name), type(param))
+        fun type(rawType: KClass<*>, param: JvmClassName): JvmType = ParameterizedType(javaType(rawType), type(param))
+        fun type(name: String, param: KClass<*>): JvmType = ParameterizedType(JvmClassName(name), type(param))
+        fun type(rawType: KClass<*>, param: KClass<*>): JvmType = ParameterizedType(javaType(rawType), type(param))
 
         private fun javaType(type: KClass<*>): JvmClassName {
             if (type == String::class) {
@@ -37,19 +42,50 @@ class RawType(
     override val typeDeclaration: String
         get() = name.simpleName
 
+    override val asVarargs: JvmType
+        get() = VarargsType(this)
+
     override fun newInstance() = Expression("new ${name.simpleName}()")
 
-    fun staticMethod(name: String) = Expression("${this.name.simpleName}.$name()")
+    override fun visitTypes(consumer: (JvmClassName) -> Unit) {
+        consumer(name)
+    }
+
+    fun callStaticMethod(name: String) = Expression("${this.name.simpleName}.$name()")
 }
 
 class ParameterizedType(
-    val name: JvmClassName,
-    val param: JvmClassName
+    val rawType: JvmClassName,
+    val param: JvmType
 ) : JvmType() {
     override val typeDeclaration: String
-        get() = "${name.simpleName}<${param.simpleName}>"
+        get() = "${rawType.simpleName}<${param.typeDeclaration}>"
 
-    override fun newInstance() = Expression("new ${name.simpleName}<>()")
+    override val asVarargs: JvmType
+        get() = VarargsType(RawType(rawType))
+
+    override fun newInstance() = Expression("new ${rawType.simpleName}<>()")
+
+    override fun visitTypes(consumer: (JvmClassName) -> Unit) {
+        consumer(rawType)
+        param.visitTypes(consumer)
+    }
+}
+
+class VarargsType(
+    val type: JvmType
+) : JvmType() {
+    override val typeDeclaration: String
+        get() = "${type.typeDeclaration}..."
+
+    override val asVarargs: JvmType
+        get() = throw UnsupportedOperationException()
+
+    override fun newInstance() = throw UnsupportedOperationException()
+
+    override fun visitTypes(consumer: (JvmClassName) -> Unit) {
+        type.visitTypes(consumer)
+    }
 }
 
 class LocalVariable(

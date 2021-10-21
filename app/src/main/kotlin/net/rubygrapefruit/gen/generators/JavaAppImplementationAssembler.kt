@@ -1,6 +1,7 @@
 package net.rubygrapefruit.gen.generators
 
 import net.rubygrapefruit.gen.builders.ProjectContentsBuilder
+import net.rubygrapefruit.gen.files.JvmType
 import net.rubygrapefruit.gen.files.SourceFileGenerator
 import net.rubygrapefruit.gen.specs.JavaAppImplementationSpec
 
@@ -16,9 +17,11 @@ class JavaAppImplementationAssembler(
             }
             sourceFileGenerator.java(spec.projectDir.resolve("src/main/java"), mainClassName) {
                 imports(LinkedHashSet::class)
-                method("public static void main(String... args)") {
-                    log("greetings from `${spec.name}`")
-                    addEntryPoint(spec, this)
+                staticMethod("main", "args", JvmType.type(String::class).asVarargs) { args ->
+                    body {
+                        log("greetings from `${spec.name}`")
+                        addEntryPoint(spec, this)
+                    }
                 }
             }
         }

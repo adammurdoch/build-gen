@@ -22,7 +22,13 @@ interface JavaSourceFileBuilder {
 
     fun method(signature: String, statements: Statements.() -> Unit)
 
+    fun staticMethod(name: String, param1: String, paramType1: JvmType, builder: MethodBuilder.(LocalVariable) -> Unit)
+
     fun complete()
+
+    interface MethodBuilder {
+        fun body(builder: Statements.() -> Unit)
+    }
 
     interface Statements {
         fun statements(literals: String)
