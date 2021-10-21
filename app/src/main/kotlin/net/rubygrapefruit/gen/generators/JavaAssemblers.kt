@@ -9,8 +9,9 @@ fun addEntryPoint(spec: ProjectSpec, target: JavaSourceFileBuilder.Statements) {
     if (spec.usesLibraries.isEmpty()) {
         return
     }
-    val setType = JvmType.type("LinkedHashSet", "String")
-    target.variableDefinition(setType, "seen", setType.newInstance())
+    val setType = JvmType.type(Set::class, String::class)
+    val linkedHashSetType = JvmType.type(LinkedHashSet::class, String::class)
+    target.variableDefinition(setType, "seen", linkedHashSetType.newInstance())
     addReferences(spec, target);
     target.methodCall("System.out.println(\"libraries = \" + seen)")
 }

@@ -13,8 +13,21 @@ sealed class JvmType {
         fun type(name: JvmClassName): RawType = RawType(name)
         fun type(name: String, param: String): JvmType = ParameterizedType(JvmClassName(name), JvmClassName(param))
         fun type(name: String, param: JvmClassName): JvmType = ParameterizedType(JvmClassName(name), param)
-        fun type(name: KClass<*>, param: JvmClassName): JvmType = ParameterizedType(JvmClassName(name.qualifiedName!!), param)
-        fun type(name: String, param: KClass<*>): JvmType = ParameterizedType(JvmClassName(name), JvmClassName(param.qualifiedName!!))
+        fun type(rawType: KClass<*>, param: JvmClassName): JvmType = ParameterizedType(javaType(rawType), param)
+        fun type(name: String, param: KClass<*>): JvmType = ParameterizedType(JvmClassName(name), javaType(param))
+        fun type(rawType: KClass<*>, param: KClass<*>): JvmType = ParameterizedType(javaType(rawType), javaType(param))
+
+        private fun javaType(type: KClass<*>): JvmClassName {
+            if (type == String::class) {
+                return JvmClassName(String::class.java.name)
+            } else if (type == Set::class) {
+                return JvmClassName(Set::class.java.name)
+            } else if (type == LinkedHashSet::class) {
+                return JvmClassName(LinkedHashSet::class.java.name)
+            } else {
+                return JvmClassName(type.qualifiedName!!)
+            }
+        }
     }
 }
 

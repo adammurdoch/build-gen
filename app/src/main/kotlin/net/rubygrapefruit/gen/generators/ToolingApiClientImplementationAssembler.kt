@@ -37,9 +37,6 @@ class ToolingApiClientImplementationAssembler(
                 val executorType = JvmType.type("org.gradle.tooling.BuildActionExecuter", String::class)
                 val mainActionType = JvmType.type(mainActionName)
                 imports(File::class)
-                imports("org.gradle.tooling.GradleConnector")
-                imports("org.gradle.tooling.ProjectConnection")
-                imports("org.gradle.tooling.BuildActionExecuter")
                 method("public static void main(String... args)") {
                     log("Calling tooling API on `${spec.producesApp.targetRootDir}`")
                     val connector = variableDefinition(connectorType, "connector", connectorType.staticMethod("newConnector"))
@@ -58,19 +55,18 @@ class ToolingApiClientImplementationAssembler(
 
             sourceFileGenerator.java(srcDir, mainActionName) {
                 val listType = JvmType.type(ArrayList::class, nestedActionName)
+                val arrayListType = JvmType.type(ArrayList::class, nestedActionName)
                 val buildType = JvmType.type("org.gradle.tooling.model.gradle.GradleBuild")
                 val controllerType = JvmType.type("org.gradle.tooling.BuildController")
                 imports(List::class)
-                imports(ArrayList::class)
                 imports("org.gradle.tooling.BuildAction")
                 imports("org.gradle.tooling.BuildController")
-                imports("org.gradle.tooling.model.gradle.GradleBuild")
                 imports("org.gradle.tooling.model.gradle.BasicGradleProject")
                 implements("BuildAction<String>")
                 method("public String execute(BuildController controller)") {
                     log("Running action")
                     variableDefinition(buildType, "root", LocalVariable("controller", controllerType).readProperty("buildModel"))
-                    variableDefinition(listType, "actions", listType.newInstance())
+                    variableDefinition(listType, "actions", arrayListType.newInstance())
                     methodCall("collect(root, actions)")
                     iterate("GradleBuild", "build", "root.getEditableBuilds()") {
                         methodCall("collect(build, actions)")

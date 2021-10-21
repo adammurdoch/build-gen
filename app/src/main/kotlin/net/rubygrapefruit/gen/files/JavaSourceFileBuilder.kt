@@ -1,5 +1,6 @@
 package net.rubygrapefruit.gen.files
 
+import net.rubygrapefruit.gen.specs.JvmClassName
 import kotlin.reflect.KClass
 
 interface JavaSourceFileBuilder {
@@ -8,6 +9,8 @@ interface JavaSourceFileBuilder {
     }
 
     fun imports(name: String)
+
+    fun imports(name: JvmClassName)
 
     fun extends(name: String)
 

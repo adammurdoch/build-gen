@@ -15,7 +15,6 @@ class JavaAppImplementationAssembler(
                 lazyProperty("mainClass", mainClassName.name)
             }
             sourceFileGenerator.java(spec.projectDir.resolve("src/main/java"), mainClassName) {
-                imports(Set::class)
                 imports(LinkedHashSet::class)
                 method("public static void main(String... args)") {
                     log("greetings from `${spec.name}`")

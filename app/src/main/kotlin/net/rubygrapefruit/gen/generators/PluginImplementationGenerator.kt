@@ -5,6 +5,7 @@ import net.rubygrapefruit.gen.files.JavaSourceFileBuilder
 import net.rubygrapefruit.gen.files.PluginSourceBuilder
 import net.rubygrapefruit.gen.files.SourceFileGenerator
 import net.rubygrapefruit.gen.specs.PluginImplementationSpec
+import java.util.LinkedHashSet
 import kotlin.reflect.KClass
 
 class PluginImplementationGenerator(
@@ -20,7 +21,6 @@ class PluginImplementationGenerator(
         sourceFileGenerator.java(project.projectDir.resolve("src/main/java"), pluginImplementationClass) {
             imports("org.gradle.api.Plugin")
             imports("org.gradle.api.Project")
-            imports(Set::class)
             imports(LinkedHashSet::class)
             for (import in builder.imports) {
                 imports(import)
