@@ -64,6 +64,9 @@ class DefaultBuildTreeBuilder(
         private val items = mutableListOf<T>()
         private var finalized = false
 
+        val currentSize: Int
+            get() = items.size
+
         fun add(item: T) {
             require(!finalized)
             items.add(item)
@@ -114,12 +117,16 @@ class DefaultBuildTreeBuilder(
         private lateinit var items: List<T>
         private var finalized = false
 
+        val currentSize: Int
+            get() = specs.size
+
         fun add(item: S) {
             require(!finalized)
             specs.add(item)
         }
 
         fun finished() {
+            require(!finalized)
             finalized = true
             items = mapper.map(specs)
         }
@@ -172,7 +179,6 @@ class DefaultBuildTreeBuilder(
     ) : BuildBuilder, Mappable<BuildSpec> {
         private val children = mutableListOf<BuildBuilderImpl>()
         private var pluginBuilds = 0
-        private var hasInternalLibrary = false
         private val appsMapper = Mapper<AppProductionSpec>()
         private val libsMapper = Mapper<ExternalLibraryProductionSpec>()
         private val internalLibsMapper = Mapper<InternalLibraryProductionSpec>()
@@ -181,8 +187,13 @@ class DefaultBuildTreeBuilder(
         private val usesPlugins = CollectionLazyValue<PluginUseSpec>()
         private val usesLibraries = CollectionLazyValue<ExternalLibraryUseSpec>()
         private val exportedComponents = ComponentsBuilder(appsMapper, libsMapper, internalLibsMapper)
+        private val emptyComponents = CollectionLazyValue<EmptyComponentProductionSpec>()
         private var projectNames: NameProvider = FixedNames(emptyList(), baseName.camelCase)
         private var includeSelf = false
+        private var targetComponentCount: Int? = null
+
+        private val currentComponentCount
+            get() = producesPlugins.currentSize + exportedComponents.currentSize + internalComponents.currentSize + emptyComponents.currentSize
 
         override fun toString(): String {
             return displayName
@@ -226,15 +237,27 @@ class DefaultBuildTreeBuilder(
         }
 
         private fun implementationLibs(): LazyValue<List<InternalLibraryProductionSpec>> {
-            if (!hasInternalLibrary) {
-                val libraryName = BaseName(projectNames.next())
-                val spec = librarySpecFactory.maybeLibrary(libraryName.camelCase)
-                if (spec != null) {
-                    internalComponents.implementationLibraries.add(InternalLibraryImpl(libraryName, spec, usesPlugins))
-                }
-                hasInternalLibrary = true
+            if (internalComponents.currentSize == 0) {
+                addInternalLibrary()
             }
             return internalComponents.implementationLibraries
+        }
+
+        private fun addInternalLibrary(): Boolean {
+            val libraryName = BaseName(projectNames.next())
+            val spec = librarySpecFactory.maybeLibrary(libraryName.camelCase)
+            if (spec != null) {
+                internalComponents.implementationLibraries.add(InternalLibraryImpl(libraryName, spec, usesPlugins))
+                return true
+            } else {
+                return false
+            }
+        }
+
+        private fun addInternalComponent() {
+            if (!addInternalLibrary()) {
+                emptyComponents.add(EmptyComponentProductionSpec(BaseName(projectNames.next())))
+            }
         }
 
         override fun includeSelf() {
@@ -283,15 +306,25 @@ class DefaultBuildTreeBuilder(
         }
 
         override fun includeComponents(componentCount: Int) {
-            TODO("Not yet implemented")
+            this.targetComponentCount = componentCount
         }
 
         override fun toSpec(mapper: Mapper<BuildSpec>): BuildSpec {
+            val targetComponents = targetComponentCount
+            if (targetComponents != null) {
+                println("-> target = $targetComponents, current = $currentComponentCount")
+                while (currentComponentCount < targetComponents) {
+                    addInternalComponent()
+                    println("-> added library, current = $currentComponentCount")
+                }
+            }
+
             usesPlugins.finished()
             usesLibraries.finished()
             internalComponents.finished()
             exportedComponents.finished()
             producesPlugins.finished()
+            emptyComponents.finished()
             val components = FixedComponentsSpec(
                 producesPlugins.get(),
                 exportedComponents.producesLibs.get() + internalComponents.producesLibs.get(),
@@ -304,7 +337,8 @@ class DefaultBuildTreeBuilder(
                 includeConfigurationCacheProblems,
                 components,
                 mapper.map(children),
-                includeSelf
+                includeSelf,
+                emptyComponents.get()
             )
         }
     }
@@ -316,7 +350,10 @@ class DefaultBuildTreeBuilder(
     ) {
         val producesApps = MappingLazyValue(appMapper)
         val producesLibs = MappingLazyValue(libMapper)
-        var implementationLibraries = MappingLazyValue(internalLibMapper)
+        val implementationLibraries = MappingLazyValue(internalLibMapper)
+
+        val currentSize: Int
+            get() = producesApps.currentSize + producesLibs.currentSize + implementationLibraries.currentSize
 
         fun finished() {
             implementationLibraries.finished()

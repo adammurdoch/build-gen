@@ -12,4 +12,7 @@ interface BuildComponentVisitor {
 
     fun visitInternalLibrary(library: InternalLibraryProductionSpec) {
     }
+
+    fun visitEmptyComponent(component: EmptyComponentProductionSpec) {
+    }
 }

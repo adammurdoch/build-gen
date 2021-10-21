@@ -10,7 +10,8 @@ class BuildSpec(
     val includeConfigurationCacheProblems: Boolean,
     private val components: BuildComponentsSpec,
     private val childBuilds: List<BuildSpec>,
-    private val includeSelf: Boolean
+    private val includeSelf: Boolean,
+    private val emptyComponents: List<EmptyComponentProductionSpec>
 ) {
     val includedBuilds: List<BuildSpec>
         get() = if (includeSelf) {
@@ -52,6 +53,9 @@ class BuildSpec(
                     component.accept(visitor)
                 }
             }
+        }
+        for (component in emptyComponents) {
+            visitor.visitEmptyComponent(component)
         }
     }
 

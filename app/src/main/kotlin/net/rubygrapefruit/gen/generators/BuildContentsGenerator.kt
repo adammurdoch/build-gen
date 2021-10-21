@@ -87,6 +87,10 @@ class BuildContentsGenerator(
                         projectForInternalLib[library] = producesLibrary(library.spec)
                     }
                 }
+
+                override fun visitEmptyComponent(component: EmptyComponentProductionSpec) {
+                    project(component.baseName.camelCase) {}
+                }
             })
 
             if (allPlugins.isNotEmpty() && !hasProductionCode) {

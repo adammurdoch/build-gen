@@ -39,6 +39,11 @@ class ReportGenerator(
                         val libId = ids.id(library)
                         println("  $libId([internal lib ${library.baseName.camelCase}])")
                     }
+
+                    override fun visitEmptyComponent(component: EmptyComponentProductionSpec) {
+                        val componentId = ids.id(component)
+                        println("  $componentId([empty ${component.baseName.camelCase}])")
+                    }
                 })
                 println("  end")
             }
