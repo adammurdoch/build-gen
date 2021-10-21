@@ -58,10 +58,12 @@ interface JavaSourceFileBuilder {
         fun methodCall(literal: String)
         fun thisMethodCall(name: String, vararg parameters: Expression)
         fun methodCall(target: LocalVariable, name: String, vararg parameters: Expression)
+        fun methodCall(target: LocalVariable, name: String, stringLiteral: String) = methodCall(target, name, Expression.string(stringLiteral))
         fun log(text: String)
         fun variableDefinition(type: JvmType, name: String, initializer: Expression?): LocalVariable
         fun ifStatement(condition: String, builder: Statements.() -> Unit)
         fun iterate(type: JvmType, itemName: String, valuesExpression: Expression, builder: Statements.(LocalVariable) -> Unit)
-        fun returnValue(expression: String)
+        fun returnValue(expression: Expression)
+        fun returnValue(stringLiteral: String) = returnValue(Expression.string(stringLiteral))
     }
 }

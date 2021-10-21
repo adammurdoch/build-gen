@@ -10,6 +10,8 @@ sealed class JvmType {
 
     abstract fun newInstance(vararg params: Expression): Expression
 
+    fun newInstance(stringLiteral: String): Expression = newInstance(Expression.string(stringLiteral))
+
     abstract fun visitTypes(consumer: (JvmClassName) -> Unit)
 
     companion object {
@@ -114,13 +116,17 @@ sealed class InstanceRef(
 class LocalVariable(
     name: String,
     type: JvmType
-): InstanceRef(name, type)
+) : InstanceRef(name, type)
 
 class InstanceVariable(
     name: String,
     type: JvmType
-): InstanceRef(name, type)
+) : InstanceRef(name, type)
 
 class Expression(
     val literal: String
-)
+) {
+    companion object {
+        fun string(stringLiteral: String): Expression = Expression("\"$stringLiteral\"")
+    }
+}

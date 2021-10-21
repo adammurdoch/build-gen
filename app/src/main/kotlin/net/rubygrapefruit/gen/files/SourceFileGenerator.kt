@@ -356,10 +356,10 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             body.append("}\n")
         }
 
-        override fun returnValue(expression: String) {
+        override fun returnValue(expression: Expression) {
             body.append(indent)
             body.append("return ")
-            body.append(expression)
+            body.append(expression.literal)
             body.append(";\n")
         }
     }
