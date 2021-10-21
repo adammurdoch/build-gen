@@ -3,7 +3,7 @@ package net.rubygrapefruit.gen.specs
 class BaseName private constructor(
     private val parts: List<String>
 ) {
-    constructor(path: String) : this(path.split('.'))
+    constructor(path: String) : this(path.split('.', '-'))
 
     operator fun plus(path: String) = BaseName(parts + listOf(path))
 

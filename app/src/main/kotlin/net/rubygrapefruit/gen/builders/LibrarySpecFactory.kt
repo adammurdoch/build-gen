@@ -6,22 +6,22 @@ interface LibrarySpecFactory {
     val canCreate: Boolean
         get() = true
 
-    fun library(baseName: String): LibraryProductionSpec
+    fun library(baseName: BaseName): LibraryProductionSpec
 }
 
 class NothingLibrarySpecFactory : LibrarySpecFactory {
     override val canCreate: Boolean
         get() = false
 
-    override fun library(baseName: String) = throw IllegalStateException()
+    override fun library(baseName: BaseName) = throw IllegalStateException()
 }
 
 class CustomLibrarySpecFactory : LibrarySpecFactory {
-    override fun library(baseName: String) = CustomLibraryProductionSpec()
+    override fun library(baseName: BaseName) = CustomLibraryProductionSpec()
 }
 
 class JavaLibrarySpecFactory : LibrarySpecFactory {
-    override fun library(baseName: String): LibraryProductionSpec {
-        return JavaLibraryProductionSpec(JvmMethodReference(JvmClassName("$baseName.api.${baseName.capitalize()}"), "something"))
+    override fun library(baseName: BaseName): LibraryProductionSpec {
+        return JavaLibraryProductionSpec(JvmMethodReference(JvmClassName("${baseName.lowerCaseDotSeparator}.api.${baseName.capitalCase}"), "something"))
     }
 }

@@ -236,11 +236,15 @@ class DefaultBuildTreeBuilder(
         }
 
         override fun producesApp() {
-            exportedComponents.producesApps.add(AppImpl(BaseName(projectNames.next()), applicationSpecFactory.application(), usesPlugins, implementationLibs(), usesLibraries))
+            val baseName = BaseName(projectNames.next())
+            val spec = applicationSpecFactory.application(baseName)
+            exportedComponents.producesApps.add(AppImpl(baseName, spec, usesPlugins, implementationLibs(), usesLibraries))
         }
 
         override fun producesToolingApiClient() {
-            exportedComponents.producesApps.add(AppImpl(BaseName(projectNames.next()), Implementation.Java.applicationSpecFactory.application(), FixedValue(emptyList()), FixedValue(emptyList()), FixedValue(emptyList())))
+            val baseName = BaseName(projectNames.next())
+            val spec = Implementation.Java.applicationSpecFactory.application(baseName)
+            exportedComponents.producesApps.add(AppImpl(baseName, spec, FixedValue(emptyList()), FixedValue(emptyList()), FixedValue(emptyList())))
         }
 
         private fun implementationLibs(): LazyValue<List<InternalLibraryProductionSpec>> {
@@ -252,7 +256,7 @@ class DefaultBuildTreeBuilder(
 
         private fun addInternalLibrary() {
             val libraryName = BaseName(projectNames.next())
-            val spec = librarySpecFactory.library(libraryName.camelCase)
+            val spec = librarySpecFactory.library(libraryName)
             internalComponents.implementationLibraries.add(InternalLibraryImpl(libraryName, spec, usesPlugins))
         }
 
@@ -280,7 +284,7 @@ class DefaultBuildTreeBuilder(
 
         private fun addLibrary(useIncomingLibraries: Boolean, implementationLibs: LazyValue<List<InternalLibraryProductionSpec>>, requiresLibrariesFromThisBuild: List<ExportedLibrarySpec> = emptyList()): ExportedLibrarySpec {
             val coordinates = ExternalLibraryCoordinates("test.${baseName.lowerCaseDotSeparator}", projectNames.next(), "1.0")
-            val libraryApi = librarySpecFactory.library(baseName.camelCase)
+            val libraryApi = librarySpecFactory.library(baseName)
             val incomingLibraries = if (useIncomingLibraries) usesLibraries else FixedValue(emptyList())
             val library = ExportedLibrarySpec(coordinates, libraryApi, usesPlugins, requiresLibrariesFromThisBuild, implementationLibs, incomingLibraries)
             exportedComponents.producesLibs.add(library)

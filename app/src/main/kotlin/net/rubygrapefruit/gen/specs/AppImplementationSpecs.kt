@@ -2,6 +2,8 @@ package net.rubygrapefruit.gen.specs
 
 sealed class AppImplementationSpec
 
-class CustomAppImplementationSpec: AppImplementationSpec()
+class CustomAppImplementationSpec : AppImplementationSpec()
 
-class JavaAppImplementationSpec: AppImplementationSpec()
+class JavaAppImplementationSpec(
+    val mainClassName: JvmClassName
+) : AppImplementationSpec()

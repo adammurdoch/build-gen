@@ -10,6 +10,15 @@ class JavaAppImplementationAssembler(
     fun projectContents(): Assembler<ProjectContentsBuilder> = Assembler.of { _ ->
         if (spec.producesApp is JavaAppImplementationSpec) {
             buildScript.plugin("application")
+            val mainClassName = spec.producesApp.mainClassName
+            buildScript.block("application") {
+                property("mainClassName", mainClassName.name)
+            }
+            sourceFileGenerator.java(spec.projectDir.resolve("src/main/java"), mainClassName).apply {
+                method("public static void main(String... args)") {
+                    methodCall("System.out.println(\"greetings from " + spec.producesApp.mainClassName.name + "\")")
+                }
+            }.complete()
         }
     }
 }
