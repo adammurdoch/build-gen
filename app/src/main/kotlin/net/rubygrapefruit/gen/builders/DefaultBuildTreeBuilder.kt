@@ -243,7 +243,7 @@ class DefaultBuildTreeBuilder(
 
         override fun producesToolingApiClient() {
             val baseName = BaseName(projectNames.next())
-            val spec = Implementation.Java.applicationSpecFactory.application(baseName)
+            val spec = ToolingApiClientSpec(main.rootDir)
             exportedComponents.producesApps.add(AppImpl(baseName, spec, FixedValue(emptyList()), FixedValue(emptyList()), FixedValue(emptyList())))
         }
 

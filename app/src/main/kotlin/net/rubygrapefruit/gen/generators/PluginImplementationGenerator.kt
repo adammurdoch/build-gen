@@ -27,11 +27,7 @@ class PluginImplementationGenerator(
             }
             implements("Plugin<Project>")
             method("public void apply(Project project)") {
-                statements(
-                    """
-                    System.out.println("apply `${spec.id}`");
-                """.trimIndent()
-                )
+                log("apply `${spec.id}`")
                 for (action in builder.applyMethodBody) {
                     action(this)
                 }

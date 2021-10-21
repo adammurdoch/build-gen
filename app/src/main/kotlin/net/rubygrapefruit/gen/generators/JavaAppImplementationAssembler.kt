@@ -12,13 +12,13 @@ class JavaAppImplementationAssembler(
             buildScript.plugin("application")
             val mainClassName = spec.producesApp.mainClassName
             buildScript.block("application") {
-                property("mainClassName", mainClassName.name)
+                lazyProperty("mainClass", mainClassName.name)
             }
             sourceFileGenerator.java(spec.projectDir.resolve("src/main/java"), mainClassName).apply {
                 imports(Set::class)
                 imports(LinkedHashSet::class)
                 method("public static void main(String... args)") {
-                    methodCall("System.out.println(\"greetings from `" + spec.name + "`\")")
+                    log("greetings from `${spec.name}`")
                     addEntryPoint(spec, this)
                 }
             }.complete()

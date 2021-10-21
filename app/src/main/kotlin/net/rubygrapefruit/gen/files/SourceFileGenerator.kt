@@ -48,10 +48,9 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
 
         override fun method(signature: String, statements: JavaSourceFileBuilder.Statements.() -> Unit) {
             val body = StringBuilder()
-            val builder = MethodBodyImpl(body, "    ")
             body.append(signature.trim())
             body.append(" {\n")
-            statements(builder)
+            statements(MethodBodyImpl(body, "    "))
             body.append("}")
             methods.add(MethodImpl(body.toString()))
         }
@@ -101,6 +100,10 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
         val body: StringBuilder,
         val indent: String
     ) : JavaSourceFileBuilder.Statements {
+        override fun log(text: String) {
+            methodCall("System.out.println(\"$text\")")
+        }
+
         override fun methodCall(text: String) {
             body.append(indent)
             body.append(text.trim())

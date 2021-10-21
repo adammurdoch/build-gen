@@ -1,6 +1,7 @@
 package net.rubygrapefruit.gen.files
 
 import java.io.PrintWriter
+import java.net.URI
 import java.nio.file.Path
 
 class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerator: TextFileGenerator) {
@@ -46,16 +47,23 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
         }
     }
 
-    private class PropertyImpl(val name: String, val value: String) : BlockElement {
+    private inner class PropertyImpl(val name: String, val value: String, val lazy: Boolean) : BlockElement {
         override val empty: Boolean
             get() = false
 
         override fun PrintWriter.renderContents(prefix: String) {
             print(prefix)
-            print(name)
-            print(" = \"")
-            print(value)
-            println("\"")
+            if (lazy && dsl == DslLanguage.KotlinDsl) {
+                print(name)
+                print(".set(\"")
+                print(value)
+                println("\")")
+            } else {
+                print(name)
+                print(" = \"")
+                print(value)
+                println("\"")
+            }
         }
     }
 
@@ -87,7 +95,11 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
         }
 
         override fun property(name: String, value: String) {
-            elements.add(PropertyImpl(name, value))
+            elements.add(PropertyImpl(name, value, false))
+        }
+
+        override fun lazyProperty(name: String, value: String) {
+            elements.add(PropertyImpl(name, value, true))
         }
 
         override fun method(text: String) {
@@ -170,6 +182,23 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
         }
     }
 
+    private class Repositories : BlockElement {
+        val urls = mutableListOf<URI>()
+
+        override val empty: Boolean
+            get() = urls.isEmpty()
+
+        override fun PrintWriter.renderContents(prefix: String) {
+            println("repositories {")
+            for (url in urls) {
+                println("    maven {")
+                println("        url = uri(\"$url\")")
+                println("    }")
+            }
+            println("}")
+        }
+    }
+
     private class Dependencies : BlockElement {
         val implementation = mutableListOf<Dependency>()
 
@@ -204,15 +233,21 @@ class ScriptGenerator(private val dsl: DslLanguage, private val textFileGenerato
 
     private inner class BuildScriptBuilderImpl(val dir: Path) : HasBlockContents(), BuildScriptBuilder {
         private val plugins = Plugins()
+        private val repositories = Repositories()
         private val dependencies = Dependencies()
 
         init {
             elements.add(plugins)
+            elements.add(repositories)
             elements.add(dependencies)
         }
 
         override fun plugin(id: String) {
             plugins.ids.add(id)
+        }
+
+        override fun repository(uri: URI) {
+            repositories.urls.add(uri)
         }
 
         override fun implementationDependency(projectPath: String) {

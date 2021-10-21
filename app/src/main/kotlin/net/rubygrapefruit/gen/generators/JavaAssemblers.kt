@@ -17,7 +17,7 @@ fun addReferences(spec: ProjectSpec, target: JavaSourceFileBuilder.Statements) {
     target.ifStatement("seen.add(\"${spec.name}\")") {
         for (library in spec.usesLibraries) {
             if (library.api is JavaLibraryApiSpec) {
-                target.methodCall("${library.api.methodReference.className.name}.${library.api.methodReference.methodName}(seen)")
+                methodCall("${library.api.methodReference.className.name}.${library.api.methodReference.methodName}(seen)")
             }
         }
     }

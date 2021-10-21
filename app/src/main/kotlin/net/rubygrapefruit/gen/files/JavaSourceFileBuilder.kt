@@ -24,6 +24,7 @@ interface JavaSourceFileBuilder {
     interface Statements {
         fun statements(text: String)
         fun methodCall(text: String)
+        fun log(text: String)
         fun variableDefinition(type: String, name: String, initializer: String?)
         fun ifStatement(condition: String, builder: Statements.() -> Unit)
     }
