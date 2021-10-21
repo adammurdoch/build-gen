@@ -104,10 +104,10 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             methodCall("System.out.println(\"$text\")")
         }
 
-        override fun methodCall(text: String) {
+        override fun methodCall(literal: String) {
             body.append(indent)
-            body.append(text.trim())
-            if (!text.endsWith(';')) {
+            body.append(literal.trim())
+            if (!literal.endsWith(';')) {
                 body.append(';')
             }
             body.append('\n')
@@ -125,8 +125,8 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             body.append(";\n");
         }
 
-        override fun statements(text: String) {
-            for (line in text.lines()) {
+        override fun statements(literals: String) {
+            for (line in literals.lines()) {
                 body.append(indent)
                 body.append(line.trim())
                 body.append('\n')
@@ -141,6 +141,13 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             builder(MethodBodyImpl(body, "$indent    "))
             body.append(indent)
             body.append("}\n")
+        }
+
+        override fun returnValue(expression: String) {
+            body.append(indent)
+            body.append("return ")
+            body.append(expression)
+            body.append(";\n")
         }
     }
 }

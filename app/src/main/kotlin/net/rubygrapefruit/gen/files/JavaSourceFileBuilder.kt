@@ -22,10 +22,11 @@ interface JavaSourceFileBuilder {
     fun complete()
 
     interface Statements {
-        fun statements(text: String)
-        fun methodCall(text: String)
+        fun statements(literals: String)
+        fun methodCall(literal: String)
         fun log(text: String)
         fun variableDefinition(type: String, name: String, initializer: String?)
         fun ifStatement(condition: String, builder: Statements.() -> Unit)
+        fun returnValue(expression: String)
     }
 }

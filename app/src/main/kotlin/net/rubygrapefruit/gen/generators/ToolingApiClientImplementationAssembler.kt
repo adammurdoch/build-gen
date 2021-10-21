@@ -4,6 +4,7 @@ import net.rubygrapefruit.gen.builders.ProjectContentsBuilder
 import net.rubygrapefruit.gen.files.SourceFileGenerator
 import net.rubygrapefruit.gen.specs.JvmClassName
 import net.rubygrapefruit.gen.specs.ToolingApiClientSpec
+import java.io.File
 import java.net.URI
 
 class ToolingApiClientImplementationAssembler(
@@ -25,11 +26,28 @@ class ToolingApiClientImplementationAssembler(
             }
 
             sourceFileGenerator.java(spec.projectDir.resolve("src/main/java"), mainClassName).apply {
+                imports(File::class)
                 imports("org.gradle.tooling.GradleConnector")
+                imports("org.gradle.tooling.ProjectConnection")
                 method("public static void main(String... args)") {
                     log("Calling tooling API on `${spec.producesApp.targetRootDir}`")
                     variableDefinition("GradleConnector", "connector", "GradleConnector.newConnector()")
+                    methodCall("connector.forProjectDirectory(new File(\"${spec.producesApp.targetRootDir}\"))")
+                    methodCall("connector.useGradleVersion(\"7.2\")")
+                    variableDefinition("ProjectConnection", "connection", "connector.connect()")
+                    methodCall("connection.close()")
                     log("Done")
+                }
+            }.complete()
+
+            val actionImplName = JvmClassName("tooling.client.Action")
+            sourceFileGenerator.java(spec.projectDir.resolve("src/main/java"), actionImplName).apply {
+                imports("org.gradle.tooling.BuildAction")
+                imports("org.gradle.tooling.BuildController")
+                implements("BuildAction<String>")
+                method("public String execute(BuildController controller)") {
+                    log("Running action")
+                    returnValue("\"result\"")
                 }
             }.complete()
         }
