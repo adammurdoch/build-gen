@@ -7,34 +7,34 @@ abstract class BuildTreeTemplate(
     val buildLogic: BuildLogic
 ) {
     companion object {
-        val MainBuildNoBuildLogic = withEmptyMainBuild {}
+        val mainBuildNoBuildLogic = withEmptyMainBuild {}
 
-        val MainBuildWithBuildSrc = withMainBuild(BuildLogic.BuildSrc) {
+        val mainBuildWithBuildSrc = withMainBuild(BuildLogic.BuildSrc) {
             buildSrcPlugin()
         }
 
-        val MainBuildWithPluginChildBuild = withMainBuild(BuildLogic.ChildBuild) {
+        val mainBuildWithPluginChildBuild = withMainBuild(BuildLogic.ChildBuild) {
             childBuildPlugin()
         }
 
-        val MainBuildWithBuildSrcAndPluginChildBuild = withMainBuild(BuildLogic.BuildSrcAndChildBuild) {
+        val mainBuildWithBuildSrcAndPluginChildBuild = withMainBuild(BuildLogic.BuildSrcAndChildBuild) {
             buildSrcPlugin()
             childBuildPlugin()
         }
 
-        val ChildBuildsNoBuildLogic = withEmptyChildBuilds {}
+        val childBuildsNoBuildLogic = withEmptyChildBuilds {}
 
-        val ChildBuildsWithBuildSrc = withChildBuilds(BuildLogic.BuildSrc) {
+        val childBuildsWithBuildSrc = withChildBuilds(BuildLogic.BuildSrc) {
             buildSrcPlugin()
             mainBuildUsesLibrariesFromChildren()
         }
 
-        val ChildBuildsWithPluginChildBuild = withChildBuilds(BuildLogic.ChildBuild) {
+        val childBuildsWithPluginChildBuild = withChildBuilds(BuildLogic.ChildBuild) {
             childBuildPlugin()
             mainBuildUsesLibrariesFromChildren()
         }
 
-        val ChildBuildsWithPluginChildBuildAndSharedLibrary = withChildBuilds(BuildLogic.ChildBuildAndSharedLibrary) {
+        val childBuildsWithPluginChildBuildAndSharedLibrary = withChildBuilds(BuildLogic.ChildBuildAndSharedLibrary) {
             val sharedLibrary = childBuildPlugin {
                 projectNames(listOf("generator", "common"))
                 producesLibrary()
@@ -45,7 +45,7 @@ abstract class BuildTreeTemplate(
             }
         }
 
-        val NestedChildBuildsWithPluginChildBuild = withNestedBuilds(BuildLogic.ChildBuild) {
+        val nestedChildBuildsWithPluginChildBuild = withNestedBuilds(BuildLogic.ChildBuild) {
             childBuildPlugin()
             val dataLibrary = nestedChild {
                 producesLibrary()
@@ -59,7 +59,7 @@ abstract class BuildTreeTemplate(
             }
         }
 
-        val ChildBuildsWithCycleAndPluginChildBuild = withChildBuilds(ProductionBuildTreeStructure.ChildBuildsWithCycle, BuildLogic.ChildBuild) {
+        val childBuildsWithCycleAndPluginChildBuild = withChildBuilds(ProductionBuildTreeStructure.ChildBuildsWithCycle, BuildLogic.ChildBuild) {
             childBuildPlugin()
             val child1Library = child1 {
                 producesLibrary()
@@ -78,7 +78,7 @@ abstract class BuildTreeTemplate(
             }
         }
 
-        val ChildBuildsUseMainBuildAndWithPluginChildBuild = withChildBuilds(ProductionBuildTreeStructure.ChildBuildsUsesMainBuild, BuildLogic.ChildBuild) {
+        val childBuildsUseMainBuildAndWithPluginChildBuild = withChildBuilds(ProductionBuildTreeStructure.ChildBuildsUsesMainBuild, BuildLogic.ChildBuild) {
             childBuildPlugin()
             val mainLibraries = main.producesLibraries()
             val child1Library = child1 {
@@ -96,62 +96,34 @@ abstract class BuildTreeTemplate(
             }
         }
 
-        fun withEmptyMainBuild(body: EmptyMainBuildOnlyBuilder.() -> Unit): BuildTreeTemplate {
-            return object : BuildTreeTemplate(ProductionBuildTreeStructure.MainBuild, BuildLogic.None) {
-                override fun BuildTreeBuilder.applyTo(): ProductionBuildTreeBuilder {
-                    val builder = EmptyMainBuildOnlyBuilder(this)
-                    builder.apply {
-                        body(builder)
-                    }
-                    return builder
-                }
-            }
+        private fun withEmptyMainBuild(body: EmptyMainBuildOnlyBuilder.() -> Unit): BuildTreeTemplate {
+            return template(ProductionBuildTreeStructure.MainBuild, BuildLogic.None, body) { EmptyMainBuildOnlyBuilder(it) }
         }
 
-        fun withEmptyChildBuilds(body: EmptyChildBuildsBuilder.() -> Unit): BuildTreeTemplate {
-            return object : BuildTreeTemplate(ProductionBuildTreeStructure.ChildBuilds, BuildLogic.None) {
-                override fun BuildTreeBuilder.applyTo(): ProductionBuildTreeBuilder {
-                    val builder = EmptyChildBuildsBuilder(this)
-                    builder.apply {
-                        body(builder)
-                    }
-                    return builder
-                }
-            }
+        private fun withEmptyChildBuilds(body: EmptyChildBuildsBuilder.() -> Unit): BuildTreeTemplate {
+            return template(ProductionBuildTreeStructure.ChildBuilds, BuildLogic.None, body) { EmptyChildBuildsBuilder(it) }
         }
 
-        fun withMainBuild(buildLogic: BuildLogic, body: MainBuildOnlyBuilder.() -> Unit): BuildTreeTemplate {
-            return object : BuildTreeTemplate(ProductionBuildTreeStructure.MainBuild, buildLogic) {
-                override fun BuildTreeBuilder.applyTo(): ProductionBuildTreeBuilder {
-                    val builder = MainBuildOnlyBuilder(this)
-                    builder.apply {
-                        body(builder)
-                    }
-                    return builder
-                }
-            }
+        private fun withMainBuild(buildLogic: BuildLogic, body: MainBuildOnlyBuilder.() -> Unit): BuildTreeTemplate {
+            return template(ProductionBuildTreeStructure.MainBuild, buildLogic, body) { MainBuildOnlyBuilder(it) }
         }
 
-        fun withChildBuilds(buildLogic: BuildLogic, body: ChildBuildsBuilder.() -> Unit): BuildTreeTemplate {
+        private fun withChildBuilds(buildLogic: BuildLogic, body: ChildBuildsBuilder.() -> Unit): BuildTreeTemplate {
             return withChildBuilds(ProductionBuildTreeStructure.ChildBuilds, buildLogic, body)
         }
 
-        fun withChildBuilds(structure: ProductionBuildTreeStructure, buildLogic: BuildLogic, body: ChildBuildsBuilder.() -> Unit): BuildTreeTemplate {
-            return object : BuildTreeTemplate(structure, buildLogic) {
-                override fun BuildTreeBuilder.applyTo(): ProductionBuildTreeBuilder {
-                    val builder = ChildBuildsBuilder(this)
-                    builder.apply {
-                        body(builder)
-                    }
-                    return builder
-                }
-            }
+        private fun withChildBuilds(structure: ProductionBuildTreeStructure, buildLogic: BuildLogic, body: ChildBuildsBuilder.() -> Unit): BuildTreeTemplate {
+            return template(structure, buildLogic, body) { ChildBuildsBuilder(it) }
         }
 
-        fun withNestedBuilds(buildLogic: BuildLogic, body: NestedChildBuildsBuilder.() -> Unit): BuildTreeTemplate {
-            return object : BuildTreeTemplate(ProductionBuildTreeStructure.NestedChildBuilds, buildLogic) {
+        private fun withNestedBuilds(buildLogic: BuildLogic, body: NestedChildBuildsBuilder.() -> Unit): BuildTreeTemplate {
+            return template(ProductionBuildTreeStructure.NestedChildBuilds, buildLogic, body) { NestedChildBuildsBuilder(it) }
+        }
+
+        private fun <T : ProductionBuildTreeBuilder> template(productionBuildTreeStructure: ProductionBuildTreeStructure, buildLogic: BuildLogic, body: T.() -> Unit, factory: (BuildTreeBuilder) -> T): BuildTreeTemplate {
+            return object : BuildTreeTemplate(productionBuildTreeStructure, buildLogic) {
                 override fun BuildTreeBuilder.applyTo(): ProductionBuildTreeBuilder {
-                    val builder = NestedChildBuildsBuilder(this)
+                    val builder = factory(this)
                     builder.apply {
                         body(builder)
                     }
@@ -162,21 +134,21 @@ abstract class BuildTreeTemplate(
 
         fun productionStructures(): List<TreeWithProductionStructure> {
             val values = listOf(
-                MainBuildNoBuildLogic,
-                MainBuildWithBuildSrc,
-                MainBuildWithPluginChildBuild,
-                MainBuildWithBuildSrcAndPluginChildBuild,
-                ChildBuildsNoBuildLogic,
-                ChildBuildsWithBuildSrc,
-                ChildBuildsWithPluginChildBuild,
-                ChildBuildsWithPluginChildBuildAndSharedLibrary,
-                NestedChildBuildsWithPluginChildBuild,
-                ChildBuildsWithCycleAndPluginChildBuild,
-                ChildBuildsUseMainBuildAndWithPluginChildBuild
+                mainBuildNoBuildLogic,
+                mainBuildWithBuildSrc,
+                mainBuildWithPluginChildBuild,
+                mainBuildWithBuildSrcAndPluginChildBuild,
+                childBuildsNoBuildLogic,
+                childBuildsWithBuildSrc,
+                childBuildsWithPluginChildBuild,
+                childBuildsWithPluginChildBuildAndSharedLibrary,
+                nestedChildBuildsWithPluginChildBuild,
+                childBuildsWithCycleAndPluginChildBuild,
+                childBuildsUseMainBuildAndWithPluginChildBuild
             )
             val options = listOf(TemplateOption.configurationCacheProblems, TemplateOption.largeBuild)
             return ProductionBuildTreeStructure.values().map { production ->
-                val trees = BuildLogic.values().map { buildLogic ->
+                val trees = BuildLogic.values().mapNotNull { buildLogic ->
                     val implementations = implementationsFor(buildLogic)
                     val trees = values.filter { it.productionBuildTreeStructure == production && it.buildLogic == buildLogic }.flatMap { template ->
                         implementations.map { implementation ->
@@ -188,7 +160,7 @@ abstract class BuildTreeTemplate(
                     } else {
                         TreeWithStructure(buildLogic, trees)
                     }
-                }.filterNotNull()
+                }
                 require(trees.isNotEmpty())
                 TreeWithProductionStructure(production, trees)
             }

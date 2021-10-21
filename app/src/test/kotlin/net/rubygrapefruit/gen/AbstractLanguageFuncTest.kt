@@ -18,7 +18,7 @@ abstract class AbstractLanguageFuncTest(private val implementation: Implementati
 
     @Test
     fun canGenerateBuildWithBuildLogicInBuildSrcWithGroovyDsl() {
-        val dir = generate(BuildTreeTemplate.MainBuildWithBuildSrc)
+        val dir = generate(BuildTreeTemplate.mainBuildWithBuildSrc)
 
         val app = application(dir)
         app.assertHasBuildSrc()
@@ -28,7 +28,7 @@ abstract class AbstractLanguageFuncTest(private val implementation: Implementati
 
     @Test
     fun canGenerateBuildWithBuildLogicInChildWithGroovyDsl() {
-        val dir = generate(BuildTreeTemplate.MainBuildWithPluginChildBuild)
+        val dir = generate(BuildTreeTemplate.mainBuildWithPluginChildBuild)
 
         val app = application(dir)
         app.assertNoBuildSrc()
@@ -39,7 +39,7 @@ abstract class AbstractLanguageFuncTest(private val implementation: Implementati
 
     @Test
     fun canGenerateBuildWithBuildLogicInBuildSrcAndChildWithGroovyDsl() {
-        val dir = generate(BuildTreeTemplate.MainBuildWithBuildSrcAndPluginChildBuild)
+        val dir = generate(BuildTreeTemplate.mainBuildWithBuildSrcAndPluginChildBuild)
 
         val app = application(dir)
         app.assertHasBuildSrc()
@@ -50,7 +50,7 @@ abstract class AbstractLanguageFuncTest(private val implementation: Implementati
 
     @Test
     fun canGenerateBuildWithBuildLogicInBuildSrcAndChildWithKotlinDsl() {
-        val dir = generate(BuildTreeTemplate.MainBuildWithBuildSrcAndPluginChildBuild, dsl = DslLanguage.KotlinDsl)
+        val dir = generate(BuildTreeTemplate.mainBuildWithBuildSrcAndPluginChildBuild, dsl = DslLanguage.KotlinDsl)
 
         val app = application(dir, dsl = DslLanguage.KotlinDsl)
         app.assertHasBuildSrc()
@@ -61,7 +61,7 @@ abstract class AbstractLanguageFuncTest(private val implementation: Implementati
 
     @Test
     fun canGenerateBuildWithBuildLogicInBuildSrcAndChildWithConfigurationCacheProblemsAndKotlinDsl() {
-        val dir = generate(BuildTreeTemplate.MainBuildWithBuildSrcAndPluginChildBuild, templateOptions = listOf(TemplateOption.configurationCacheProblems), dsl = DslLanguage.KotlinDsl)
+        val dir = generate(BuildTreeTemplate.mainBuildWithBuildSrcAndPluginChildBuild, templateOptions = listOf(TemplateOption.configurationCacheProblems), dsl = DslLanguage.KotlinDsl)
 
         val app = application(dir, dsl = DslLanguage.KotlinDsl)
         app.assertHasBuildSrc()
@@ -71,7 +71,7 @@ abstract class AbstractLanguageFuncTest(private val implementation: Implementati
 
     @Test
     fun canGenerateLargeBuildWithBuildLogicInBuildSrcWithGroovyDsl() {
-        val dir = generate(BuildTreeTemplate.MainBuildWithBuildSrc, templateOptions = listOf(TemplateOption.largeBuild))
+        val dir = generate(BuildTreeTemplate.mainBuildWithBuildSrc, templateOptions = listOf(TemplateOption.largeBuild))
 
         val app = application(dir)
         app.assertHasBuildSrc()
@@ -81,7 +81,7 @@ abstract class AbstractLanguageFuncTest(private val implementation: Implementati
 
     @Test
     fun canGenerateTreeWithBuildLogicInChildWithGroovyDsl() {
-        val dir = generate(BuildTreeTemplate.ChildBuildsWithPluginChildBuild)
+        val dir = generate(BuildTreeTemplate.childBuildsWithPluginChildBuild)
 
         application(dir)
 
@@ -90,7 +90,7 @@ abstract class AbstractLanguageFuncTest(private val implementation: Implementati
 
     @Test
     fun canGenerateTreeWithBuildLogicInBuildSrcWithGroovyDsl() {
-        val dir = generate(BuildTreeTemplate.ChildBuildsWithBuildSrc)
+        val dir = generate(BuildTreeTemplate.childBuildsWithBuildSrc)
 
         val app = application(dir)
         app.assertHasBuildSrc()
@@ -100,7 +100,7 @@ abstract class AbstractLanguageFuncTest(private val implementation: Implementati
 
     @Test
     fun canGenerateTreeWithNestedChildBuildsWithGroovyDsl() {
-        val dir = generate(BuildTreeTemplate.NestedChildBuildsWithPluginChildBuild)
+        val dir = generate(BuildTreeTemplate.nestedChildBuildsWithPluginChildBuild)
 
         application(dir)
 
@@ -109,7 +109,7 @@ abstract class AbstractLanguageFuncTest(private val implementation: Implementati
 
     @Test
     fun canGenerateTreeWithCyclicChildBuildsWithGroovyDsl() {
-        val dir = generate(BuildTreeTemplate.ChildBuildsWithCycleAndPluginChildBuild)
+        val dir = generate(BuildTreeTemplate.childBuildsWithCycleAndPluginChildBuild)
 
         application(dir)
 
@@ -118,7 +118,7 @@ abstract class AbstractLanguageFuncTest(private val implementation: Implementati
 
     @Test
     fun canGenerateTreeWithChildBuildsThatUseMainBuildWithGroovyDsl() {
-        val dir = generate(BuildTreeTemplate.ChildBuildsUseMainBuildAndWithPluginChildBuild)
+        val dir = generate(BuildTreeTemplate.childBuildsUseMainBuildAndWithPluginChildBuild)
 
         application(dir)
 

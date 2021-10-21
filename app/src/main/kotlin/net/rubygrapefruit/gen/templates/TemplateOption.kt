@@ -9,9 +9,11 @@ abstract class TemplateOption(private val displayName: String) {
                 includeConfigurationCacheProblems()
             }
         }
-        val largeBuild = object : TemplateOption("Large build (10 projects)") {
+
+        private val largeBuildProjects = 10
+        val largeBuild = object : TemplateOption("Large build ($largeBuildProjects projects)") {
             override fun ProductionBuildTreeBuilder.applyTo() {
-                main.includeComponents(10)
+                main.includeComponents(largeBuildProjects)
             }
         };
     }

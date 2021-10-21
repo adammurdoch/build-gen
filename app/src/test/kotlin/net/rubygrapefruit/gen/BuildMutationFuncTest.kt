@@ -11,11 +11,11 @@ class BuildMutationFuncTest : AbstractFuncTest() {
     fun `can regenerate an existing build`() {
         val dir = testDir.newFolder()
 
-        generate(dir.toPath(), BuildTreeTemplate.MainBuildWithBuildSrc, Implementation.Custom, emptyList(), DslLanguage.GroovyDsl, GeneratedDirectoryContentsSynchronizer())
+        generate(dir.toPath(), BuildTreeTemplate.mainBuildWithBuildSrc, Implementation.Custom, emptyList(), DslLanguage.GroovyDsl, GeneratedDirectoryContentsSynchronizer())
         application(dir)
         runBuild(dir, "assemble")
 
-        generate(dir.toPath(), BuildTreeTemplate.ChildBuildsWithPluginChildBuild, Implementation.Custom, emptyList(), DslLanguage.GroovyDsl, GeneratedDirectoryContentsSynchronizer())
+        generate(dir.toPath(), BuildTreeTemplate.childBuildsWithPluginChildBuild, Implementation.Custom, emptyList(), DslLanguage.GroovyDsl, GeneratedDirectoryContentsSynchronizer())
         application(dir)
         runBuild(dir, "assemble")
     }
