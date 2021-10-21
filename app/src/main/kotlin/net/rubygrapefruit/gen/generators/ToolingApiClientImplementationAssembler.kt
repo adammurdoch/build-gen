@@ -29,14 +29,20 @@ class ToolingApiClientImplementationAssembler(
                 imports(File::class)
                 imports("org.gradle.tooling.GradleConnector")
                 imports("org.gradle.tooling.ProjectConnection")
+                imports("org.gradle.tooling.BuildActionExecuter")
                 method("public static void main(String... args)") {
                     log("Calling tooling API on `${spec.producesApp.targetRootDir}`")
                     variableDefinition("GradleConnector", "connector", "GradleConnector.newConnector()")
                     methodCall("connector.forProjectDirectory(new File(\"${spec.producesApp.targetRootDir}\"))")
                     methodCall("connector.useGradleVersion(\"7.2\")")
                     variableDefinition("ProjectConnection", "connection", "connector.connect()")
+                    variableDefinition("BuildActionExecuter<String>", "action", "connection.action(new Action())")
+                    methodCall("action.setStandardOutput(System.out)")
+                    methodCall("action.setStandardError(System.err)")
+                    log("Starting action:")
+                    methodCall("action.run()")
+                    log("Action finished")
                     methodCall("connection.close()")
-                    log("Done")
                 }
             }.complete()
 
@@ -44,10 +50,19 @@ class ToolingApiClientImplementationAssembler(
             sourceFileGenerator.java(spec.projectDir.resolve("src/main/java"), actionImplName).apply {
                 imports("org.gradle.tooling.BuildAction")
                 imports("org.gradle.tooling.BuildController")
+                imports("org.gradle.tooling.model.gradle.GradleBuild")
                 implements("BuildAction<String>")
                 method("public String execute(BuildController controller)") {
                     log("Running action")
+                    variableDefinition("GradleBuild", "root", "controller.getBuildModel()")
+                    methodCall("show(root)")
+                    iterate("GradleBuild", "build", "root.getEditableBuilds()") {
+                        methodCall("show(build)")
+                    }
                     returnValue("\"result\"")
+                }
+                method("private void show(GradleBuild build)") {
+                    methodCall("System.out.println(\"build = \" + build)")
                 }
             }.complete()
         }

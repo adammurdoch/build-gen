@@ -143,6 +143,20 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             body.append("}\n")
         }
 
+        override fun iterate(type: String, itemName: String, valuesExpression: String, builder: JavaSourceFileBuilder.Statements.() -> Unit) {
+            body.append(indent)
+            body.append("for (")
+            body.append(type)
+            body.append(" ")
+            body.append(itemName)
+            body.append(": ")
+            body.append(valuesExpression)
+            body.append(") {\n")
+            builder(MethodBodyImpl(body, "$indent    "))
+            body.append(indent)
+            body.append("}\n")
+        }
+
         override fun returnValue(expression: String) {
             body.append(indent)
             body.append("return ")

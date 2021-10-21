@@ -27,6 +27,7 @@ interface JavaSourceFileBuilder {
         fun log(text: String)
         fun variableDefinition(type: String, name: String, initializer: String?)
         fun ifStatement(condition: String, builder: Statements.() -> Unit)
+        fun iterate(type: String, itemName: String, valuesExpression: String, builder: Statements.() -> Unit)
         fun returnValue(expression: String)
     }
 }
