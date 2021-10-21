@@ -14,14 +14,14 @@ class JavaAppImplementationAssembler(
             buildScript.block("application") {
                 lazyProperty("mainClass", mainClassName.name)
             }
-            sourceFileGenerator.java(spec.projectDir.resolve("src/main/java"), mainClassName).apply {
+            sourceFileGenerator.java(spec.projectDir.resolve("src/main/java"), mainClassName) {
                 imports(Set::class)
                 imports(LinkedHashSet::class)
                 method("public static void main(String... args)") {
                     log("greetings from `${spec.name}`")
                     addEntryPoint(spec, this)
                 }
-            }.complete()
+            }
         }
     }
 }

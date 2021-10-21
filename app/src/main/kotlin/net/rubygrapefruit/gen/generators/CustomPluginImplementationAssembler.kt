@@ -12,7 +12,7 @@ class CustomPluginImplementationAssembler(
     fun pluginImplementation(): Assembler<PluginImplementationBuilder> = Assembler.of { _ ->
         val spec = this.spec
         if (spec is CustomPluginImplementationSpec) {
-            sourceFileGenerator.java(spec.project.projectDir.resolve("src/main/java"), spec.taskImplementationClass).apply {
+            sourceFileGenerator.java(spec.project.projectDir.resolve("src/main/java"), spec.taskImplementationClass) {
                 imports("org.gradle.api.DefaultTask")
                 imports("org.gradle.api.tasks.TaskAction")
                 imports("org.gradle.api.tasks.Input")
@@ -52,7 +52,7 @@ class CustomPluginImplementationAssembler(
                         }
                     """.trimIndent()
                 )
-            }.complete()
+            }
 
             val incomingConfiguration = spec.spec.identifier("incoming")
             val outgoingConfiguration = spec.spec.identifier("outgoing")

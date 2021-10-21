@@ -17,7 +17,7 @@ class PluginImplementationGenerator(
             assembler.assemble(builder, generationContext)
         }
         builder.applyMethodBody { addEntryPoint(project, this) }
-        sourceFileGenerator.java(project.projectDir.resolve("src/main/java"), pluginImplementationClass).apply {
+        sourceFileGenerator.java(project.projectDir.resolve("src/main/java"), pluginImplementationClass) {
             imports("org.gradle.api.Plugin")
             imports("org.gradle.api.Project")
             imports(Set::class)
@@ -32,7 +32,7 @@ class PluginImplementationGenerator(
                     action(this)
                 }
             }
-        }.complete()
+        }
     }
 
     private class PluginImplementationBuilderImpl(

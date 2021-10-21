@@ -5,8 +5,10 @@ import java.io.PrintWriter
 import java.nio.file.Path
 
 class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
-    fun java(srcDir: Path, className: JvmClassName): JavaSourceFileBuilder {
-        return JavaSourceFileBuilderImpl(srcDir, className)
+    fun java(srcDir: Path, className: JvmClassName, builder: JavaSourceFileBuilder.() -> Unit) {
+        val src = JavaSourceFileBuilderImpl(srcDir, className)
+        builder(src)
+        src.complete()
     }
 
     private class MethodImpl(val text: String) {

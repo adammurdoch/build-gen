@@ -13,12 +13,12 @@ class JavaLibraryImplementationAssembler(
             if (spec.usesPlugins.none { it.canProduceJavaLibrary }) {
                 buildScript.plugin("java-library")
             }
-            sourceFileGenerator.java(spec.projectDir.resolve("src/main/java"), api.method.className).apply {
+            sourceFileGenerator.java(spec.projectDir.resolve("src/main/java"), api.method.className) {
                 imports(Set::class)
                 method("public static void ${api.method.methodName}(Set<String> seen)") {
                     addReferences(spec, this)
                 }
-            }.complete()
+            }
         }
     }
 }
