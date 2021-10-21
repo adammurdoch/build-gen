@@ -1,6 +1,8 @@
 package net.rubygrapefruit.gen.generators
 
 import net.rubygrapefruit.gen.builders.ProjectContentsBuilder
+import net.rubygrapefruit.gen.files.JvmType
+import net.rubygrapefruit.gen.files.LocalVariable
 import net.rubygrapefruit.gen.files.SourceFileGenerator
 import net.rubygrapefruit.gen.specs.JvmClassName
 import net.rubygrapefruit.gen.specs.ToolingApiClientSpec
@@ -30,17 +32,21 @@ class ToolingApiClientImplementationAssembler(
 
             val srcDir = spec.projectDir.resolve("src/main/java")
             sourceFileGenerator.java(srcDir, mainClassName) {
+                val connectorType = JvmType.type("org.gradle.tooling.GradleConnector")
+                val connectionType = JvmType.type("org.gradle.tooling.ProjectConnection")
+                val executorType = JvmType.type("org.gradle.tooling.BuildActionExecuter", String::class)
+                val mainActionType = JvmType.type(mainActionName)
                 imports(File::class)
                 imports("org.gradle.tooling.GradleConnector")
                 imports("org.gradle.tooling.ProjectConnection")
                 imports("org.gradle.tooling.BuildActionExecuter")
                 method("public static void main(String... args)") {
                     log("Calling tooling API on `${spec.producesApp.targetRootDir}`")
-                    variableDefinition("GradleConnector", "connector", "GradleConnector.newConnector()")
+                    val connector = variableDefinition(connectorType, "connector", connectorType.staticMethod("newConnector"))
                     methodCall("connector.forProjectDirectory(new File(\"${spec.producesApp.targetRootDir}\"))")
                     methodCall("connector.useGradleVersion(\"7.2\")")
-                    variableDefinition("ProjectConnection", "connection", "connector.connect()")
-                    variableDefinition("BuildActionExecuter<String>", "action", "connection.action(new ${mainActionName.simpleName}())")
+                    val connection = variableDefinition(connectionType, "connection", connector.methodCall("connect"))
+                    val action = variableDefinition(executorType, "action", connection.methodCall("action", mainActionType.newInstance()))
                     methodCall("action.setStandardOutput(System.out)")
                     methodCall("action.setStandardError(System.err)")
                     log("Starting action:")
@@ -51,6 +57,9 @@ class ToolingApiClientImplementationAssembler(
             }
 
             sourceFileGenerator.java(srcDir, mainActionName) {
+                val listType = JvmType.type(ArrayList::class, nestedActionName)
+                val buildType = JvmType.type("org.gradle.tooling.model.gradle.GradleBuild")
+                val controllerType = JvmType.type("org.gradle.tooling.BuildController")
                 imports(List::class)
                 imports(ArrayList::class)
                 imports("org.gradle.tooling.BuildAction")
@@ -60,8 +69,8 @@ class ToolingApiClientImplementationAssembler(
                 implements("BuildAction<String>")
                 method("public String execute(BuildController controller)") {
                     log("Running action")
-                    variableDefinition("GradleBuild", "root", "controller.getBuildModel()")
-                    variableDefinition("List<${nestedActionName.simpleName}>", "actions", "new ArrayList<>()")
+                    variableDefinition(buildType, "root", LocalVariable("controller", controllerType).readProperty("buildModel"))
+                    variableDefinition(listType, "actions", listType.newInstance())
                     methodCall("collect(root, actions)")
                     iterate("GradleBuild", "build", "root.getEditableBuilds()") {
                         methodCall("collect(build, actions)")

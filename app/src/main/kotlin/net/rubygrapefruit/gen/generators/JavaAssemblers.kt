@@ -1,6 +1,7 @@
 package net.rubygrapefruit.gen.generators
 
 import net.rubygrapefruit.gen.files.JavaSourceFileBuilder
+import net.rubygrapefruit.gen.files.JvmType
 import net.rubygrapefruit.gen.specs.JavaLibraryApiSpec
 import net.rubygrapefruit.gen.specs.ProjectSpec
 
@@ -8,7 +9,8 @@ fun addEntryPoint(spec: ProjectSpec, target: JavaSourceFileBuilder.Statements) {
     if (spec.usesLibraries.isEmpty()) {
         return
     }
-    target.variableDefinition("Set<String>", "seen", "new LinkedHashSet<>()")
+    val setType = JvmType.type("LinkedHashSet", "String")
+    target.variableDefinition(setType, "seen", setType.newInstance())
     addReferences(spec, target);
     target.methodCall("System.out.println(\"libraries = \" + seen)")
 }

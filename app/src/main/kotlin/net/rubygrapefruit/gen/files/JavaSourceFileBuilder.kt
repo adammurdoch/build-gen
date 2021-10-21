@@ -25,7 +25,7 @@ interface JavaSourceFileBuilder {
         fun statements(literals: String)
         fun methodCall(literal: String)
         fun log(text: String)
-        fun variableDefinition(type: String, name: String, initializer: String?)
+        fun variableDefinition(type: JvmType, name: String, initializer: Expression?): LocalVariable
         fun ifStatement(condition: String, builder: Statements.() -> Unit)
         fun iterate(type: String, itemName: String, valuesExpression: String, builder: Statements.() -> Unit)
         fun returnValue(expression: String)

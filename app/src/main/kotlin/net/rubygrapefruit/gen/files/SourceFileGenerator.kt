@@ -115,16 +115,17 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             body.append('\n')
         }
 
-        override fun variableDefinition(type: String, name: String, initializer: String?) {
+        override fun variableDefinition(type: JvmType, name: String, initializer: Expression?): LocalVariable {
             body.append(indent)
-            body.append(type);
+            body.append(type.typeDeclaration);
             body.append(" ");
             body.append(name);
             if (initializer != null) {
                 body.append(" = ")
-                body.append(initializer)
+                body.append(initializer.literal)
             }
             body.append(";\n");
+            return LocalVariable(name, type)
         }
 
         override fun statements(literals: String) {
