@@ -76,7 +76,7 @@ private fun selectOptions(implementation: TreeWithImplementation, prompter: Prom
 }
 
 fun generate(rootDir: Path, template: BuildTreeTemplate, implementation: Implementation, templateOptions: List<TemplateOption>, dsl: DslLanguage, synchronizer: GeneratedDirectoryContentsSynchronizer) {
-    val builder = DefaultBuildTreeBuilder(rootDir, implementation.pluginSpecFactory, implementation.librarySpecFactory)
+    val builder = DefaultBuildTreeBuilder(rootDir, implementation)
     template.applyTo(builder, templateOptions)
     val buildTree = builder.build()
 

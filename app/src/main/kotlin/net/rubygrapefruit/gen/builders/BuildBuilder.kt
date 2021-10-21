@@ -40,6 +40,11 @@ interface BuildBuilder {
     fun producesApp()
 
     /**
+     * Add an application that uses the tooling API.
+     */
+    fun producesToolingApiClient()
+
+    /**
      * Adds a plugin that this build should produce.
      */
     fun producesPlugin(): PluginRef

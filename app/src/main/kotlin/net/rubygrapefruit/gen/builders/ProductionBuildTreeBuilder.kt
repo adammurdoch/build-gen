@@ -14,6 +14,12 @@ sealed class ProductionBuildTreeBuilder(val builder: BuildTreeBuilder) {
     fun includeConfigurationCacheProblems() {
         builder.includeConfigurationCacheProblems = true
     }
+
+    fun toolingApiClient() {
+        builder.build("tooling-api") {
+            producesToolingApiClient()
+        }
+    }
 }
 
 sealed class ProductionBuildTreeBuilderWithSource(builder: BuildTreeBuilder) : ProductionBuildTreeBuilder(builder) {

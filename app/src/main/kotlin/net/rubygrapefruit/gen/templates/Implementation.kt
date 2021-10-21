@@ -4,9 +4,10 @@ import net.rubygrapefruit.gen.builders.*
 
 enum class Implementation(
     val pluginSpecFactory: PluginSpecFactory,
-    val librarySpecFactory: LibrarySpecFactory
+    val librarySpecFactory: LibrarySpecFactory,
+    val applicationSpecFactory: ApplicationSpecFactory
 ) {
-    None(NothingPluginSpecFactory(), NothingLibrarySpecFactory()),
-    Custom(CustomPluginSpecFactory(), CustomLibrarySpecFactory()),
-    Java(JavaConventionPluginSpecFactory(), JavaLibrarySpecFactory())
+    None(NothingPluginSpecFactory(), NothingLibrarySpecFactory(), NothingApplicationSpecFactory()),
+    Custom(CustomPluginSpecFactory(), CustomLibrarySpecFactory(), CustomApplicationSpecFactory()),
+    Java(JavaConventionPluginSpecFactory(), JavaLibrarySpecFactory(), JavaApplicationSpecFactory())
 }

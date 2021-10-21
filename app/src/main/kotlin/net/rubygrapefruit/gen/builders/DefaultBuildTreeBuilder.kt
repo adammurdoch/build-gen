@@ -1,14 +1,18 @@
 package net.rubygrapefruit.gen.builders
 
 import net.rubygrapefruit.gen.specs.*
+import net.rubygrapefruit.gen.templates.Implementation
 import java.nio.file.Path
 
 /**
  * A mutable builder for the build tree structure.
  */
 class DefaultBuildTreeBuilder(
-    private val rootDir: Path, private val pluginSpecFactory: PluginSpecFactory, private val librarySpecFactory: LibrarySpecFactory
+    private val rootDir: Path, implementation: Implementation
 ) : BuildTreeBuilder {
+    private val pluginSpecFactory = implementation.pluginSpecFactory
+    private val librarySpecFactory = implementation.librarySpecFactory
+    private val applicationSpecFactory = implementation.applicationSpecFactory
     private val builds = mutableListOf<BuildBuilderImpl>()
     private val main = BuildBuilderImpl(null, "main build", BaseName("main"), "main", rootDir)
 
@@ -25,9 +29,20 @@ class DefaultBuildTreeBuilder(
         return body(mainBuild)
     }
 
+    override fun build(name: String, body: BuildBuilder.() -> Unit) {
+        val build = BuildBuilderImpl(null, "build $name", buildBaseName(name), name, rootDir.resolve(name))
+        builds.add(build)
+        body(build)
+    }
+
     fun build(): BuildTreeSpec {
         val mapper = Mapper<BuildSpec>()
         return BuildTreeSpecImpl(rootDir, mapper.map(builds))
+    }
+
+    private fun buildBaseName(name: String): BaseName {
+        require(!name.contains(':') && !name.contains('/'))
+        return BaseName(name)
     }
 
     private class BuildTreeSpecImpl(
@@ -43,18 +58,6 @@ class DefaultBuildTreeBuilder(
     }
 
     private class FixedValue<T : Any>(private val value: T) : LazyValue<T>() {
-        override fun get(): T {
-            return value
-        }
-    }
-
-    private class DeferredLazyValue<T : Any> : LazyValue<T>() {
-        private lateinit var value: T
-
-        fun set(value: T) {
-            this.value = value
-        }
-
         override fun get(): T {
             return value
         }
@@ -167,11 +170,12 @@ class DefaultBuildTreeBuilder(
 
     private class AppImpl(
         val baseName: BaseName,
+        val implementationSpec: AppImplementationSpec,
         val usesPlugins: LazyValue<List<PluginUseSpec>>,
         val implementationLibraries: LazyValue<List<InternalLibraryProductionSpec>>,
         val incomingLibraries: LazyValue<List<ExternalLibraryUseSpec>>
     ) : Mappable<AppProductionSpec> {
-        override fun toSpec(mapper: Mapper<AppProductionSpec>) = AppProductionSpec(baseName, usesPlugins.get(), incomingLibraries.get(), implementationLibraries.get())
+        override fun toSpec(mapper: Mapper<AppProductionSpec>) = AppProductionSpec(baseName, implementationSpec, usesPlugins.get(), incomingLibraries.get(), implementationLibraries.get())
     }
 
     private inner class BuildBuilderImpl(
@@ -218,9 +222,8 @@ class DefaultBuildTreeBuilder(
         }
 
         private fun addBuild(name: String, index: Int): BuildBuilderImpl {
-            require(!name.contains(':') && !name.contains('/'))
+            val build = BuildBuilderImpl(this, "build $name", buildBaseName(name), name, rootDir.resolve(name))
             require(!children.any { it.baseName.camelCase == BaseName(name).camelCase })
-            val build = BuildBuilderImpl(this, "build $name", BaseName(name), name, rootDir.resolve(name))
             children.add(index, build)
             builds.add(build)
             return build
@@ -233,7 +236,11 @@ class DefaultBuildTreeBuilder(
         }
 
         override fun producesApp() {
-            exportedComponents.producesApps.add(AppImpl(BaseName(projectNames.next()), usesPlugins, implementationLibs(), usesLibraries))
+            exportedComponents.producesApps.add(AppImpl(BaseName(projectNames.next()), applicationSpecFactory.application(), usesPlugins, implementationLibs(), usesLibraries))
+        }
+
+        override fun producesToolingApiClient() {
+            exportedComponents.producesApps.add(AppImpl(BaseName(projectNames.next()), Implementation.Java.applicationSpecFactory.application(), FixedValue(emptyList()), FixedValue(emptyList()), FixedValue(emptyList())))
         }
 
         private fun implementationLibs(): LazyValue<List<InternalLibraryProductionSpec>> {

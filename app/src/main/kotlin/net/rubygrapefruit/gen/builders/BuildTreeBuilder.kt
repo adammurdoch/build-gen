@@ -9,4 +9,9 @@ interface BuildTreeBuilder {
     val mainBuild: BuildBuilder
 
     fun <T> mainBuild(body: BuildBuilder.() -> T): T
+
+    /**
+     * Adds another build that is not part of the main build
+     */
+    fun build(name: String, body: BuildBuilder.() -> Unit)
 }

@@ -56,6 +56,9 @@ class BuildContentsGenerator(
 
                 override fun visitApp(app: AppProductionSpec) {
                     hasProductionCode = true
+
+                    println("-> ADD APP ${app.baseName.camelCase} IMPLEMENTATION = ${app.implementationSpec}")
+
                     project(app.baseName.camelCase) {
                         requiresPlugins(app.usesPlugins)
                         requiresExternalLibraries(app.usesLibraries)
