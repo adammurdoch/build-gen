@@ -1,9 +1,9 @@
 package net.rubygrapefruit.gen.generators
 
 import net.rubygrapefruit.gen.builders.PluginImplementationBuilder
+import net.rubygrapefruit.gen.files.JavaSourceFileBuilder
 import net.rubygrapefruit.gen.files.PluginSourceBuilder
 import net.rubygrapefruit.gen.files.SourceFileGenerator
-import net.rubygrapefruit.gen.specs.JavaLibraryApiSpec
 import net.rubygrapefruit.gen.specs.PluginImplementationSpec
 import kotlin.reflect.KClass
 
@@ -16,27 +16,26 @@ class PluginImplementationGenerator(
         for (assembler in assemblers) {
             assembler.assemble(builder, generationContext)
         }
-        for (library in project.usesLibraries) {
-            if (library.api is JavaLibraryApiSpec) {
-                builder.applyMethodBody("${library.api.methodReference.className.name}.${library.api.methodReference.methodName}(new HashSet<String>());")
-            }
-        }
+        builder.applyMethodBody { addEntryPoint(project, this) }
         sourceFileGenerator.java(project.projectDir.resolve("src/main/java"), pluginImplementationClass).apply {
             imports("org.gradle.api.Plugin")
             imports("org.gradle.api.Project")
-            imports(HashSet::class)
+            imports(Set::class)
+            imports(LinkedHashSet::class)
             for (import in builder.imports) {
                 imports(import)
             }
             implements("Plugin<Project>")
-            method(
-                """
-                        public void apply(Project project) {
-                            System.out.println("apply `${spec.id}`");
-                            ${builder.applyMethodContent}
-                        }
-                    """.trimIndent()
-            )
+            method("public void apply(Project project)") {
+                statements(
+                    """
+                    System.out.println("apply `${spec.id}`");
+                """.trimIndent()
+                )
+                for (action in builder.applyMethodBody) {
+                    action(this)
+                }
+            }
         }.complete()
     }
 
@@ -45,11 +44,8 @@ class PluginImplementationGenerator(
         override val includeConfigurationCacheProblems: Boolean
     ) : PluginImplementationBuilder, PluginSourceBuilder {
         val imports = mutableListOf<String>()
-        private val applyMethodBody = mutableListOf<String>()
+        val applyMethodBody = mutableListOf<JavaSourceFileBuilder.Statements.() -> Unit>()
         private val taskMethodBody = mutableListOf<String>()
-
-        val applyMethodContent: String
-            get() = applyMethodBody.joinToString("\n")
 
         override val taskMethodContent: String
             get() = taskMethodBody.joinToString("\n")
@@ -65,8 +61,8 @@ class PluginImplementationGenerator(
             imports.add(type.java.name)
         }
 
-        override fun applyMethodBody(text: String) {
-            applyMethodBody.add(text)
+        override fun applyMethodBody(body: JavaSourceFileBuilder.Statements.() -> Unit) {
+            applyMethodBody.add(body)
         }
 
         override fun taskMethodBody(text: String) {

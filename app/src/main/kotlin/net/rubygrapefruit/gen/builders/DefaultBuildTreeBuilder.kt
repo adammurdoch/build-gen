@@ -341,6 +341,7 @@ class DefaultBuildTreeBuilder(
                 displayName,
                 rootDir,
                 includeConfigurationCacheProblems,
+                baseName.camelCase,
                 components,
                 mapper.map(children),
                 includeSelf,

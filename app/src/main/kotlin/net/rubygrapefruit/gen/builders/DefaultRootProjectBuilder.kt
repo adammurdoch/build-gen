@@ -6,9 +6,10 @@ import net.rubygrapefruit.gen.specs.*
  * A builder for the root project of a build.
  */
 class DefaultRootProjectBuilder(
-    private val build: BuildSpec
+    private val build: BuildSpec,
+    rootProjectName: String
 ) : RootProjectBuilder {
-    private val root = ProjectBuilderImpl("root")
+    private val root = ProjectBuilderImpl(rootProjectName)
     private val children = LinkedHashMap<String, ProjectBuilderImpl>()
 
     override fun root(body: ProjectBuilder.() -> Unit) {
@@ -25,7 +26,7 @@ class DefaultRootProjectBuilder(
         val childSpecs = children.values.map {
             ChildProjectSpec(it.name, build.rootDir.resolve(it.name), it.usesPlugins, it.producesPlugins, it.producesApp, it.producesLibrary, it.usesLibraries, build.includeConfigurationCacheProblems)
         }
-        return RootProjectSpec(build.rootDir, childSpecs, root.usesPlugins, root.producesPlugins, root.producesApp, root.producesLibrary, root.usesLibraries, build.includeConfigurationCacheProblems)
+        return RootProjectSpec(root.name, build.rootDir, childSpecs, root.usesPlugins, root.producesPlugins, root.producesApp, root.producesLibrary, root.usesLibraries, build.includeConfigurationCacheProblems)
     }
 
     private inner class ProjectBuilderImpl(val name: String) : ProjectBuilder {

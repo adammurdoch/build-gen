@@ -11,7 +11,7 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
 
     private class MethodImpl(val text: String) {
         fun writeContext(writer: PrintWriter) {
-            for (line in text.trim().lines().filter { it.isNotBlank() }) {
+            for (line in text.lines()) {
                 writer.print("    ")
                 writer.println(line)
             }
@@ -46,13 +46,14 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             methods.add(MethodImpl(text))
         }
 
-        override fun method(signature: String, body: JavaSourceFileBuilder.MethodBody.() -> Unit) {
-            val builder = MethodBodyImpl()
-            builder.body.append(signature.trim())
-            builder.body.append(" {\n")
-            body(builder)
-            builder.body.append("}")
-            methods.add(MethodImpl(builder.body.toString()))
+        override fun method(signature: String, statements: JavaSourceFileBuilder.Statements.() -> Unit) {
+            val body = StringBuilder()
+            val builder = MethodBodyImpl(body, "    ")
+            body.append(signature.trim())
+            body.append(" {\n")
+            statements(builder)
+            body.append("}")
+            methods.add(MethodImpl(body.toString()))
         }
 
         override fun complete() {
@@ -96,16 +97,47 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
         }
     }
 
-    private class MethodBodyImpl : JavaSourceFileBuilder.MethodBody {
-        val body = StringBuilder()
-
+    private class MethodBodyImpl(
+        val body: StringBuilder,
+        val indent: String
+    ) : JavaSourceFileBuilder.Statements {
         override fun methodCall(text: String) {
-            body.append("    ")
+            body.append(indent)
             body.append(text.trim())
             if (!text.endsWith(';')) {
                 body.append(';')
             }
             body.append('\n')
+        }
+
+        override fun variableDefinition(type: String, name: String, initializer: String?) {
+            body.append(indent)
+            body.append(type);
+            body.append(" ");
+            body.append(name);
+            if (initializer != null) {
+                body.append(" = ")
+                body.append(initializer)
+            }
+            body.append(";\n");
+        }
+
+        override fun statements(text: String) {
+            for (line in text.lines()) {
+                body.append(indent)
+                body.append(line.trim())
+                body.append('\n')
+            }
+        }
+
+        override fun ifStatement(condition: String, builder: JavaSourceFileBuilder.Statements.() -> Unit) {
+            body.append(indent)
+            body.append("if (")
+            body.append(condition)
+            body.append(") {\n")
+            builder(MethodBodyImpl(body, "$indent    "))
+            body.append(indent)
+            body.append("}\n")
         }
     }
 }

@@ -7,7 +7,7 @@ interface PluginSourceBuilder {
 
     fun imports(type: KClass<*>)
 
-    fun applyMethodBody(text: String)
+    fun applyMethodBody(body: JavaSourceFileBuilder.Statements.() -> Unit)
 
     val taskMethodContent: String
 

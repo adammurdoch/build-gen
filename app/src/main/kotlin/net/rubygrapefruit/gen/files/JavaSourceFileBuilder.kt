@@ -17,11 +17,14 @@ interface JavaSourceFileBuilder {
 
     fun method(text: String)
 
-    fun method(signature: String, body: MethodBody.() -> Unit)
+    fun method(signature: String, statements: Statements.() -> Unit)
 
     fun complete()
 
-    interface MethodBody {
+    interface Statements {
+        fun statements(text: String)
         fun methodCall(text: String)
+        fun variableDefinition(type: String, name: String, initializer: String?)
+        fun ifStatement(condition: String, builder: Statements.() -> Unit)
     }
 }

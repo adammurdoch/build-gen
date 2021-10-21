@@ -32,9 +32,10 @@ class ConfigurationCacheProblemGenerator {
 
     fun pluginImplementation(): Assembler<PluginImplementationBuilder> = Assembler.of {
         if (includeConfigurationCacheProblems) {
-            source.applyMethodBody("project.getGradle().buildFinished(r -> {});")
-            source.applyMethodBody("System.getProperty(\"build.input\");")
-
+            source.applyMethodBody {
+                statements("project.getGradle().buildFinished(r -> {});")
+                statements("System.getProperty(\"build.input\");")
+            }
             source.taskMethodBody("getTaskDependencies();")
         }
     }

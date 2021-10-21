@@ -15,8 +15,11 @@ class JavaAppImplementationAssembler(
                 property("mainClassName", mainClassName.name)
             }
             sourceFileGenerator.java(spec.projectDir.resolve("src/main/java"), mainClassName).apply {
+                imports(Set::class)
+                imports(LinkedHashSet::class)
                 method("public static void main(String... args)") {
-                    methodCall("System.out.println(\"greetings from " + spec.producesApp.mainClassName.name + "\")")
+                    methodCall("System.out.println(\"greetings from `" + spec.name + "`\")")
+                    addEntryPoint(spec, this)
                 }
             }.complete()
         }

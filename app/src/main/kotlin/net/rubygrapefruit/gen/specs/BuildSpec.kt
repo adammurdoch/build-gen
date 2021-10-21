@@ -8,6 +8,7 @@ class BuildSpec(
     val displayName: String,
     val rootDir: Path,
     val includeConfigurationCacheProblems: Boolean,
+    private val rootProjectName: String,
     private val components: BuildComponentsSpec,
     private val childBuilds: List<BuildSpec>,
     private val includeSelf: Boolean,
@@ -63,7 +64,7 @@ class BuildSpec(
      * Creates a project tree for this build.
      */
     fun projects(body: RootProjectBuilder.() -> Unit): RootProjectSpec {
-        val builder = DefaultRootProjectBuilder(this)
+        val builder = DefaultRootProjectBuilder(this, rootProjectName)
         body(builder)
         return builder.build()
     }

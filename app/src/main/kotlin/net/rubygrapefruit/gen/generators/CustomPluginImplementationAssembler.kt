@@ -61,8 +61,9 @@ class CustomPluginImplementationAssembler(
                 imports("org.gradle.api.tasks.TaskProvider")
                 imports("org.gradle.api.artifacts.Configuration")
                 imports("org.gradle.api.attributes.Usage")
-                applyMethodBody(
-                    """
+                applyMethodBody {
+                    statements(
+                        """
                         project.getPlugins().apply("lifecycle-base");
                         Configuration implementation = project.getConfigurations().maybeCreate("implementation");
                         Configuration incoming = project.getConfigurations().create("$incomingConfiguration");
@@ -85,7 +86,8 @@ class CustomPluginImplementationAssembler(
                             t.dependsOn(lifecycle);
                         });
                 """.trimIndent()
-                )
+                    )
+                }
             }
         }
     }
