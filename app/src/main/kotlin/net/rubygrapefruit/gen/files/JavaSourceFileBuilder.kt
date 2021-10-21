@@ -23,6 +23,11 @@ interface JavaSourceFileBuilder {
     /**
      * public void method by default
      */
+    fun method(name: String, builder: MethodBuilder.() -> Unit)
+
+    /**
+     * public void method by default
+     */
     fun method(name: String, param1: String, paramType1: JvmType, builder: MethodBuilder.(LocalVariable) -> Unit)
 
     /**

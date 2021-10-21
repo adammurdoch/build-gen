@@ -1,6 +1,7 @@
 package net.rubygrapefruit.gen.generators
 
 import net.rubygrapefruit.gen.builders.PluginImplementationBuilder
+import net.rubygrapefruit.gen.files.JvmType
 import net.rubygrapefruit.gen.files.SourceFileGenerator
 import net.rubygrapefruit.gen.specs.CustomPluginImplementationSpec
 import java.io.IOException
@@ -14,7 +15,6 @@ class CustomPluginImplementationAssembler(
         if (spec is CustomPluginImplementationSpec) {
             sourceFileGenerator.java(spec.project.projectDir.resolve("src/main/java"), spec.taskImplementationClass) {
                 imports("org.gradle.api.DefaultTask")
-                imports("org.gradle.api.tasks.TaskAction")
                 imports("org.gradle.api.tasks.Input")
                 imports("org.gradle.api.tasks.OutputFile")
                 imports("org.gradle.api.tasks.InputFiles")
@@ -42,16 +42,17 @@ class CustomPluginImplementationAssembler(
                         public abstract RegularFileProperty getOutputFile();
                     """.trimIndent()
                 )
-                method(
-                    """
-                        @TaskAction
-                        public void run() throws IOException {
+                method("run") {
+                    annotation(JvmType.type("org.gradle.api.tasks.TaskAction"))
+                    throwsException(JvmType.type(IOException::class))
+                    body {
+                        statements("""
                             Files.writeString(getOutputFile().get().getAsFile().toPath(), getMessage().get() + "\n");
                             getInputFiles().getFiles();
                             ${source.taskMethodContent}
-                        }
-                    """.trimIndent()
-                )
+                        """)
+                    }
+                }
             }
 
             val incomingConfiguration = spec.spec.identifier("incoming")
