@@ -6,6 +6,7 @@ sealed class ProjectSpec(
     val projectDir: Path,
     val usesPlugins: List<PluginUseSpec>,
     val producesPlugins: List<PluginProductionSpec>,
+    val producesApp: AppImplementationSpec?,
     val producesLibrary: LibraryImplementationSpec?,
     val usesLibraries: List<LibraryUseSpec>,
     val includeConfigurationCacheProblems: Boolean
@@ -16,10 +17,11 @@ class RootProjectSpec(
     val children: List<ChildProjectSpec>,
     usesPlugins: List<PluginUseSpec>,
     producesPlugins: List<PluginProductionSpec>,
+    producesApp: AppImplementationSpec?,
     producesLibrary: LibraryImplementationSpec?,
     usesLibraries: List<LibraryUseSpec>,
     includeConfigurationCacheProblems: Boolean
-) : ProjectSpec(projectDir, usesPlugins, producesPlugins, producesLibrary, usesLibraries, includeConfigurationCacheProblems) {
+) : ProjectSpec(projectDir, usesPlugins, producesPlugins, producesApp, producesLibrary, usesLibraries, includeConfigurationCacheProblems) {
     /**
      * Includes this project and its children
      */
@@ -31,7 +33,8 @@ class ChildProjectSpec(
     projectDir: Path,
     usesPlugins: List<PluginUseSpec>,
     producesPlugins: List<PluginProductionSpec>,
+    producesApp: AppImplementationSpec?,
     producesLibrary: LibraryImplementationSpec?,
     usesLibraries: List<LibraryUseSpec>,
     includeConfigurationCacheProblems: Boolean
-) : ProjectSpec(projectDir, usesPlugins, producesPlugins, producesLibrary, usesLibraries, includeConfigurationCacheProblems)
+) : ProjectSpec(projectDir, usesPlugins, producesPlugins, producesApp, producesLibrary, usesLibraries, includeConfigurationCacheProblems)

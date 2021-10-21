@@ -7,6 +7,8 @@ interface ProjectBuilder {
 
     fun producesPlugin(plugin: PluginProductionSpec)
 
+    fun producesApp(app: AppImplementationSpec)
+
     fun producesLibrary(library: LibraryProductionSpec): LibraryUseSpec
 
     fun producesLibrary(library: ExternalLibraryProductionSpec): LibraryUseSpec

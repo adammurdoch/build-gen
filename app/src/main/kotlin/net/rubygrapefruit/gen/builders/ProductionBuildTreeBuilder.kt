@@ -1,7 +1,7 @@
 package net.rubygrapefruit.gen.builders
 
 private val mainBuildNames = listOf("app", "util")
-private val dataBuildNames = listOf("main", "store")
+private val dataBuildNames = listOf("access", "store")
 private val uiBuildNames = listOf("entry", "render")
 
 sealed class ProductionBuildTreeBuilder(val builder: BuildTreeBuilder) {

@@ -99,10 +99,16 @@ fun generate(rootDir: Path, template: BuildTreeTemplate, implementation: Impleme
         )
         val pluginProducerAssembler = PluginProducerProjectAssembler(pluginImplementationGenerator.pluginImplementation())
         val javaLibraryAssembler = JavaLibraryImplementationAssembler(sourceFileGenerator)
+        val javaApplicationAssembler = JavaAppImplementationAssembler(sourceFileGenerator)
         val projectGenerator = ProjectContentsGenerator(
             scriptGenerator,
             fileContext,
-            listOf(pluginProducerAssembler.projectContents(), javaLibraryAssembler.projectContents(), problemGenerator.projectContents())
+            listOf(
+                pluginProducerAssembler.projectContents(),
+                javaLibraryAssembler.projectContents(),
+                javaApplicationAssembler.projectContents(),
+                problemGenerator.projectContents()
+            )
         )
         val buildContentsGenerator = BuildContentsGenerator(
             scriptGenerator,

@@ -23,9 +23,9 @@ class DefaultRootProjectBuilder(
 
     fun build(): RootProjectSpec {
         val childSpecs = children.values.map {
-            ChildProjectSpec(it.name, build.rootDir.resolve(it.name), it.usesPlugins, it.producesPlugins, it.producesLibrary, it.usesLibraries, build.includeConfigurationCacheProblems)
+            ChildProjectSpec(it.name, build.rootDir.resolve(it.name), it.usesPlugins, it.producesPlugins, it.producesApp, it.producesLibrary, it.usesLibraries, build.includeConfigurationCacheProblems)
         }
-        return RootProjectSpec(build.rootDir, childSpecs, root.usesPlugins, root.producesPlugins, root.producesLibrary, root.usesLibraries, build.includeConfigurationCacheProblems)
+        return RootProjectSpec(build.rootDir, childSpecs, root.usesPlugins, root.producesPlugins, root.producesApp, root.producesLibrary, root.usesLibraries, build.includeConfigurationCacheProblems)
     }
 
     private inner class ProjectBuilderImpl(val name: String) : ProjectBuilder {
@@ -33,6 +33,7 @@ class DefaultRootProjectBuilder(
         val usesPlugins = mutableListOf<PluginUseSpec>()
         val producesPlugins = mutableListOf<PluginProductionSpec>()
         val usesLibraries = mutableListOf<LibraryUseSpec>()
+        var producesApp: AppImplementationSpec? = null
         var producesLibrary: LibraryImplementationSpec? = null
 
         override fun requiresPlugins(plugins: List<PluginUseSpec>) {
@@ -43,8 +44,13 @@ class DefaultRootProjectBuilder(
             producesPlugins.add(plugin)
         }
 
+        override fun producesApp(app: AppImplementationSpec) {
+            require(producesLibrary == null && producesApp == null)
+            producesApp = app
+        }
+
         override fun producesLibrary(library: LibraryProductionSpec): LibraryUseSpec {
-            require(producesLibrary == null)
+            require(producesLibrary == null && producesApp == null)
             producesLibrary = LibraryImplementationSpec(localCoordinates, null, library)
             return LibraryUseSpec(localCoordinates, library.toApiSpec())
         }
