@@ -11,7 +11,7 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
         src.complete()
     }
 
-    private class MethodImpl(val text: String) {
+    private class BlockElement(val text: String) {
         fun writeContext(writer: PrintWriter) {
             for (line in text.lines()) {
                 writer.print("    ")
@@ -25,7 +25,9 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
         private var extends: String? = null
         private var isAbstract = false
         private val implements = mutableListOf<String>()
-        private val methods = mutableListOf<MethodImpl>()
+        private val fields = mutableListOf<BlockElement>()
+        private val constructors = mutableListOf<BlockElement>()
+        private val methods = mutableListOf<BlockElement>()
 
         override fun imports(name: String) {
             imports(JvmClassName(name))
@@ -41,12 +43,38 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             type.visitTypes { t -> imports(t) }
         }
 
-        override fun implements(name: String) {
-            implements.add(name)
+        override fun implements(type: JvmType) {
+            addImportsFor(type)
+            implements.add(type.typeDeclaration)
         }
 
-        override fun extends(name: String) {
-            extends = name
+        override fun extends(type: JvmType) {
+            addImportsFor(type)
+            extends = type.typeDeclaration
+        }
+
+        override fun constructorAndProperty(name: String, type: JvmType): InstanceVariable {
+            addImportsFor(type)
+
+            fields.add(BlockElement("private final ${type.typeDeclaration} $name;\n"))
+
+            val body = StringBuilder()
+            body.append("public ")
+            body.append(className.simpleName)
+            body.append("(")
+            body.append(type.typeDeclaration)
+            body.append(" ")
+            body.append(name)
+            body.append(") {\n")
+            body.append("    this.")
+            body.append(name)
+            body.append(" = ")
+            body.append(name)
+            body.append(";\n")
+            body.append("}\n")
+            constructors.add(BlockElement(body.toString()))
+
+            return InstanceVariable(name, type)
         }
 
         override fun abstractMethod(text: String) {
@@ -55,7 +83,7 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
         }
 
         override fun method(text: String) {
-            methods.add(MethodImpl(text))
+            methods.add(BlockElement(text))
         }
 
         override fun method(name: String, param1: String, paramType1: JvmType, param2: String, paramType2: JvmType, builder: JavaSourceFileBuilder.MethodBuilder.(LocalVariable, LocalVariable) -> Unit) {
@@ -80,7 +108,7 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             body.append(" {\n")
             body.append(builderImpl.body)
             body.append("}\n")
-            methods.add(MethodImpl(body.toString()))
+            methods.add(BlockElement(body.toString()))
         }
 
         override fun method(name: String, param1: String, paramType1: JvmType, builder: JavaSourceFileBuilder.MethodBuilder.(LocalVariable) -> Unit) {
@@ -100,7 +128,7 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             body.append(" {\n")
             body.append(builderImpl.body)
             body.append("}\n")
-            methods.add(MethodImpl(body.toString()))
+            methods.add(BlockElement(body.toString()))
         }
 
         override fun method(name: String, builder: JavaSourceFileBuilder.MethodBuilder.() -> Unit) {
@@ -114,7 +142,7 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             body.append(" {\n")
             body.append(builderImpl.body)
             body.append("}\n")
-            methods.add(MethodImpl(body.toString()))
+            methods.add(BlockElement(body.toString()))
         }
 
         override fun staticMethod(name: String, param1: String, paramType1: JvmType, builder: JavaSourceFileBuilder.MethodBuilder.(LocalVariable) -> Unit) {
@@ -135,7 +163,7 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             body.append(" {\n")
             body.append(builderImpl.body)
             body.append("}\n")
-            methods.add(MethodImpl(body.toString()))
+            methods.add(BlockElement(body.toString()))
         }
 
         private fun methodPrefix(body: StringBuilder, builder: MethodBuilderImpl, name: String) {
@@ -201,6 +229,12 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
                     print(implements.joinToString(", "))
                 }
                 println(" {")
+                for (field in fields) {
+                    field.writeContext(this)
+                }
+                for (constructor in constructors) {
+                    constructor.writeContext(this)
+                }
                 for (method in methods) {
                     method.writeContext(this)
                 }
@@ -248,6 +282,24 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             methodCall("System.out.println(\"$text\")")
         }
 
+        override fun thisMethodCall(name: String, vararg parameters: Expression) {
+            body.append(indent)
+            body.append(name)
+            body.append("(")
+            body.append(parameters.joinToString(", ") { it.literal })
+            body.append(");\n")
+        }
+
+        override fun methodCall(target: LocalVariable, name: String, vararg parameters: Expression) {
+            body.append(indent)
+            body.append(target.reference.literal)
+            body.append(".")
+            body.append(name)
+            body.append("(")
+            body.append(parameters.joinToString(", ") { it.literal })
+            body.append(");\n")
+        }
+
         override fun methodCall(literal: String) {
             body.append(indent)
             body.append(literal.trim())
@@ -289,16 +341,17 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             body.append("}\n")
         }
 
-        override fun iterate(type: String, itemName: String, valuesExpression: String, builder: JavaSourceFileBuilder.Statements.() -> Unit) {
+        override fun iterate(type: JvmType, itemName: String, valuesExpression: Expression, builder: JavaSourceFileBuilder.Statements.(LocalVariable) -> Unit) {
+            classBuilder.addImportsFor(type)
             body.append(indent)
             body.append("for (")
-            body.append(type)
+            body.append(type.typeDeclaration)
             body.append(" ")
             body.append(itemName)
             body.append(": ")
-            body.append(valuesExpression)
+            body.append(valuesExpression.literal)
             body.append(") {\n")
-            builder(StatementsImpl(classBuilder, body, "$indent    "))
+            builder(StatementsImpl(classBuilder, body, "$indent    "), LocalVariable(itemName, type))
             body.append(indent)
             body.append("}\n")
         }

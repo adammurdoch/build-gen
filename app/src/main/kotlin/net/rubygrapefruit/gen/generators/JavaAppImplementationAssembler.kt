@@ -17,7 +17,7 @@ class JavaAppImplementationAssembler(
             }
             sourceFileGenerator.java(spec.projectDir.resolve("src/main/java"), mainClassName) {
                 imports(LinkedHashSet::class)
-                staticMethod("main", "args", JvmType.type(String::class).asVarargs) { args ->
+                staticMethod("main", "args", JvmType.type(String::class).asVarargs) { _ ->
                     body {
                         log("greetings from `${spec.name}`")
                         addEntryPoint(spec)

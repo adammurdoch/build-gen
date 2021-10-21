@@ -12,9 +12,14 @@ interface JavaSourceFileBuilder {
 
     fun imports(name: JvmClassName)
 
-    fun extends(name: String)
+    fun extends(type: JvmType)
 
-    fun implements(name: String)
+    fun implements(type: JvmType)
+
+    /**
+     * Adds a property and constructor that initialises it
+     */
+    fun constructorAndProperty(name: String, type: JvmType): InstanceVariable
 
     fun abstractMethod(text: String)
 
@@ -51,10 +56,12 @@ interface JavaSourceFileBuilder {
     interface Statements {
         fun statements(literals: String)
         fun methodCall(literal: String)
+        fun thisMethodCall(name: String, vararg parameters: Expression)
+        fun methodCall(target: LocalVariable, name: String, vararg parameters: Expression)
         fun log(text: String)
         fun variableDefinition(type: JvmType, name: String, initializer: Expression?): LocalVariable
         fun ifStatement(condition: String, builder: Statements.() -> Unit)
-        fun iterate(type: String, itemName: String, valuesExpression: String, builder: Statements.() -> Unit)
+        fun iterate(type: JvmType, itemName: String, valuesExpression: Expression, builder: Statements.(LocalVariable) -> Unit)
         fun returnValue(expression: String)
     }
 }

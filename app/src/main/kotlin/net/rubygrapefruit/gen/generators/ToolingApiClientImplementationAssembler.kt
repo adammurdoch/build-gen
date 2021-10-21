@@ -37,7 +37,7 @@ class ToolingApiClientImplementationAssembler(
             val srcDir = spec.projectDir.resolve("src/main/java")
             sourceFileGenerator.java(srcDir, mainClassName) {
                 imports(File::class)
-                staticMethod("main", "args", JvmType.type(String::class).asVarargs) { args ->
+                staticMethod("main", "args", JvmType.type(String::class).asVarargs) { _ ->
                     body {
                         log("Calling tooling API on `${spec.producesApp.targetRootDir}`")
                         val connector = variableDefinition(connectorType, "connector", connectorType.callStaticMethod("newConnector"))
@@ -48,9 +48,9 @@ class ToolingApiClientImplementationAssembler(
                         methodCall("action.setStandardOutput(System.out)")
                         methodCall("action.setStandardError(System.err)")
                         log("Starting action:")
-                        methodCall("action.run()")
+                        methodCall(action, "run")
                         log("Action finished")
-                        methodCall("connection.close()")
+                        methodCall(connection, "close")
                     }
                 }
             }
@@ -60,23 +60,23 @@ class ToolingApiClientImplementationAssembler(
             val arrayListType = JvmType.type(ArrayList::class, nestedActionType)
             val buildType = JvmType.type("org.gradle.tooling.model.gradle.GradleBuild")
             val controllerType = JvmType.type("org.gradle.tooling.BuildController")
+            val basicProjectType = JvmType.type("org.gradle.tooling.model.gradle.BasicGradleProject")
+            val buildActionType = JvmType.type("org.gradle.tooling.BuildAction", String::class)
 
             sourceFileGenerator.java(srcDir, mainActionName) {
                 imports(ArrayList::class)
-                imports("org.gradle.tooling.BuildAction")
-                imports("org.gradle.tooling.BuildController")
-                imports("org.gradle.tooling.model.gradle.BasicGradleProject")
-                implements("BuildAction<String>")
+                implements(buildActionType)
                 method("execute", "controller", controllerType) { controller ->
                     returnType(JvmType.type(String::class))
                     body {
                         log("Running action")
-                        variableDefinition(buildType, "root", controller.readProperty("buildModel"))
-                        variableDefinition(listType, "actions", arrayListType.newInstance())
-                        methodCall("collect(root, actions)")
-                        iterate("GradleBuild", "build", "root.getEditableBuilds()") {
-                            methodCall("collect(build, actions)")
+                        val root = variableDefinition(buildType, "root", controller.readProperty("buildModel"))
+                        val actions = variableDefinition(listType, "actions", arrayListType.newInstance())
+                        thisMethodCall("collect", root.reference, actions.reference)
+                        iterate(buildType, "build", root.readProperty("editableBuilds")) { build ->
+                            thisMethodCall("collect", build.reference, actions.reference)
                         }
+                        methodCall(controller, "run", actions.reference)
                         returnValue("\"result\"")
                     }
                 }
@@ -84,22 +84,24 @@ class ToolingApiClientImplementationAssembler(
                     private()
                     body {
                         methodCall("System.out.println(\"build = \" + build)")
-                        iterate("BasicGradleProject", "project", "build.getProjects()") {
-                            methodCall("System.out.println(\"project = \" + project)")
-                            methodCall("actions.add(${nestedActionType.newInstance().literal})")
+                        iterate(basicProjectType, "project", build.readProperty("projects")) { project ->
+                            methodCall("System.out.println(\"project = \" + ${project.name})")
+                            methodCall(actions, "add", nestedActionType.newInstance(project.reference))
                         }
                     }
                 }
             }
 
+            val publicationsType = JvmType.type("org.gradle.tooling.model.gradle.ProjectPublications")
+
             sourceFileGenerator.java(srcDir, nestedActionName) {
-                imports("org.gradle.tooling.BuildAction")
-                imports("org.gradle.tooling.BuildController")
-                imports("org.gradle.tooling.model.gradle.BasicGradleProject")
-                implements("BuildAction<String>")
+                imports(publicationsType.name)
+                implements(buildActionType)
+                val project = constructorAndProperty("project", basicProjectType)
                 method("execute", "controller", controllerType) { controller ->
                     returnType(JvmType.type(String::class))
                     body {
+                        methodCall(controller, "findModel", project.reference, publicationsType.asTypeLiteral)
                         returnValue("\"result\"")
                     }
                 }

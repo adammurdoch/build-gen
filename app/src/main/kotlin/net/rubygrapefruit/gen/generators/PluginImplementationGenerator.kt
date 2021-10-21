@@ -20,12 +20,11 @@ class PluginImplementationGenerator(
         builder.applyMethodBody { addEntryPoint(project) }
         sourceFileGenerator.java(project.projectDir.resolve("src/main/java"), pluginImplementationClass) {
             val projectType = JvmType.type("org.gradle.api.Project")
-            imports("org.gradle.api.Plugin")
-            imports(LinkedHashSet::class)
+            val pluginType = JvmType.type("org.gradle.api.Plugin", projectType)
             for (import in builder.imports) {
                 imports(import)
             }
-            implements("Plugin<Project>")
+            implements(pluginType)
             method("apply", "project", projectType) { project ->
                 body {
                     log("apply `${spec.id}`")

@@ -8,7 +8,7 @@ sealed class JvmType {
 
     abstract val asVarargs: JvmType
 
-    abstract fun newInstance(): Expression
+    abstract fun newInstance(vararg params: Expression): Expression
 
     abstract fun visitTypes(consumer: (JvmClassName) -> Unit)
 
@@ -19,6 +19,7 @@ sealed class JvmType {
         fun type(rawType: KClass<*>): RawType = RawType(javaType(rawType))
         fun type(name: String, param: String): JvmType = ParameterizedType(JvmClassName(name), type(param))
         fun type(name: String, param: JvmClassName): JvmType = ParameterizedType(JvmClassName(name), type(param))
+        fun type(name: String, param: JvmType): JvmType = ParameterizedType(JvmClassName(name), param)
         fun type(rawType: KClass<*>, param: JvmClassName): JvmType = ParameterizedType(javaType(rawType), type(param))
         fun type(name: String, param: KClass<*>): JvmType = ParameterizedType(JvmClassName(name), type(param))
         fun type(rawType: KClass<*>, param: KClass<*>): JvmType = ParameterizedType(javaType(rawType), type(param))
@@ -49,7 +50,10 @@ class RawType(
     override val asVarargs: JvmType
         get() = VarargsType(this)
 
-    override fun newInstance() = Expression("new ${name.simpleName}()")
+    val asTypeLiteral
+        get() = Expression("${name.simpleName}.class")
+
+    override fun newInstance(vararg params: Expression) = Expression("new ${name.simpleName}(${params.joinToString(", ") { it.literal }})")
 
     override fun visitTypes(consumer: (JvmClassName) -> Unit) {
         consumer(name)
@@ -68,7 +72,7 @@ class ParameterizedType(
     override val asVarargs: JvmType
         get() = VarargsType(RawType(rawType))
 
-    override fun newInstance() = Expression("new ${rawType.simpleName}<>()")
+    override fun newInstance(vararg params: Expression) = Expression("new ${rawType.simpleName}<>(${params.joinToString(", ") { it.literal }})")
 
     override fun visitTypes(consumer: (JvmClassName) -> Unit) {
         consumer(rawType)
@@ -85,17 +89,19 @@ class VarargsType(
     override val asVarargs: JvmType
         get() = throw UnsupportedOperationException()
 
-    override fun newInstance() = throw UnsupportedOperationException()
+    override fun newInstance(vararg params: Expression) = throw UnsupportedOperationException()
 
     override fun visitTypes(consumer: (JvmClassName) -> Unit) {
         type.visitTypes(consumer)
     }
 }
 
-class LocalVariable(
+sealed class InstanceRef(
     val name: String,
     val type: JvmType
 ) {
+    val reference = Expression(name)
+
     fun methodCall(name: String, vararg params: Expression): Expression {
         return Expression("${this.name}.$name(${params.joinToString(", ") { it.literal }})")
     }
@@ -104,6 +110,16 @@ class LocalVariable(
         return Expression("${this.name}.get${name.capitalize()}()")
     }
 }
+
+class LocalVariable(
+    name: String,
+    type: JvmType
+): InstanceRef(name, type)
+
+class InstanceVariable(
+    name: String,
+    type: JvmType
+): InstanceRef(name, type)
 
 class Expression(
     val literal: String

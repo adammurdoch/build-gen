@@ -13,8 +13,11 @@ class CustomPluginImplementationAssembler(
     fun pluginImplementation(): Assembler<PluginImplementationBuilder> = Assembler.of { _ ->
         val spec = this.spec
         if (spec is CustomPluginImplementationSpec) {
+            val taskActionType = JvmType.type("org.gradle.api.tasks.TaskAction")
+            val defaultTypeType = JvmType.type("org.gradle.api.DefaultTask")
+            val ioExceptionType = JvmType.type(IOException::class)
+
             sourceFileGenerator.java(spec.project.projectDir.resolve("src/main/java"), spec.taskImplementationClass) {
-                imports("org.gradle.api.DefaultTask")
                 imports("org.gradle.api.tasks.Input")
                 imports("org.gradle.api.tasks.OutputFile")
                 imports("org.gradle.api.tasks.InputFiles")
@@ -22,8 +25,7 @@ class CustomPluginImplementationAssembler(
                 imports("org.gradle.api.file.RegularFileProperty")
                 imports("org.gradle.api.file.ConfigurableFileCollection")
                 imports(Files::class)
-                imports(IOException::class)
-                extends("DefaultTask")
+                extends(defaultTypeType)
                 abstractMethod(
                     """
                         @Input
@@ -43,8 +45,8 @@ class CustomPluginImplementationAssembler(
                     """.trimIndent()
                 )
                 method("run") {
-                    annotation(JvmType.type("org.gradle.api.tasks.TaskAction"))
-                    throwsException(JvmType.type(IOException::class))
+                    annotation(taskActionType)
+                    throwsException(ioExceptionType)
                     body {
                         statements("""
                             Files.writeString(getOutputFile().get().getAsFile().toPath(), getMessage().get() + "\n");
