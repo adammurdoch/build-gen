@@ -10,7 +10,7 @@ abstract class TemplateOption(private val displayName: String) {
             }
         }
 
-        private val largeBuildProjects = 200
+        private val largeBuildProjects = 500
         val largeBuild = object : TemplateOption("Large build ($largeBuildProjects projects)") {
             override fun ProductionBuildTreeBuilder.applyTo() {
                 main.includeComponents(largeBuildProjects)

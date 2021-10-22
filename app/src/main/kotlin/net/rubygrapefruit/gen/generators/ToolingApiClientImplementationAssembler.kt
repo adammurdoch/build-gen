@@ -1,6 +1,7 @@
 package net.rubygrapefruit.gen.generators
 
 import net.rubygrapefruit.gen.builders.ProjectContentsBuilder
+import net.rubygrapefruit.gen.files.JavaSourceFileBuilder
 import net.rubygrapefruit.gen.files.JvmType
 import net.rubygrapefruit.gen.files.SourceFileGenerator
 import net.rubygrapefruit.gen.files.expression
@@ -50,12 +51,12 @@ class ToolingApiClientImplementationAssembler(
                         methodCall(connector, "useGradleVersion", "7.2")
                         val connection = variableDefinition(connectionType, "connection", connector.methodCall("connect"))
                         val action = variableDefinition(executorType, "action", connection.methodCall("action", mainActionType.newInstance()))
-                        methodCall(action, "addArguments", "--parallel".expression)
+                        methodCall(action, "addArguments", "--parallel".expression, "-Dorg.gradle.unsafe.isolated-projects=true".expression)
                         methodCall(action, "setStandardOutput", systemType.field("out"))
                         methodCall(action, "setStandardError", systemType.field("out"))
-                        log("Starting action")
-                        methodCall(action, "run")
-                        log("Action finished")
+                        measure("running action", "action") {
+                            methodCall(action, "run")
+                        }
                         methodCall(connection, "close")
                     }
                 }
@@ -75,18 +76,18 @@ class ToolingApiClientImplementationAssembler(
                 method("execute", "controller", controllerType) { controller ->
                     returnType(JvmType.stringType)
                     body {
-                        log("Collecting projects")
-                        val root = variableDefinition(buildType, "root", controller.readProperty("buildModel"))
-                        val actions = variableDefinition(listType, "actions", arrayListType.newInstance())
-                        thisMethodCall("collect", root, actions)
-                        iterate(buildType, "build", root.readProperty("editableBuilds")) { build ->
-                            thisMethodCall("collect", build, actions)
+                        measure("action body", "body") {
+                            log("Collecting projects")
+                            val root = variableDefinition(buildType, "root", controller.readProperty("buildModel"))
+                            val actions = variableDefinition(listType, "actions", arrayListType.newInstance())
+                            thisMethodCall("collect", root, actions)
+                            iterate(buildType, "build", root.readProperty("editableBuilds")) { build ->
+                                thisMethodCall("collect", build, actions)
+                            }
+                            measure("running actions", "actions") {
+                                methodCall(controller, "run", actions)
+                            }
                         }
-                        log("Running actions")
-                        val startTime = variableDefinition(JvmType.longType, "startTime", systemType.staticMethodCall("nanoTime"))
-                        methodCall(controller, "run", actions)
-                        val endTime = variableDefinition(JvmType.longType, "endTime", systemType.staticMethodCall("nanoTime"))
-                        log("Completed in ", ((endTime - startTime) / 100000.toLong().expression) + "ms".expression)
                         returnValue("result")
                     }
                 }
@@ -117,5 +118,14 @@ class ToolingApiClientImplementationAssembler(
                 }
             }
         }
+    }
+
+    private fun JavaSourceFileBuilder.Statements.measure(description: String, id: String, builder: JavaSourceFileBuilder.Statements.() -> Unit) {
+        val systemType = JvmType.type(System::class)
+        log("Start $description")
+        val startTime = variableDefinition(JvmType.longType, "${id}StartTime", systemType.staticMethodCall("nanoTime"))
+        builder(this)
+        val endTime = variableDefinition(JvmType.longType, "${id}EndTime", systemType.staticMethodCall("nanoTime"))
+        log("Completed $description in ", ((endTime - startTime) / 1000000.toLong().expression) + "ms".expression)
     }
 }
