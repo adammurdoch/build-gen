@@ -64,7 +64,7 @@ class RawType(
         consumer(name)
     }
 
-    fun callStaticMethod(name: String) = Expression("${this.name.simpleName}.$name()")
+    fun staticMethodCall(name: String) = Expression("${this.name.simpleName}.$name()")
 }
 
 class ParameterizedType(
@@ -103,6 +103,8 @@ class VarargsType(
 
 sealed class RValue {
     abstract val literal: String
+
+    operator fun plus(other: RValue) = Expression("($literal + ${other.literal})")
 
     operator fun minus(other: RValue) = Expression("($literal - ${other.literal})")
 

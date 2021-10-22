@@ -43,11 +43,12 @@ class ToolingApiClientImplementationAssembler(
                 staticMethod("main", "args", JvmType.stringType.asVarargs) { _ ->
                     body {
                         log("Calling tooling API on `${spec.producesApp.targetRootDir}`")
-                        val connector = variableDefinition(connectorType, "connector", connectorType.callStaticMethod("newConnector"))
+                        val connector = variableDefinition(connectorType, "connector", connectorType.staticMethodCall("newConnector"))
                         methodCall(connector, "forProjectDirectory", fileType.newInstance(spec.producesApp.targetRootDir.pathString))
                         methodCall(connector, "useGradleVersion", "7.2")
                         val connection = variableDefinition(connectionType, "connection", connector.methodCall("connect"))
                         val action = variableDefinition(executorType, "action", connection.methodCall("action", mainActionType.newInstance()))
+                        methodCall(action, "addArguments", Expression.string("--parallel"))
                         methodCall("action.setStandardOutput(System.out)")
                         methodCall("action.setStandardError(System.err)")
                         log("Starting action")
@@ -81,10 +82,10 @@ class ToolingApiClientImplementationAssembler(
                             thisMethodCall("collect", build, actions)
                         }
                         log("Running actions")
-                        val startTime = variableDefinition(JvmType.longType, "startTime", systemType.callStaticMethod("nanoTime"))
+                        val startTime = variableDefinition(JvmType.longType, "startTime", systemType.staticMethodCall("nanoTime"))
                         methodCall(controller, "run", actions)
-                        val endTime = variableDefinition(JvmType.longType, "endTime", systemType.callStaticMethod("nanoTime"))
-                        log("Completed in ", (endTime - startTime) / Expression.longValue(100000))
+                        val endTime = variableDefinition(JvmType.longType, "endTime", systemType.staticMethodCall("nanoTime"))
+                        log("Completed in ", ((endTime - startTime) / Expression.longValue(100000)) + Expression.string("ms"))
                         returnValue("result")
                     }
                 }

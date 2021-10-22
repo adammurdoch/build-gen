@@ -300,6 +300,17 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             body.append(");\n")
         }
 
+        override fun staticMethodCall(target: RawType, name: String, vararg parameters: RValue) {
+            classBuilder.addImportsFor(target)
+            body.append(indent)
+            body.append(target.typeDeclaration)
+            body.append(".")
+            body.append(name)
+            body.append("(")
+            body.append(parameters.joinToString(", ") { it.literal })
+            body.append(");\n")
+        }
+
         override fun methodCall(literal: String) {
             body.append(indent)
             body.append(literal.trim())
@@ -331,10 +342,10 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             }
         }
 
-        override fun ifStatement(condition: String, builder: JavaSourceFileBuilder.Statements.() -> Unit) {
+        override fun ifStatement(condition: RValue, builder: JavaSourceFileBuilder.Statements.() -> Unit) {
             body.append(indent)
             body.append("if (")
-            body.append(condition)
+            body.append(condition.literal)
             body.append(") {\n")
             builder(StatementsImpl(classBuilder, body, "$indent    "))
             body.append(indent)

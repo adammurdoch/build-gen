@@ -1,5 +1,6 @@
 package net.rubygrapefruit.gen.generators
 
+import net.rubygrapefruit.gen.files.Expression
 import net.rubygrapefruit.gen.files.JavaSourceFileBuilder
 import net.rubygrapefruit.gen.files.JvmType
 import net.rubygrapefruit.gen.files.LocalVariable
@@ -14,14 +15,14 @@ fun JavaSourceFileBuilder.Statements.addEntryPoint(spec: ProjectSpec) {
     val linkedHashSetType = JvmType.type(LinkedHashSet::class, String::class)
     val seen = variableDefinition(setType, "seen", linkedHashSetType.newInstance())
     addReferences(spec, seen)
-    methodCall("System.out.println(\"libraries = \" + ${seen.name})")
+    log("libraries = ", seen)
 }
 
 fun JavaSourceFileBuilder.Statements.addReferences(spec: ProjectSpec, localVar: LocalVariable) {
-    ifStatement("seen.add(\"${spec.name}\")") {
+    ifStatement(localVar.methodCall("add", Expression.string(spec.name))) {
         for (library in spec.usesLibraries) {
             if (library.api is JavaLibraryApiSpec) {
-                methodCall("${library.api.methodReference.className.name}.${library.api.methodReference.methodName}(${localVar.name})")
+                staticMethodCall(JvmType.type(library.api.methodReference.className), library.api.methodReference.methodName, localVar)
             }
         }
     }
