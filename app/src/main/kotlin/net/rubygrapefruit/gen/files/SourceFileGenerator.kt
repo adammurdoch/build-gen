@@ -34,7 +34,7 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
         }
 
         override fun imports(name: JvmClassName) {
-            if (name.name != "void" && !name.packageName.startsWith("java.lang") && name.packageName != className.packageName) {
+            if (name.name != "void" && name.name != "long" && !name.packageName.startsWith("java.lang") && name.packageName != className.packageName) {
                 imports.add(name)
             }
         }
@@ -278,11 +278,11 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
         val body: StringBuilder,
         val indent: String
     ) : JavaSourceFileBuilder.Statements {
-        override fun log(text: String) {
-            methodCall("System.out.println(\"$text\")")
+        override fun log(expression: RValue) {
+            methodCall("System.out.println(\"[${classBuilder.className.simpleName}] \" + ${expression.literal})")
         }
 
-        override fun thisMethodCall(name: String, vararg parameters: Expression) {
+        override fun thisMethodCall(name: String, vararg parameters: RValue) {
             body.append(indent)
             body.append(name)
             body.append("(")
@@ -290,9 +290,9 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             body.append(");\n")
         }
 
-        override fun methodCall(target: LocalVariable, name: String, vararg parameters: Expression) {
+        override fun methodCall(target: LocalVariable, name: String, vararg parameters: RValue) {
             body.append(indent)
-            body.append(target.reference.literal)
+            body.append(target.literal)
             body.append(".")
             body.append(name)
             body.append("(")
@@ -309,7 +309,7 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             body.append('\n')
         }
 
-        override fun variableDefinition(type: JvmType, name: String, initializer: Expression?): LocalVariable {
+        override fun variableDefinition(type: JvmType, name: String, initializer: RValue?): LocalVariable {
             classBuilder.addImportsFor(type)
             body.append(indent)
             body.append(type.typeDeclaration);
@@ -341,7 +341,7 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             body.append("}\n")
         }
 
-        override fun iterate(type: JvmType, itemName: String, valuesExpression: Expression, builder: JavaSourceFileBuilder.Statements.(LocalVariable) -> Unit) {
+        override fun iterate(type: JvmType, itemName: String, valuesExpression: RValue, builder: JavaSourceFileBuilder.Statements.(LocalVariable) -> Unit) {
             classBuilder.addImportsFor(type)
             body.append(indent)
             body.append("for (")
@@ -356,7 +356,7 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             body.append("}\n")
         }
 
-        override fun returnValue(expression: Expression) {
+        override fun returnValue(expression: RValue) {
             body.append(indent)
             body.append("return ")
             body.append(expression.literal)

@@ -8,7 +8,7 @@ sealed class JvmType {
 
     abstract val asVarargs: JvmType
 
-    abstract fun newInstance(vararg params: Expression): Expression
+    abstract fun newInstance(vararg params: RValue): Expression
 
     fun newInstance(stringLiteral: String): Expression = newInstance(Expression.string(stringLiteral))
 
@@ -16,6 +16,9 @@ sealed class JvmType {
 
     companion object {
         val voidType = RawType(JvmClassName("void"))
+        val longType = RawType(JvmClassName("long"))
+        val stringType = type(String::class)
+
         fun type(name: String): RawType = RawType(JvmClassName(name))
         fun type(name: JvmClassName): RawType = RawType(name)
         fun type(rawType: KClass<*>): RawType = RawType(javaType(rawType))
@@ -55,7 +58,7 @@ class RawType(
     val asTypeLiteral
         get() = Expression("${name.simpleName}.class")
 
-    override fun newInstance(vararg params: Expression) = Expression("new ${name.simpleName}(${params.joinToString(", ") { it.literal }})")
+    override fun newInstance(vararg params: RValue) = Expression("new ${name.simpleName}(${params.joinToString(", ") { it.literal }})")
 
     override fun visitTypes(consumer: (JvmClassName) -> Unit) {
         consumer(name)
@@ -74,7 +77,7 @@ class ParameterizedType(
     override val asVarargs: JvmType
         get() = VarargsType(RawType(rawType))
 
-    override fun newInstance(vararg params: Expression) = Expression("new ${rawType.simpleName}<>(${params.joinToString(", ") { it.literal }})")
+    override fun newInstance(vararg params: RValue) = Expression("new ${rawType.simpleName}<>(${params.joinToString(", ") { it.literal }})")
 
     override fun visitTypes(consumer: (JvmClassName) -> Unit) {
         consumer(rawType)
@@ -91,20 +94,28 @@ class VarargsType(
     override val asVarargs: JvmType
         get() = throw UnsupportedOperationException()
 
-    override fun newInstance(vararg params: Expression) = throw UnsupportedOperationException()
+    override fun newInstance(vararg params: RValue) = throw UnsupportedOperationException()
 
     override fun visitTypes(consumer: (JvmClassName) -> Unit) {
         type.visitTypes(consumer)
     }
 }
 
+sealed class RValue {
+    abstract val literal: String
+
+    operator fun minus(other: RValue) = Expression("($literal - ${other.literal})")
+
+    operator fun div(other: RValue) = Expression("($literal / ${other.literal})")
+}
+
 sealed class InstanceRef(
     val name: String,
     val type: JvmType
-) {
-    val reference = Expression(name)
+) : RValue() {
+    override val literal = name
 
-    fun methodCall(name: String, vararg params: Expression): Expression {
+    fun methodCall(name: String, vararg params: RValue): Expression {
         return Expression("${this.name}.$name(${params.joinToString(", ") { it.literal }})")
     }
 
@@ -124,9 +135,10 @@ class InstanceVariable(
 ) : InstanceRef(name, type)
 
 class Expression(
-    val literal: String
-) {
+    override val literal: String
+) : RValue() {
     companion object {
         fun string(stringLiteral: String): Expression = Expression("\"$stringLiteral\"")
+        fun longValue(value: Long): Expression = Expression("${value}")
     }
 }
