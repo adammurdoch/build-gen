@@ -1,9 +1,9 @@
 package net.rubygrapefruit.gen.generators
 
-import net.rubygrapefruit.gen.files.Expression
 import net.rubygrapefruit.gen.files.JavaSourceFileBuilder
 import net.rubygrapefruit.gen.files.JvmType
 import net.rubygrapefruit.gen.files.LocalVariable
+import net.rubygrapefruit.gen.files.expression
 import net.rubygrapefruit.gen.specs.JavaLibraryApiSpec
 import net.rubygrapefruit.gen.specs.ProjectSpec
 
@@ -19,7 +19,7 @@ fun JavaSourceFileBuilder.Statements.addEntryPoint(spec: ProjectSpec) {
 }
 
 fun JavaSourceFileBuilder.Statements.addReferences(spec: ProjectSpec, localVar: LocalVariable) {
-    ifStatement(localVar.methodCall("add", Expression.string(spec.name))) {
+    ifStatement(localVar.methodCall("add", spec.name.expression)) {
         for (library in spec.usesLibraries) {
             if (library.api is JavaLibraryApiSpec) {
                 staticMethodCall(JvmType.type(library.api.methodReference.className), library.api.methodReference.methodName, localVar)

@@ -10,7 +10,7 @@ sealed class JvmType {
 
     abstract fun newInstance(vararg params: RValue): Expression
 
-    fun newInstance(stringLiteral: String): Expression = newInstance(Expression.string(stringLiteral))
+    fun newInstance(stringLiteral: String): Expression = newInstance(stringLiteral.expression)
 
     abstract fun visitTypes(consumer: (JvmClassName) -> Unit)
 
@@ -63,6 +63,8 @@ class RawType(
     override fun visitTypes(consumer: (JvmClassName) -> Unit) {
         consumer(name)
     }
+
+    fun field(name: String) = Expression("${this.name.simpleName}.$name")
 
     fun staticMethodCall(name: String) = Expression("${this.name.simpleName}.$name()")
 }
@@ -144,3 +146,9 @@ class Expression(
         fun longValue(value: Long): Expression = Expression("${value}")
     }
 }
+
+val String.expression: Expression
+    get() = Expression.string(this)
+
+val Long.expression: Expression
+    get() = Expression.longValue(this)

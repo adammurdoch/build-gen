@@ -311,7 +311,7 @@ class SourceFileGenerator(private val textFileGenerator: TextFileGenerator) {
             body.append(");\n")
         }
 
-        override fun methodCall(literal: String) {
+        fun methodCall(literal: String) {
             body.append(indent)
             body.append(literal.trim())
             if (!literal.endsWith(';')) {

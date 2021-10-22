@@ -20,4 +20,11 @@ class JavaFuncTest : AbstractLanguageFuncTest(Implementation.Java) {
         application(dir, dsl = DslLanguage.KotlinDsl)
         runBuild(dir, "assemble")
     }
+
+    @Test
+    fun canGenerateToolingApiClient() {
+        val dir = generate(BuildTreeTemplate.mainBuildWithBuildSrc, templateOptions = listOf(TemplateOption.toolingApiClient))
+        application(dir)
+        runBuild(dir.resolve("tooling-api"), "run")
+    }
 }

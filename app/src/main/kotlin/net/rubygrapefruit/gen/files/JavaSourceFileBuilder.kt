@@ -55,18 +55,25 @@ interface JavaSourceFileBuilder {
 
     interface Statements {
         fun statements(literals: String)
-        fun methodCall(literal: String)
+
         fun thisMethodCall(name: String, vararg parameters: RValue)
+
         fun staticMethodCall(target: RawType, name: String, vararg parameters: RValue)
+
         fun methodCall(target: LocalVariable, name: String, vararg parameters: RValue)
-        fun methodCall(target: LocalVariable, name: String, stringLiteral: String) = methodCall(target, name, Expression.string(stringLiteral))
+        fun methodCall(target: LocalVariable, name: String, stringLiteral: String) = methodCall(target, name, stringLiteral.expression)
+
         fun log(expression: RValue)
-        fun log(text: String) = log(Expression.string(text))
-        fun log(text: String, expression: RValue) = log(Expression("\"$text\" + ${expression.literal}"))
+        fun log(text: String) = log(text.expression)
+        fun log(text: String, expression: RValue) = log(text.expression + expression)
+
         fun variableDefinition(type: JvmType, name: String, initializer: RValue?): LocalVariable
+
         fun ifStatement(condition: RValue, builder: Statements.() -> Unit)
+
         fun iterate(type: JvmType, itemName: String, valuesExpression: RValue, builder: Statements.(LocalVariable) -> Unit)
+
         fun returnValue(expression: RValue)
-        fun returnValue(stringLiteral: String) = returnValue(Expression.string(stringLiteral))
+        fun returnValue(stringLiteral: String) = returnValue(stringLiteral.expression)
     }
 }

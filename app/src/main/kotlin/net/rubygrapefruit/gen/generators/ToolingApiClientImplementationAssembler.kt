@@ -1,14 +1,13 @@
 package net.rubygrapefruit.gen.generators
 
 import net.rubygrapefruit.gen.builders.ProjectContentsBuilder
-import net.rubygrapefruit.gen.files.Expression
 import net.rubygrapefruit.gen.files.JvmType
 import net.rubygrapefruit.gen.files.SourceFileGenerator
+import net.rubygrapefruit.gen.files.expression
 import net.rubygrapefruit.gen.specs.JvmClassName
 import net.rubygrapefruit.gen.specs.ToolingApiClientSpec
 import java.io.File
 import java.net.URI
-import kotlin.io.path.pathString
 
 class ToolingApiClientImplementationAssembler(
     private val sourceFileGenerator: SourceFileGenerator
@@ -36,21 +35,24 @@ class ToolingApiClientImplementationAssembler(
             val executorType = JvmType.type("org.gradle.tooling.BuildActionExecuter", String::class)
             val mainActionType = JvmType.type(mainActionName)
             val fileType = JvmType.type(File::class)
+            val systemType = JvmType.type(System::class)
 
             val srcDir = spec.projectDir.resolve("src/main/java")
+            val mainBuildRootDir = spec.producesApp.targetRootDir.toFile().absolutePath
+
             sourceFileGenerator.java(srcDir, mainClassName) {
                 imports(File::class)
                 staticMethod("main", "args", JvmType.stringType.asVarargs) { _ ->
                     body {
-                        log("Calling tooling API on `${spec.producesApp.targetRootDir}`")
+                        log("Calling tooling API on `${mainBuildRootDir}`")
                         val connector = variableDefinition(connectorType, "connector", connectorType.staticMethodCall("newConnector"))
-                        methodCall(connector, "forProjectDirectory", fileType.newInstance(spec.producesApp.targetRootDir.pathString))
+                        methodCall(connector, "forProjectDirectory", fileType.newInstance(mainBuildRootDir))
                         methodCall(connector, "useGradleVersion", "7.2")
                         val connection = variableDefinition(connectionType, "connection", connector.methodCall("connect"))
                         val action = variableDefinition(executorType, "action", connection.methodCall("action", mainActionType.newInstance()))
-                        methodCall(action, "addArguments", Expression.string("--parallel"))
-                        methodCall("action.setStandardOutput(System.out)")
-                        methodCall("action.setStandardError(System.err)")
+                        methodCall(action, "addArguments", "--parallel".expression)
+                        methodCall(action, "setStandardOutput", systemType.field("out"))
+                        methodCall(action, "setStandardError", systemType.field("out"))
                         log("Starting action")
                         methodCall(action, "run")
                         log("Action finished")
@@ -66,7 +68,6 @@ class ToolingApiClientImplementationAssembler(
             val controllerType = JvmType.type("org.gradle.tooling.BuildController")
             val basicProjectType = JvmType.type("org.gradle.tooling.model.gradle.BasicGradleProject")
             val buildActionOfStringType = JvmType.type("org.gradle.tooling.BuildAction", String::class)
-            val systemType = JvmType.type(System::class)
 
             sourceFileGenerator.java(srcDir, mainActionName) {
                 imports(ArrayList::class)
@@ -85,7 +86,7 @@ class ToolingApiClientImplementationAssembler(
                         val startTime = variableDefinition(JvmType.longType, "startTime", systemType.staticMethodCall("nanoTime"))
                         methodCall(controller, "run", actions)
                         val endTime = variableDefinition(JvmType.longType, "endTime", systemType.staticMethodCall("nanoTime"))
-                        log("Completed in ", ((endTime - startTime) / Expression.longValue(100000)) + Expression.string("ms"))
+                        log("Completed in ", ((endTime - startTime) / 100000.toLong().expression) + "ms".expression)
                         returnValue("result")
                     }
                 }
