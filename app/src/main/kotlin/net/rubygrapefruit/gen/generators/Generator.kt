@@ -16,5 +16,13 @@ interface Generator<in T> {
                 }
             }
         }
+
+        fun <T> of(vararg generators: Generator<T>): Generator<T> {
+            return object : Generator<T> {
+                override fun generate(model: T, generationContext: GenerationContext) {
+                    generationContext.generateInParallel(model, generators.toList())
+                }
+            }
+        }
     }
 }

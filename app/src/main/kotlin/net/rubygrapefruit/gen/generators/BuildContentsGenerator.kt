@@ -9,7 +9,7 @@ import java.nio.file.Files
 class BuildContentsGenerator(
     private val scriptGenerator: ScriptGenerator,
     private val fileGenerationContext: FileGenerationContext,
-    private val assemblers: List<Assembler<BuildContentsBuilder>>,
+    private val buildAssembler: Assembler<BuildContentsBuilder>,
     private val projectGenerator: Generator<ProjectSpec>
 ) {
     fun buildContents(): Generator<BuildSpec> = Generator.of { generationContext ->
@@ -33,9 +33,7 @@ class BuildContentsGenerator(
         }
 
         val builder = BuildContentsBuilder(this, settings)
-        for (assembler in assemblers) {
-            assembler.assemble(builder, generationContext)
-        }
+        buildAssembler.assemble(builder, generationContext)
 
         settings.complete()
 

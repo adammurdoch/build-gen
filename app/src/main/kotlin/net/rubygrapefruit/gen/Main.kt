@@ -91,7 +91,7 @@ fun generate(rootDir: Path, template: BuildTreeTemplate, implementation: Impleme
         val javaConventionPluginImplementationGenerator = JavaConventionPluginImplementationAssembler()
         val pluginImplementationGenerator = PluginImplementationGenerator(
             sourceFileGenerator,
-            listOf(
+            Assembler.of(
                 problemGenerator.pluginImplementation(),
                 customPluginImplementationGenerator.pluginImplementation(),
                 javaConventionPluginImplementationGenerator.pluginImplementation()
@@ -104,7 +104,7 @@ fun generate(rootDir: Path, template: BuildTreeTemplate, implementation: Impleme
         val projectGenerator = ProjectContentsGenerator(
             scriptGenerator,
             fileContext,
-            listOf(
+            Assembler.of(
                 pluginProducerAssembler.projectContents(),
                 javaLibraryAssembler.projectContents(),
                 javaApplicationAssembler.projectContents(),
@@ -115,11 +115,18 @@ fun generate(rootDir: Path, template: BuildTreeTemplate, implementation: Impleme
         val buildContentsGenerator = BuildContentsGenerator(
             scriptGenerator,
             fileContext,
-            listOf(problemGenerator.buildContents()),
+            problemGenerator.buildContents(),
             projectGenerator.projectContents()
         )
         val reportGenerator = ReportGenerator(HtmlGenerator(textFileGenerator))
-        val buildTreeGenerator = BuildTreeContentsGenerator(buildContentsGenerator.buildContents(), reportGenerator.treeContents())
+        val additionalFilesGenerator = BuildTreeAdditionalFilesGenerator(textFileGenerator)
+        val buildTreeGenerator = BuildTreeContentsGenerator(
+            buildContentsGenerator.buildContents(),
+            Generator.of(
+                reportGenerator.treeContents(),
+                additionalFilesGenerator.treeContents()
+            )
+        )
         ParallelGenerationContext().use {
             buildTreeGenerator.generate(buildTree, it)
         }

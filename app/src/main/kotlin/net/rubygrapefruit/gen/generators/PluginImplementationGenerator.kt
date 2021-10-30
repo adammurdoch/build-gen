@@ -10,13 +10,11 @@ import kotlin.reflect.KClass
 
 class PluginImplementationGenerator(
     private val sourceFileGenerator: SourceFileGenerator,
-    private val assemblers: List<Assembler<PluginImplementationBuilder>>
+    private val assembler: Assembler<PluginImplementationBuilder>
 ) {
     fun pluginImplementation(): Generator<PluginImplementationSpec> = Generator.of { generationContext ->
         val builder = PluginImplementationBuilderImpl(this, project.includeConfigurationCacheProblems)
-        for (assembler in assemblers) {
-            assembler.assemble(builder, generationContext)
-        }
+        assembler.assemble(builder, generationContext)
         builder.applyMethodBody { addEntryPoint(project) }
         sourceFileGenerator.java(project.projectDir.resolve("src/main/java"), pluginImplementationClass) {
             val projectType = JvmType.type("org.gradle.api.Project")

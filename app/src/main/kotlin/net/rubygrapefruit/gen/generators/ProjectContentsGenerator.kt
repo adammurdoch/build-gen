@@ -11,7 +11,7 @@ import java.nio.file.Files
 class ProjectContentsGenerator(
     private val scriptGenerator: ScriptGenerator,
     private val fileGenerationContext: FileGenerationContext,
-    private val assemblers: List<Assembler<ProjectContentsBuilder>>
+    private val assembler: Assembler<ProjectContentsBuilder>
 ) {
     fun projectContents(): Generator<ProjectSpec> = Generator.of { generationContext ->
         Files.createDirectories(projectDir)
@@ -35,9 +35,7 @@ class ProjectContentsGenerator(
         }
 
         val builder = ProjectContentsBuilder(this, buildScript)
-        for (assembler in assemblers) {
-            assembler.assemble(builder, generationContext)
-        }
+        assembler.assemble(builder, generationContext)
 
         buildScript.complete()
     }

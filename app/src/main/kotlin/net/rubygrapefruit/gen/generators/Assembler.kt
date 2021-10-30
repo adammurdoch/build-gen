@@ -16,5 +16,15 @@ interface Assembler<T> {
                 }
             }
         }
+
+        fun <T> of(vararg assemblers: Assembler<T>): Assembler<T> {
+            return object : Assembler<T> {
+                override fun assemble(model: T, generationContext: GenerationContext) {
+                    for (assembler in assemblers) {
+                        assembler.assemble(model, generationContext)
+                    }
+                }
+            }
+        }
     }
 }
