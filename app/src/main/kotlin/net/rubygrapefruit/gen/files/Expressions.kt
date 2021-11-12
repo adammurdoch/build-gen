@@ -1,5 +1,6 @@
 package net.rubygrapefruit.gen.files
 
+import net.rubygrapefruit.gen.extensions.capitalized
 import net.rubygrapefruit.gen.specs.JvmClassName
 import kotlin.reflect.KClass
 
@@ -124,7 +125,7 @@ sealed class InstanceRef(
     }
 
     fun readProperty(name: String): Expression {
-        return Expression("${this.name}.get${name.capitalize()}()")
+        return Expression("${this.name}.get${name.capitalized()}()")
     }
 }
 

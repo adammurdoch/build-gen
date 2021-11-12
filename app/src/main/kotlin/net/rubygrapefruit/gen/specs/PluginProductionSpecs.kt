@@ -1,5 +1,7 @@
 package net.rubygrapefruit.gen.specs
 
+import net.rubygrapefruit.gen.extensions.capitalized
+
 sealed class PluginProductionSpec(
     protected val baseName: BaseName,
     val id: String,
@@ -9,13 +11,13 @@ sealed class PluginProductionSpec(
     /**
      * Creates a unique identifier based on the identity of this plugin.
      */
-    fun identifier(suffix: String): String = baseName.camelCase + suffix.capitalize()
+    fun identifier(suffix: String): String = baseName.camelCase + suffix.capitalized()
 
     /**
      * Creates a unique fully-qualified class name based on the identity of this plugin.
      */
     fun className(classNameSuffix: String): JvmClassName {
-        return JvmClassName(baseName.lowerCaseDotSeparator + ".plugin." + classNameSuffix.capitalize())
+        return JvmClassName(baseName.lowerCaseDotSeparator + ".plugin." + classNameSuffix.capitalized())
     }
 
     override fun accept(visitor: BuildComponentVisitor) {

@@ -23,7 +23,7 @@ class PluginImplementationGenerator(
                 imports(import)
             }
             implements(pluginType)
-            method("apply", "project", projectType) { project ->
+            method("apply", "project", projectType) {
                 body {
                     log("apply `${spec.id}`")
                     for (action in builder.applyMethodBody) {

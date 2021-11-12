@@ -1,34 +1,26 @@
 package net.rubygrapefruit.gen.files
 
+import net.rubygrapefruit.gen.store.GenerationStateStore
 import java.io.IOException
-import java.io.PrintWriter
 import java.nio.file.FileVisitResult
 import java.nio.file.FileVisitor
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.concurrent.CopyOnWriteArraySet
-import kotlin.io.path.exists
-
-private const val filesHeader = "[generated files]"
-private const val dirsHeader = "[directories to clean]"
 
 class GeneratedDirectoryContentsSynchronizer {
     fun isGenerated(rootDir: Path): Boolean {
-        return stateFile(rootDir).exists()
+        return GenerationStateStore(rootDir).exists
     }
 
     fun sync(rootDir: Path, action: (FileGenerationContext) -> Unit) {
         Files.createDirectories(rootDir)
-        val stateFile = stateFile(rootDir)
-        val previous = previousFiles(stateFile, rootDir)
+        val stateFile = GenerationStateStore(rootDir)
+        val previous = stateFile.load()
         val previousFiles = previous.files.toMutableSet()
-        stateFile.toFile().bufferedWriter().use {
-            val writer = PrintWriter(it)
-            writer.println(filesHeader)
-            val context = ContextImpl(rootDir, writer, previousFiles)
+        stateFile.storing { writer ->
+            val context = ContextImpl(writer, previousFiles)
             action(context)
-            context.flush()
         }
 
         for (dir in previous.dirs) {
@@ -47,8 +39,6 @@ class GeneratedDirectoryContentsSynchronizer {
             removeIfEmpty(parent, rootDir)
         }
     }
-
-    private fun stateFile(rootDir: Path) = rootDir.resolve("generation-state.txt")
 
     private fun removeIfEmpty(dir: Path?, rootDir: Path) {
         if (dir == null || dir == rootDir) {
@@ -84,46 +74,16 @@ class GeneratedDirectoryContentsSynchronizer {
         })
     }
 
-    private fun previousFiles(stateFile: Path, rootDir: Path): PreviousState {
-        return if (Files.exists(stateFile)) {
-            val lines = stateFile.toFile().readLines()
-            val filesHeaderPos = lines.indexOf(filesHeader)
-            val dirsHeaderPos = lines.indexOf(dirsHeader)
-            if (filesHeaderPos != 0 || dirsHeaderPos < 0) {
-                println("* discarding previous state")
-                PreviousState(emptyList(), emptyList())
-            } else {
-                val files = lines.subList(1, dirsHeaderPos).map { rootDir.resolve(it) }
-                val dirs = lines.drop(dirsHeaderPos + 1).map { rootDir.resolve(it) }
-                PreviousState(files, dirs)
-            }
-        } else {
-            PreviousState(emptyList(), emptyList())
-        }
-    }
-
-    private class PreviousState(val files: List<Path>, val dirs: List<Path>)
-
-    private class ContextImpl(val rootDir: Path, val writer: PrintWriter, val previous: MutableSet<Path>) : FileGenerationContext {
-        private val dirsToClean = CopyOnWriteArraySet<Path>()
-
+    private class ContextImpl(val writer: GenerationStateStore.Writer, val previous: MutableSet<Path>) : FileGenerationContext {
         override fun generated(file: Path) {
             synchronized(this) {
-                writer.println(rootDir.relativize(file).toString())
+                writer.generated(file)
                 previous.remove(file)
             }
         }
 
         override fun directoryToClean(dir: Path) {
-            dirsToClean.add(dir)
-        }
-
-        fun flush() {
-            writer.println(dirsHeader)
-            for (dir in dirsToClean) {
-                writer.println(rootDir.relativize(dir).toString())
-            }
-            writer.flush()
+            writer.directoryToClean(dir)
         }
     }
 }
