@@ -20,7 +20,7 @@ abstract class AbstractFuncTest {
     }
 
     fun generate(
-        productionTreeStructure: ProductionBuildTreeStructure,
+        productionTreeStructure: ProductionTreeStructure,
         buildLogic: BuildLogic,
         implementation: Implementation,
         templateOptions: List<TemplateOption> = emptyList(),
@@ -33,21 +33,24 @@ abstract class AbstractFuncTest {
 
     fun generate(
         dir: File,
-        productionTreeStructure: ProductionBuildTreeStructure,
+        productionTreeStructure: ProductionTreeStructure,
         buildLogic: BuildLogic,
         implementation: Implementation,
         templateOptions: List<TemplateOption> = emptyList(),
         dsl: DslLanguage = DslLanguage.GroovyDsl
     ) {
-        val withStructure = RootParameters().productionStructures().filter { it.productionStructure == productionTreeStructure }.flatMap { it.buildLogicOptions }
+        val withStructure = RootParameters().options.filter { it.productionStructure == productionTreeStructure }.flatMap { it.options }
         assertTrue(withStructure.isNotEmpty())
-        val withBuildLogic = withStructure.filter { it.buildLogic == buildLogic }.flatMap { it.implementationOptions }
+        val withBuildLogic = withStructure.filter { it.buildLogic == buildLogic }.flatMap { it.options }
         assertTrue(withBuildLogic.isNotEmpty())
         val withImplementation = withBuildLogic.filter { it.implementation == implementation }
         assertTrue(withImplementation.size == 1)
-        val parameters = withImplementation.first()
+        var parameters = withImplementation.first()
+        for (option in templateOptions) {
+            parameters = parameters.enable(option)
+        }
 
-        generate(dir.toPath(), parameters.treeTemplate, implementation, templateOptions, dsl, GeneratedDirectoryContentsSynchronizer())
+        generate(dir.toPath(), parameters, dsl, GeneratedDirectoryContentsSynchronizer())
     }
 
     fun runBuild(dir: File, vararg args: String) {
@@ -74,5 +77,4 @@ abstract class AbstractFuncTest {
         buildTree.assertHasProject("util")
         return ApplicationFixture(buildTree)
     }
-
 }

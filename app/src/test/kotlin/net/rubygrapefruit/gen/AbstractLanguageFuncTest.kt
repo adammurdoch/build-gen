@@ -10,7 +10,7 @@ import kotlin.test.Test
 abstract class AbstractLanguageFuncTest(private val implementation: Implementation) : AbstractFuncTest() {
 
     fun generate(template: BuildTreeTemplate, templateOptions: List<TemplateOption> = emptyList(), dsl: DslLanguage = DslLanguage.GroovyDsl): File {
-        return generate(template.productionBuildTreeStructure, template.buildLogic, implementation, templateOptions, dsl)
+        return generate(template.productionTreeStructure, template.buildLogic, implementation, templateOptions, dsl)
     }
 
     @Test

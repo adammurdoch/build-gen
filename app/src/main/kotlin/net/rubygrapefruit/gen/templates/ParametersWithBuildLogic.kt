@@ -1,8 +1,8 @@
 package net.rubygrapefruit.gen.templates
 
-class TreeWithStructure(
+class ParametersWithBuildLogic(
     val buildLogic: BuildLogic,
-    val implementationOptions: List<TreeWithImplementation>
+    val options: List<Parameters>
 ) {
     override fun toString(): String {
         return buildLogic.displayName

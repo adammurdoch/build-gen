@@ -3,7 +3,7 @@ package net.rubygrapefruit.gen.templates
 import net.rubygrapefruit.gen.builders.*
 
 abstract class BuildTreeTemplate(
-    val productionBuildTreeStructure: ProductionBuildTreeStructure,
+    val productionTreeStructure: ProductionTreeStructure,
     val buildLogic: BuildLogic
 ) {
     companion object {
@@ -59,7 +59,7 @@ abstract class BuildTreeTemplate(
             }
         }
 
-        val childBuildsWithCycleAndPluginChildBuild = withChildBuilds(ProductionBuildTreeStructure.ChildBuildsWithCycle, BuildLogic.ChildBuild) {
+        val childBuildsWithCycleAndPluginChildBuild = withChildBuilds(ProductionTreeStructure.ChildBuildsWithCycle, BuildLogic.ChildBuild) {
             childBuildPlugin()
             val child1Library = child1 {
                 producesLibrary()
@@ -78,7 +78,7 @@ abstract class BuildTreeTemplate(
             }
         }
 
-        val childBuildsUseMainBuildAndWithPluginChildBuild = withChildBuilds(ProductionBuildTreeStructure.ChildBuildsUsesMainBuild, BuildLogic.ChildBuild) {
+        val childBuildsUseMainBuildAndWithPluginChildBuild = withChildBuilds(ProductionTreeStructure.ChildBuildsUsesMainBuild, BuildLogic.ChildBuild) {
             childBuildPlugin()
             val mainLibraries = main.producesLibraries()
             val child1Library = child1 {
@@ -97,31 +97,31 @@ abstract class BuildTreeTemplate(
         }
 
         private fun withEmptyMainBuild(body: EmptyMainBuildOnlyBuilder.() -> Unit): BuildTreeTemplate {
-            return template(ProductionBuildTreeStructure.MainBuild, BuildLogic.None, body) { EmptyMainBuildOnlyBuilder(it) }
+            return template(ProductionTreeStructure.MainBuild, BuildLogic.None, body) { EmptyMainBuildOnlyBuilder(it) }
         }
 
         private fun withEmptyChildBuilds(body: EmptyChildBuildsBuilder.() -> Unit): BuildTreeTemplate {
-            return template(ProductionBuildTreeStructure.ChildBuilds, BuildLogic.None, body) { EmptyChildBuildsBuilder(it) }
+            return template(ProductionTreeStructure.ChildBuilds, BuildLogic.None, body) { EmptyChildBuildsBuilder(it) }
         }
 
         private fun withMainBuild(buildLogic: BuildLogic, body: MainBuildOnlyBuilder.() -> Unit): BuildTreeTemplate {
-            return template(ProductionBuildTreeStructure.MainBuild, buildLogic, body) { MainBuildOnlyBuilder(it) }
+            return template(ProductionTreeStructure.MainBuild, buildLogic, body) { MainBuildOnlyBuilder(it) }
         }
 
         private fun withChildBuilds(buildLogic: BuildLogic, body: ChildBuildsBuilder.() -> Unit): BuildTreeTemplate {
-            return withChildBuilds(ProductionBuildTreeStructure.ChildBuilds, buildLogic, body)
+            return withChildBuilds(ProductionTreeStructure.ChildBuilds, buildLogic, body)
         }
 
-        private fun withChildBuilds(structure: ProductionBuildTreeStructure, buildLogic: BuildLogic, body: ChildBuildsBuilder.() -> Unit): BuildTreeTemplate {
+        private fun withChildBuilds(structure: ProductionTreeStructure, buildLogic: BuildLogic, body: ChildBuildsBuilder.() -> Unit): BuildTreeTemplate {
             return template(structure, buildLogic, body) { ChildBuildsBuilder(it) }
         }
 
         private fun withNestedBuilds(buildLogic: BuildLogic, body: NestedChildBuildsBuilder.() -> Unit): BuildTreeTemplate {
-            return template(ProductionBuildTreeStructure.NestedChildBuilds, buildLogic, body) { NestedChildBuildsBuilder(it) }
+            return template(ProductionTreeStructure.NestedChildBuilds, buildLogic, body) { NestedChildBuildsBuilder(it) }
         }
 
-        private fun <T : ProductionBuildTreeBuilder> template(productionBuildTreeStructure: ProductionBuildTreeStructure, buildLogic: BuildLogic, body: T.() -> Unit, factory: (BuildTreeBuilder) -> T): BuildTreeTemplate {
-            return object : BuildTreeTemplate(productionBuildTreeStructure, buildLogic) {
+        private fun <T : ProductionBuildTreeBuilder> template(productionTreeStructure: ProductionTreeStructure, buildLogic: BuildLogic, body: T.() -> Unit, factory: (BuildTreeBuilder) -> T): BuildTreeTemplate {
+            return object : BuildTreeTemplate(productionTreeStructure, buildLogic) {
                 override fun BuildTreeBuilder.applyTo(): ProductionBuildTreeBuilder {
                     val builder = factory(this)
                     builder.apply {
@@ -132,7 +132,7 @@ abstract class BuildTreeTemplate(
             }
         }
 
-        fun productionStructures(): List<TreeWithProductionStructure> {
+        fun productionStructures(): List<ParametersWithProductionStructure> {
             val values = listOf(
                 mainBuildNoBuildLogic,
                 mainBuildWithBuildSrc,
@@ -147,22 +147,22 @@ abstract class BuildTreeTemplate(
                 childBuildsUseMainBuildAndWithPluginChildBuild
             )
             val options = listOf(TemplateOption.configurationCacheProblems, TemplateOption.largeBuild, TemplateOption.toolingApiClient)
-            return ProductionBuildTreeStructure.values().map { production ->
+            return ProductionTreeStructure.values().map { production ->
                 val trees = BuildLogic.values().mapNotNull { buildLogic ->
                     val implementations = implementationsFor(buildLogic)
-                    val trees = values.filter { it.productionBuildTreeStructure == production && it.buildLogic == buildLogic }.flatMap { template ->
+                    val trees = values.filter { it.productionTreeStructure == production && it.buildLogic == buildLogic }.flatMap { template ->
                         implementations.map { implementation ->
-                            TreeWithImplementation(template, implementation, options, emptyList())
+                            Parameters(template, implementation, options, emptyList())
                         }
                     }
                     if (trees.isEmpty()) {
                         null
                     } else {
-                        TreeWithStructure(buildLogic, trees)
+                        ParametersWithBuildLogic(buildLogic, trees)
                     }
                 }
                 require(trees.isNotEmpty())
-                TreeWithProductionStructure(production, trees)
+                ParametersWithProductionStructure(production, trees)
             }
         }
 

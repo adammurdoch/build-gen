@@ -9,7 +9,7 @@ import kotlin.test.Test
 
 class NoBuildLogicFuncTest : AbstractFuncTest() {
     fun generate(template: BuildTreeTemplate, templateOptions: List<TemplateOption> = emptyList(), dsl: DslLanguage = DslLanguage.GroovyDsl): File {
-        return generate(template.productionBuildTreeStructure, template.buildLogic, Implementation.None, templateOptions, dsl)
+        return generate(template.productionTreeStructure, template.buildLogic, Implementation.None, templateOptions, dsl)
     }
 
     @Test

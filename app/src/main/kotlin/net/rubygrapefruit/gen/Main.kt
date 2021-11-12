@@ -6,7 +6,9 @@ import kotlinx.cli.default
 import net.rubygrapefruit.gen.builders.DefaultBuildTreeBuilder
 import net.rubygrapefruit.gen.files.*
 import net.rubygrapefruit.gen.generators.*
-import net.rubygrapefruit.gen.templates.*
+import net.rubygrapefruit.gen.templates.Parameters
+import net.rubygrapefruit.gen.templates.RootParameters
+import net.rubygrapefruit.gen.templates.TemplateOption
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.prompts.Prompter
 import net.rubygrapefruit.platform.terminal.Terminals
@@ -39,12 +41,12 @@ fun main(args: Array<String>) {
     }
     val prompter = Prompter(terminals)
     val rootParameters = RootParameters()
-    val treeStructure = prompter.select("Select production build tree structure", rootParameters.productionStructures())
-    val buildLogic = prompter.select("Select build logic structure", treeStructure.buildLogicOptions)
-    val implementation = prompter.select("Select implementation", buildLogic.implementationOptions)
-    val configuredImplementation = selectOptions(implementation, prompter)
-    val dsl = prompter.select("Select DSL language", implementation.dslOptions)
-    generate(rootDir, implementation.treeTemplate, configuredImplementation.implementation, configuredImplementation.enabledOptions, dsl, synchronizer)
+    val structureParameters = prompter.select("Select production build tree structure", rootParameters.options)
+    val buildLogicParameters = prompter.select("Select build logic structure", structureParameters.options)
+    val implementationParameters = prompter.select("Select implementation", buildLogicParameters.options)
+    val parameters = selectOptions(implementationParameters, prompter)
+    val dsl = prompter.select("Select DSL language", implementationParameters.dslOptions)
+    generate(rootDir, parameters, dsl, synchronizer)
 }
 
 private sealed class OptionPrompt
@@ -61,7 +63,7 @@ private object Finished : OptionPrompt() {
     }
 }
 
-private fun selectOptions(implementation: TreeWithImplementation, prompter: Prompter): TreeWithImplementation {
+private fun selectOptions(implementation: Parameters, prompter: Prompter): Parameters {
     var result = implementation
     while (true) {
         val options = listOf(Finished) + result.availableOptions.map { ThemePrompt(it, result.enabledOptions.contains(it)) }
@@ -75,14 +77,12 @@ private fun selectOptions(implementation: TreeWithImplementation, prompter: Prom
 
 fun generate(
     rootDir: Path,
-    template: BuildTreeTemplate,
-    implementation: Implementation,
-    templateOptions: List<TemplateOption>,
+    parameters: Parameters,
     dsl: DslLanguage,
     synchronizer: GeneratedDirectoryContentsSynchronizer
 ) {
-    val builder = DefaultBuildTreeBuilder(rootDir, implementation)
-    template.applyTo(builder, templateOptions)
+    val builder = DefaultBuildTreeBuilder(rootDir, parameters.implementation)
+    parameters.treeTemplate.applyTo(builder, parameters.enabledOptions)
     val buildTree = builder.build()
 
     synchronizer.sync(buildTree.rootDir) { fileContext ->
