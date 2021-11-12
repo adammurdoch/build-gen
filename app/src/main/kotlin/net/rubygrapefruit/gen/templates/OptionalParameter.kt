@@ -7,22 +7,26 @@ sealed class OptionalParameter<T : Any>(
 ) {
     override fun toString() = displayName
 
-    abstract val defaultValue: T
+    abstract fun apply(parameters: Parameters, value: T): Parameters
 }
 
-class EnumParameter<T : Enum<T>>(
+sealed class EnumParameter<T : Enum<T>>(
     displayName: String,
     val candidates: List<T>
 ) : OptionalParameter<T>(displayName) {
-    override val defaultValue: T
-        get() = candidates.first()
+    abstract fun value(parameters: Parameters): T
 }
 
-val dslParameter = EnumParameter("DSL language", DslLanguage.values().toList())
+object dslParameter : EnumParameter<DslLanguage>("DSL language", DslLanguage.values().toList()) {
+    override fun apply(parameters: Parameters, value: DslLanguage) = parameters.withDslLanguage(value)
+
+    override fun value(parameters: Parameters) = parameters.dsl
+}
 
 class BooleanParameter(
     val templateOption: TemplateOption
 ) : OptionalParameter<Boolean>(templateOption.displayName) {
-    override val defaultValue: Boolean
-        get() = false
+    override fun apply(parameters: Parameters, value: Boolean): Parameters {
+        return parameters.withOption(templateOption, value)
+    }
 }

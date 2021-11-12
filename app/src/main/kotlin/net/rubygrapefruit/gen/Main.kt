@@ -62,7 +62,7 @@ private class EnumPrompt<T : Enum<T>>(val parameter: EnumParameter<T>, val value
     fun apply(parameters: Parameters): Parameters {
         val candidates = parameter.candidates
         val newValue = if (value == candidates.last()) candidates.first() else candidates.get(candidates.indexOf(value) + 1)
-        return parameters.withValue(parameter, newValue)
+        return parameter.apply(parameters, newValue)
     }
 }
 
@@ -77,20 +77,20 @@ private fun selectOptions(parameters: Parameters, prompter: Prompter): Parameter
     while (true) {
         val options = listOf(Finished) + result.availableOptions.map {
             when (it) {
-                is BooleanParameter -> BooleanPrompt(it, result.value(it))
+                is BooleanParameter -> BooleanPrompt(it, result.enabled(it.templateOption))
                 is EnumParameter<*> -> toPrompt(it, result)
             }
         }
         val selected = prompter.select("Select option", options)
         when (selected) {
             Finished -> return result
-            is BooleanPrompt -> result = result.withValue(selected.parameter, !selected.enabled)
+            is BooleanPrompt -> result = selected.parameter.apply(parameters, !selected.enabled)
             is EnumPrompt<*> -> result = selected.apply(parameters)
         }
     }
 }
 
-private fun <T : Enum<T>> toPrompt(parameter: EnumParameter<T>, result: Parameters) = EnumPrompt(parameter, result.value(parameter))
+private fun <T : Enum<T>> toPrompt(parameter: EnumParameter<T>, parameters: Parameters) = EnumPrompt(parameter, parameter.value(parameters))
 
 fun generate(
     rootDir: Path,

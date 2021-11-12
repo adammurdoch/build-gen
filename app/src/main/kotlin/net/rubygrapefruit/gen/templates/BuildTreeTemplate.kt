@@ -1,6 +1,7 @@
 package net.rubygrapefruit.gen.templates
 
 import net.rubygrapefruit.gen.builders.*
+import net.rubygrapefruit.gen.files.DslLanguage
 
 abstract class BuildTreeTemplate(
     val productionTreeStructure: ProductionTreeStructure,
@@ -152,7 +153,7 @@ abstract class BuildTreeTemplate(
                     val implementations = implementationsFor(buildLogic)
                     val trees = values.filter { it.productionTreeStructure == production && it.buildLogic == buildLogic }.flatMap { template ->
                         implementations.map { implementation ->
-                            Parameters(template, implementation, options)
+                            Parameters(template, implementation, options, DslLanguage.GroovyDsl)
                         }
                     }
                     if (trees.isEmpty()) {
@@ -177,7 +178,7 @@ abstract class BuildTreeTemplate(
 
     abstract fun BuildTreeBuilder.applyTo(): ProductionBuildTreeBuilder
 
-    fun applyTo(builder: BuildTreeBuilder, options: List<TemplateOption>) {
+    fun applyTo(builder: BuildTreeBuilder, options: Iterable<TemplateOption>) {
         val treeBuilder = run { builder.applyTo() }
         for (option in options) {
             option.run { treeBuilder.applyTo() }

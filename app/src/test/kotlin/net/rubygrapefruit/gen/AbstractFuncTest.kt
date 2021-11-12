@@ -47,9 +47,9 @@ abstract class AbstractFuncTest {
         assertTrue(withImplementation.size == 1)
         var parameters = withImplementation.first()
         for (option in templateOptions) {
-            parameters = parameters.withValue(BooleanParameter(option), true)
+            parameters = parameters.withOption(option, true)
         }
-        parameters = parameters.withValue(dslParameter, dsl)
+        parameters = parameters.withDslLanguage(dsl)
 
         generate(dir.toPath(), parameters, GeneratedDirectoryContentsSynchronizer())
     }
