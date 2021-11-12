@@ -6,9 +6,7 @@ import kotlinx.cli.default
 import net.rubygrapefruit.gen.builders.DefaultBuildTreeBuilder
 import net.rubygrapefruit.gen.files.*
 import net.rubygrapefruit.gen.generators.*
-import net.rubygrapefruit.gen.templates.Parameters
-import net.rubygrapefruit.gen.templates.RootParameters
-import net.rubygrapefruit.gen.templates.TemplateOption
+import net.rubygrapefruit.gen.templates.*
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.prompts.Prompter
 import net.rubygrapefruit.platform.terminal.Terminals
@@ -51,9 +49,15 @@ fun main(args: Array<String>) {
 
 private sealed class OptionPrompt
 
-private class ThemePrompt(val templateOption: TemplateOption, val enabled: Boolean) : OptionPrompt() {
+private class BooleanPrompt(val parameter: OptionalParameter<Boolean>, val enabled: Boolean) : OptionPrompt() {
     override fun toString(): String {
-        return "$templateOption - " + if (enabled) "disable" else "enable"
+        return "$parameter - " + if (enabled) "disable" else "enable"
+    }
+}
+
+private class EnumPrompt(val parameter: EnumParameter<*>, val value: Any): OptionPrompt() {
+    override fun toString(): String {
+        return "$parameter - $value"
     }
 }
 
@@ -63,14 +67,19 @@ private object Finished : OptionPrompt() {
     }
 }
 
-private fun selectOptions(implementation: Parameters, prompter: Prompter): Parameters {
-    var result = implementation
+private fun selectOptions(parameters: Parameters, prompter: Prompter): Parameters {
+    var result = parameters
     while (true) {
-        val options = listOf(Finished) + result.availableOptions.map { ThemePrompt(it, result.enabledOptions.contains(it)) }
+        val options = listOf(Finished) + result.availableOptions.map {
+            when (it) {
+                is BooleanParameter -> BooleanPrompt(it, result.value(it))
+                is EnumParameter -> EnumPrompt(it, result.value(it))
+            }
+        }
         val selected = prompter.select("Select option", options)
         when (selected) {
             Finished -> return result
-            is ThemePrompt -> result = if (selected.enabled) result.disable(selected.templateOption) else result.enable(selected.templateOption)
+            is BooleanPrompt -> result = result.withValue(selected.parameter, !selected.enabled)
         }
     }
 }

@@ -47,7 +47,7 @@ abstract class AbstractFuncTest {
         assertTrue(withImplementation.size == 1)
         var parameters = withImplementation.first()
         for (option in templateOptions) {
-            parameters = parameters.enable(option)
+            parameters = parameters.withValue(BooleanParameter(option), true)
         }
 
         generate(dir.toPath(), parameters, dsl, GeneratedDirectoryContentsSynchronizer())

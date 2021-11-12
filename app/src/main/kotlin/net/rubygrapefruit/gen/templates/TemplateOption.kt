@@ -2,7 +2,7 @@ package net.rubygrapefruit.gen.templates
 
 import net.rubygrapefruit.gen.builders.ProductionBuildTreeBuilder
 
-abstract class TemplateOption(private val displayName: String) {
+abstract class TemplateOption(val displayName: String) {
     companion object {
         val configurationCacheProblems = object : TemplateOption("Configuration cache problems") {
             override fun ProductionBuildTreeBuilder.applyTo() {

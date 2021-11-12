@@ -146,13 +146,13 @@ abstract class BuildTreeTemplate(
                 childBuildsWithCycleAndPluginChildBuild,
                 childBuildsUseMainBuildAndWithPluginChildBuild
             )
-            val options = listOf(TemplateOption.configurationCacheProblems, TemplateOption.largeBuild, TemplateOption.toolingApiClient)
+            val options = listOf(TemplateOption.configurationCacheProblems, TemplateOption.largeBuild, TemplateOption.toolingApiClient).map { BooleanParameter(it) }
             return ProductionTreeStructure.values().map { production ->
                 val trees = BuildLogic.values().mapNotNull { buildLogic ->
                     val implementations = implementationsFor(buildLogic)
                     val trees = values.filter { it.productionTreeStructure == production && it.buildLogic == buildLogic }.flatMap { template ->
                         implementations.map { implementation ->
-                            Parameters(template, implementation, options, emptyList())
+                            Parameters(template, implementation, options)
                         }
                     }
                     if (trees.isEmpty()) {

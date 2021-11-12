@@ -5,8 +5,8 @@ import net.rubygrapefruit.gen.files.DslLanguage
 class Parameters(
     val treeTemplate: BuildTreeTemplate,
     val implementation: Implementation,
-    val availableOptions: List<TemplateOption>,
-    val enabledOptions: List<TemplateOption>
+    val availableOptions: List<OptionalParameter<*>>,
+    private val optionValues: Map<Any, Any> = emptyMap()
 ) {
     val dslOptions = DslLanguage.values().toList()
 
@@ -14,11 +14,23 @@ class Parameters(
         return implementation.toString()
     }
 
-    fun enable(templateOption: TemplateOption): Parameters {
-        return Parameters(treeTemplate, implementation, availableOptions, enabledOptions + templateOption)
+    val enabledOptions: List<TemplateOption>
+        get() = optionValues.mapNotNull {
+            val key = it.key
+            if (key is BooleanParameter && it.value == true) key.templateOption else null
+        }
+
+    fun <T : Any> withValue(parameter: OptionalParameter<T>, value: T): Parameters {
+        val newOptions: Map<Any, Any> = optionValues + mapOf((parameter as Any) to (value as Any))
+        return Parameters(treeTemplate, implementation, availableOptions, newOptions)
     }
 
-    fun disable(templateOption: TemplateOption): Parameters {
-        return Parameters(treeTemplate, implementation, availableOptions, enabledOptions.filter { it != templateOption })
+    fun <T : Any> value(parameter: OptionalParameter<T>): T {
+        val value = optionValues[parameter]
+        return if (value != null) {
+            value as T
+        } else {
+            parameter.defaultValue
+        }
     }
 }
