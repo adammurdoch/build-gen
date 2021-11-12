@@ -6,10 +6,7 @@ import kotlinx.cli.default
 import net.rubygrapefruit.gen.builders.DefaultBuildTreeBuilder
 import net.rubygrapefruit.gen.files.*
 import net.rubygrapefruit.gen.generators.*
-import net.rubygrapefruit.gen.templates.BuildTreeTemplate
-import net.rubygrapefruit.gen.templates.Implementation
-import net.rubygrapefruit.gen.templates.TemplateOption
-import net.rubygrapefruit.gen.templates.TreeWithImplementation
+import net.rubygrapefruit.gen.templates.*
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.prompts.Prompter
 import net.rubygrapefruit.platform.terminal.Terminals
@@ -41,7 +38,8 @@ fun main(args: Array<String>) {
         System.exit(1)
     }
     val prompter = Prompter(terminals)
-    val treeStructure = prompter.select("Select production build tree structure", BuildTreeTemplate.productionStructures())
+    val rootParameters = RootParameters()
+    val treeStructure = prompter.select("Select production build tree structure", rootParameters.productionStructures())
     val buildLogic = prompter.select("Select build logic structure", treeStructure.buildLogicOptions)
     val implementation = prompter.select("Select implementation", buildLogic.implementationOptions)
     val configuredImplementation = selectOptions(implementation, prompter)

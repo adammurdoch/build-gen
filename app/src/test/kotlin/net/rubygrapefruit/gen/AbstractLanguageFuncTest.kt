@@ -1,7 +1,6 @@
 package net.rubygrapefruit.gen
 
 import net.rubygrapefruit.gen.files.DslLanguage
-import net.rubygrapefruit.gen.files.GeneratedDirectoryContentsSynchronizer
 import net.rubygrapefruit.gen.templates.BuildTreeTemplate
 import net.rubygrapefruit.gen.templates.Implementation
 import net.rubygrapefruit.gen.templates.TemplateOption
@@ -11,9 +10,7 @@ import kotlin.test.Test
 abstract class AbstractLanguageFuncTest(private val implementation: Implementation) : AbstractFuncTest() {
 
     fun generate(template: BuildTreeTemplate, templateOptions: List<TemplateOption> = emptyList(), dsl: DslLanguage = DslLanguage.GroovyDsl): File {
-        val dir = testDir.newFolder()
-        generate(dir.toPath(), template, implementation, templateOptions, dsl, GeneratedDirectoryContentsSynchronizer())
-        return dir
+        return generate(template.productionBuildTreeStructure, template.buildLogic, implementation, templateOptions, dsl)
     }
 
     @Test

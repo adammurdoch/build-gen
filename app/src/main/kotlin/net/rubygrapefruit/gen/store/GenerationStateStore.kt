@@ -6,6 +6,7 @@ import java.nio.file.Path
 import java.util.concurrent.CopyOnWriteArraySet
 import kotlin.io.path.exists
 
+private const val parametersHeader = "[parameters]"
 private const val filesHeader = "[generated files]"
 private const val dirsHeader = "[directories to clean]"
 
@@ -20,24 +21,32 @@ class GenerationStateStore(
     fun load(): GenerationState {
         return if (Files.exists(stateFile)) {
             val lines = stateFile.toFile().readLines()
+            val parametersHeaderPos = lines.indexOf(parametersHeader)
             val filesHeaderPos = lines.indexOf(filesHeader)
             val dirsHeaderPos = lines.indexOf(dirsHeader)
-            if (filesHeaderPos != 0 || dirsHeaderPos < 0) {
+            if (parametersHeaderPos != 0 || filesHeaderPos < 0 || dirsHeaderPos < 0 || filesHeaderPos > dirsHeaderPos) {
                 println("* discarding previous state")
-                GenerationState(emptyList(), emptyList())
+                GenerationState(null, emptyList(), emptyList())
             } else {
-                val files = lines.subList(1, dirsHeaderPos).map { rootDir.resolve(it) }
+                val parameters = lines.subList(parametersHeaderPos + 1, filesHeaderPos).map {
+                    val p = it.split("=")
+                    p[0] to p[1]
+                }.toMap()
+                val files = lines.subList(filesHeaderPos + 1, dirsHeaderPos).map { rootDir.resolve(it) }
                 val dirs = lines.drop(dirsHeaderPos + 1).map { rootDir.resolve(it) }
-                GenerationState(files, dirs)
+                GenerationState(parameters, files, dirs)
             }
         } else {
-            GenerationState(emptyList(), emptyList())
+            GenerationState(null, emptyList(), emptyList())
         }
     }
 
     fun storing(action: (Writer) -> Unit) {
         stateFile.toFile().bufferedWriter().use {
             val writer = PrintWriter(it)
+            writer.println(parametersHeader)
+            writer.println("param1=value1")
+            writer.println("param2=value2")
             writer.println(filesHeader)
             val context = Writer(writer, rootDir)
             action(context)
