@@ -12,12 +12,12 @@ class BuildTreeFixture(
     fun assertHasProject(project: String) {
         val projectDir = rootDir.resolve(project)
         assertTrue(projectDir.isDirectory)
-        assertTrue(buildFile(projectDir).isFile)
+        hasBuildFile(projectDir)
     }
 
     fun assertHasRootBuild() {
-        assertTrue(settings(rootDir).isFile)
-        assertTrue(buildFile(rootDir).isFile)
+        hasSettingFile(rootDir)
+        hasBuildFile(rootDir)
     }
 
     fun assertHasBuildSrc() {
@@ -30,21 +30,33 @@ class BuildTreeFixture(
 
     fun assertHasBuild(name: String) {
         val dir = rootDir.resolve(name)
-        assertTrue(settings(dir).isFile)
-        assertTrue(buildFile(dir).isFile)
+        hasSettingFile(dir)
+        hasBuildFile(dir)
     }
 
-    private fun settings(dir: File): File {
-        return when (dsl) {
-            DslLanguage.GroovyDsl -> dir.resolve("settings.gradle")
-            DslLanguage.KotlinDsl -> dir.resolve("settings.gradle.kts")
+    private fun hasBuildFile(dir: File) {
+        when (dsl) {
+            DslLanguage.GroovyDsl -> {
+                assertTrue(dir.resolve("build.gradle").isFile)
+                assertFalse(dir.resolve("build.gradle.kts").exists())
+            }
+            DslLanguage.KotlinDsl -> {
+                assertFalse(dir.resolve("build.gradle").exists())
+                assertTrue(dir.resolve("build.gradle.kts").isFile)
+            }
         }
     }
 
-    private fun buildFile(dir: File): File {
-        return when (dsl) {
-            DslLanguage.GroovyDsl -> dir.resolve("build.gradle")
-            DslLanguage.KotlinDsl -> dir.resolve("build.gradle.kts")
+    private fun hasSettingFile(dir: File) {
+        when (dsl) {
+            DslLanguage.GroovyDsl -> {
+                assertTrue(dir.resolve("settings.gradle").isFile)
+                assertFalse(dir.resolve("settings.gradle.kts").exists())
+            }
+            DslLanguage.KotlinDsl -> {
+                assertFalse(dir.resolve("settings.gradle").exists())
+                assertTrue(dir.resolve("settings.gradle.kts").isFile)
+            }
         }
     }
 }

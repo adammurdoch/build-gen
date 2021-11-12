@@ -49,8 +49,9 @@ abstract class AbstractFuncTest {
         for (option in templateOptions) {
             parameters = parameters.withValue(BooleanParameter(option), true)
         }
+        parameters = parameters.withValue(dslParameter, dsl)
 
-        generate(dir.toPath(), parameters, dsl, GeneratedDirectoryContentsSynchronizer())
+        generate(dir.toPath(), parameters, GeneratedDirectoryContentsSynchronizer())
     }
 
     fun runBuild(dir: File, vararg args: String) {

@@ -8,11 +8,12 @@ class Parameters(
     val availableOptions: List<OptionalParameter<*>>,
     private val optionValues: Map<Any, Any> = emptyMap()
 ) {
-    val dslOptions = DslLanguage.values().toList()
-
     override fun toString(): String {
         return implementation.toString()
     }
+
+    val dsl: DslLanguage
+        get() = value(dslParameter)
 
     val enabledOptions: List<TemplateOption>
         get() = optionValues.mapNotNull {

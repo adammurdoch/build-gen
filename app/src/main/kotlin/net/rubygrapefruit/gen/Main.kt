@@ -43,21 +43,26 @@ fun main(args: Array<String>) {
     val buildLogicParameters = prompter.select("Select build logic structure", structureParameters.options)
     val implementationParameters = prompter.select("Select implementation", buildLogicParameters.options)
     val parameters = selectOptions(implementationParameters, prompter)
-    val dsl = prompter.select("Select DSL language", implementationParameters.dslOptions)
-    generate(rootDir, parameters, dsl, synchronizer)
+    generate(rootDir, parameters, synchronizer)
 }
 
 private sealed class OptionPrompt
 
 private class BooleanPrompt(val parameter: OptionalParameter<Boolean>, val enabled: Boolean) : OptionPrompt() {
     override fun toString(): String {
-        return "$parameter - " + if (enabled) "disable" else "enable"
+        return "$parameter - " + if (enabled) "enabled" else "disabled"
     }
 }
 
-private class EnumPrompt(val parameter: EnumParameter<*>, val value: Any): OptionPrompt() {
+private class EnumPrompt<T : Enum<T>>(val parameter: EnumParameter<T>, val value: T) : OptionPrompt() {
     override fun toString(): String {
         return "$parameter - $value"
+    }
+
+    fun apply(parameters: Parameters): Parameters {
+        val candidates = parameter.candidates
+        val newValue = if (value == candidates.last()) candidates.first() else candidates.get(candidates.indexOf(value) + 1)
+        return parameters.withValue(parameter, newValue)
     }
 }
 
@@ -73,21 +78,23 @@ private fun selectOptions(parameters: Parameters, prompter: Prompter): Parameter
         val options = listOf(Finished) + result.availableOptions.map {
             when (it) {
                 is BooleanParameter -> BooleanPrompt(it, result.value(it))
-                is EnumParameter -> EnumPrompt(it, result.value(it))
+                is EnumParameter<*> -> toPrompt(it, result)
             }
         }
         val selected = prompter.select("Select option", options)
         when (selected) {
             Finished -> return result
             is BooleanPrompt -> result = result.withValue(selected.parameter, !selected.enabled)
+            is EnumPrompt<*> -> result = selected.apply(parameters)
         }
     }
 }
 
+private fun <T : Enum<T>> toPrompt(parameter: EnumParameter<T>, result: Parameters) = EnumPrompt(parameter, result.value(parameter))
+
 fun generate(
     rootDir: Path,
     parameters: Parameters,
-    dsl: DslLanguage,
     synchronizer: GeneratedDirectoryContentsSynchronizer
 ) {
     val builder = DefaultBuildTreeBuilder(rootDir, parameters.implementation)
@@ -98,7 +105,7 @@ fun generate(
         val problemGenerator = ConfigurationCacheProblemGenerator()
         val textFileGenerator = TextFileGenerator(fileContext)
         val sourceFileGenerator = SourceFileGenerator(textFileGenerator)
-        val scriptGenerator = ScriptGenerator(dsl, textFileGenerator)
+        val scriptGenerator = ScriptGenerator(parameters.dsl, textFileGenerator)
         val customPluginImplementationGenerator = CustomPluginImplementationAssembler(
             sourceFileGenerator
         )

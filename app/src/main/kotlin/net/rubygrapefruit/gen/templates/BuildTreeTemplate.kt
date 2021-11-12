@@ -146,7 +146,7 @@ abstract class BuildTreeTemplate(
                 childBuildsWithCycleAndPluginChildBuild,
                 childBuildsUseMainBuildAndWithPluginChildBuild
             )
-            val options = listOf(TemplateOption.configurationCacheProblems, TemplateOption.largeBuild, TemplateOption.toolingApiClient).map { BooleanParameter(it) }
+            val options = listOf(dslParameter) + listOf(TemplateOption.configurationCacheProblems, TemplateOption.largeBuild, TemplateOption.toolingApiClient).map { BooleanParameter(it) }
             return ProductionTreeStructure.values().map { production ->
                 val trees = BuildLogic.values().mapNotNull { buildLogic ->
                     val implementations = implementationsFor(buildLogic)
