@@ -1,5 +1,6 @@
 package net.rubygrapefruit.gen.store
 
+import net.rubygrapefruit.gen.templates.Parameters
 import java.io.PrintWriter
 import java.nio.file.Files
 import java.nio.file.Path
@@ -26,7 +27,7 @@ class GenerationStateStore(
             val dirsHeaderPos = lines.indexOf(dirsHeader)
             if (parametersHeaderPos != 0 || filesHeaderPos < 0 || dirsHeaderPos < 0 || filesHeaderPos > dirsHeaderPos) {
                 println("* discarding previous state")
-                GenerationState(null, emptyList(), emptyList())
+                GenerationState(emptyMap(), emptyList(), emptyList())
             } else {
                 val parameters = lines.subList(parametersHeaderPos + 1, filesHeaderPos).map {
                     val p = it.split("=")
@@ -37,16 +38,19 @@ class GenerationStateStore(
                 GenerationState(parameters, files, dirs)
             }
         } else {
-            GenerationState(null, emptyList(), emptyList())
+            GenerationState(emptyMap(), emptyList(), emptyList())
         }
     }
 
-    fun storing(action: (Writer) -> Unit) {
+    fun storing(parameters: Parameters, action: (Writer) -> Unit) {
         stateFile.toFile().bufferedWriter().use {
             val writer = PrintWriter(it)
             writer.println(parametersHeader)
-            writer.println("param1=value1")
-            writer.println("param2=value2")
+            for (entry in parameters.asMap().entries) {
+                writer.print(entry.key)
+                writer.print("=")
+                writer.println(entry.value)
+            }
             writer.println(filesHeader)
             val context = Writer(writer, rootDir)
             action(context)

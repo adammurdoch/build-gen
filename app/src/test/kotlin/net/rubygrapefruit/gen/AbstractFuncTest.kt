@@ -51,7 +51,7 @@ abstract class AbstractFuncTest {
         }
         parameters = parameters.withDslLanguage(dsl)
 
-        generate(dir.toPath(), parameters, GeneratedDirectoryContentsSynchronizer())
+        generate(dir.toPath(), parameters, GeneratedDirectoryContentsSynchronizer(dir.toPath()))
     }
 
     fun runBuild(dir: File, vararg args: String) {
@@ -66,7 +66,7 @@ abstract class AbstractFuncTest {
 
     fun buildTree(dir: File, dsl: DslLanguage = DslLanguage.GroovyDsl): BuildTreeFixture {
         assertTrue(dir.isDirectory)
-        assertTrue(GeneratedDirectoryContentsSynchronizer().isGenerated(dir.toPath()))
+        assertTrue(GeneratedDirectoryContentsSynchronizer(dir.toPath()).isGenerated())
         val buildTree = BuildTreeFixture(dir, dsl)
         buildTree.assertHasRootBuild()
         return buildTree

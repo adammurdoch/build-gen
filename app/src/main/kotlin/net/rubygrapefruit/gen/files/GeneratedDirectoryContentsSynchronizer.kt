@@ -1,6 +1,7 @@
 package net.rubygrapefruit.gen.files
 
 import net.rubygrapefruit.gen.store.GenerationStateStore
+import net.rubygrapefruit.gen.templates.Parameters
 import java.io.IOException
 import java.nio.file.FileVisitResult
 import java.nio.file.FileVisitor
@@ -8,18 +9,25 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 
-class GeneratedDirectoryContentsSynchronizer {
-    fun isGenerated(rootDir: Path): Boolean {
-        return GenerationStateStore(rootDir).exists
+class GeneratedDirectoryContentsSynchronizer(
+    private val rootDir: Path
+) {
+    private val stateFile = GenerationStateStore(rootDir)
+
+    fun isGenerated(): Boolean {
+        return stateFile.exists
     }
 
-    fun sync(rootDir: Path, action: (FileGenerationContext) -> Unit) {
+    fun loadParameters(): Map<String, String> {
+        return stateFile.load().options
+    }
+
+    fun sync(parameters: Parameters, action: (FileGenerationContext) -> Unit) {
         Files.createDirectories(rootDir)
-        val stateFile = GenerationStateStore(rootDir)
         val previous = stateFile.load()
         val previousFiles = previous.files.toMutableSet()
-        stateFile.storing { writer ->
-            val context = ContextImpl(writer, previousFiles)
+        stateFile.storing(parameters) { writer ->
+            val context = ContextImpl(rootDir, writer, previousFiles)
             action(context)
         }
 
@@ -74,8 +82,9 @@ class GeneratedDirectoryContentsSynchronizer {
         })
     }
 
-    private class ContextImpl(val writer: GenerationStateStore.Writer, val previous: MutableSet<Path>) : FileGenerationContext {
+    private class ContextImpl(val rootDir: Path, val writer: GenerationStateStore.Writer, val previous: MutableSet<Path>) : FileGenerationContext {
         override fun generated(file: Path) {
+            require(file.startsWith(rootDir))
             synchronized(this) {
                 writer.generated(file)
                 previous.remove(file)
@@ -83,6 +92,7 @@ class GeneratedDirectoryContentsSynchronizer {
         }
 
         override fun directoryToClean(dir: Path) {
+            require(dir.startsWith(rootDir))
             writer.directoryToClean(dir)
         }
     }

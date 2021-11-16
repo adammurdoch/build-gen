@@ -20,16 +20,38 @@ import kotlin.io.path.listDirectoryEntries
 fun main(args: Array<String>) {
     val parser = ArgParser("build-gen")
     val dirName by parser.option(ArgType.String, fullName = "dir", description = "Directory to generate build into").default(".")
+    val rerun by parser.option(ArgType.Boolean, fullName = "regen", description = "Re-generates a build").default(false)
     parser.parse(args)
 
     val rootDir = File(dirName).canonicalFile.toPath()
-    val synchronizer = GeneratedDirectoryContentsSynchronizer()
+    val synchronizer = GeneratedDirectoryContentsSynchronizer(rootDir)
     if (rootDir.isRegularFile()) {
         throw IllegalArgumentException("Target directory '$rootDir' already exists and is a file.")
     }
-    if (rootDir.isDirectory() && !rootDir.listDirectoryEntries().isEmpty() && !synchronizer.isGenerated(rootDir)) {
+    if (rootDir.isDirectory() && !rootDir.listDirectoryEntries().isEmpty() && !synchronizer.isGenerated()) {
         throw IllegalArgumentException("Target directory '$rootDir' is not empty and does not contain a generated build.")
     }
+    if (rerun) {
+        if (!synchronizer.isGenerated()) {
+            throw IllegalArgumentException("Target directory '$rootDir' does not contain a generated build.")
+        }
+        regenerate(rootDir, synchronizer)
+    } else {
+        generate(rootDir, synchronizer)
+    }
+}
+
+private fun regenerate(rootDir: Path, synchronizer: GeneratedDirectoryContentsSynchronizer) {
+    println("Regenerating $rootDir")
+    val args = synchronizer.loadParameters()
+    for (loadParameter in args) {
+        println("${loadParameter.key} = ${loadParameter.value}")
+    }
+    val parameters = Parameters.fromMap(args)
+    generate(rootDir, parameters, synchronizer)
+}
+
+private fun generate(rootDir: Path, synchronizer: GeneratedDirectoryContentsSynchronizer) {
     println("Generating into $rootDir")
 
     val terminals = Native.get(Terminals::class.java)
@@ -73,19 +95,19 @@ private object Finished : OptionPrompt() {
 }
 
 private fun selectOptions(parameters: Parameters, prompter: Prompter): Parameters {
-    var result = parameters
+    var current = parameters
     while (true) {
-        val options = listOf(Finished) + result.availableOptions.map {
+        val options = listOf(Finished) + current.availableOptions.map {
             when (it) {
-                is BooleanParameter -> BooleanPrompt(it, result.enabled(it.templateOption))
-                is EnumParameter<*> -> toPrompt(it, result)
+                is BooleanParameter -> BooleanPrompt(it, current.enabled(it.templateOption))
+                is EnumParameter<*> -> toPrompt(it, current)
             }
         }
         val selected = prompter.select("Select option", options)
         when (selected) {
-            Finished -> return result
-            is BooleanPrompt -> result = selected.parameter.apply(parameters, !selected.enabled)
-            is EnumPrompt<*> -> result = selected.apply(parameters)
+            Finished -> return current
+            is BooleanPrompt -> current = selected.parameter.apply(current, !selected.enabled)
+            is EnumPrompt<*> -> current = selected.apply(current)
         }
     }
 }
@@ -101,7 +123,7 @@ fun generate(
     parameters.treeTemplate.applyTo(builder, parameters.enabledOptions)
     val buildTree = builder.build()
 
-    synchronizer.sync(buildTree.rootDir) { fileContext ->
+    synchronizer.sync(parameters) { fileContext ->
         val problemGenerator = ConfigurationCacheProblemGenerator()
         val textFileGenerator = TextFileGenerator(fileContext)
         val sourceFileGenerator = SourceFileGenerator(textFileGenerator)
