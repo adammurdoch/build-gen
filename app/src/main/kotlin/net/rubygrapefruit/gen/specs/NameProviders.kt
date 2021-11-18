@@ -1,6 +1,6 @@
 package net.rubygrapefruit.gen.specs
 
-interface NameProvider {
+sealed interface NameProvider {
     fun next(): String
 }
 
@@ -19,5 +19,19 @@ class FixedNames(
         } else {
             "$defaultName${counter - names.size}"
         }
+    }
+}
+
+class MutableNames(
+    defaultName: String
+) : NameProvider {
+    private var delegate: NameProvider = FixedNames(emptyList(), defaultName)
+
+    fun replace(provider: NameProvider) {
+        delegate = provider
+    }
+
+    override fun next(): String {
+        return delegate.next()
     }
 }
