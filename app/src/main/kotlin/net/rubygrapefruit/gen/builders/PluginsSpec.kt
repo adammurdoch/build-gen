@@ -35,3 +35,23 @@ class DefaultPluginsSpec : PluginsSpec {
         contents.add(plugin)
     }
 }
+
+class CompositePluginsSpec : PluginsSpec {
+    private val contents = mutableListOf<PluginsSpec>()
+    private var finalized = false
+
+    override val plugins: List<PluginUseSpec>
+        get() {
+            require(finalized)
+            return contents.flatMap { it.plugins }.distinct()
+        }
+
+    fun finalize() {
+        finalized = true
+    }
+
+    fun add(plugin: PluginsSpec) {
+        require(!finalized)
+        contents.add(plugin)
+    }
+}

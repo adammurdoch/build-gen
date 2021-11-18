@@ -15,3 +15,23 @@ interface InternalLibrariesSpec {
         }
     }
 }
+
+class CompositeInternalLibrariesSpec : InternalLibrariesSpec {
+    private val contents = mutableListOf<InternalLibrariesSpec>()
+    private var finalized = false
+
+    override val libraries: List<InternalLibraryProductionSpec>
+        get() {
+            require(finalized)
+            return contents.flatMap { it.libraries }
+        }
+
+    fun finalize() {
+        finalized = true
+    }
+
+    fun add(library: InternalLibrariesSpec) {
+        require(!finalized)
+        contents.add(library)
+    }
+}

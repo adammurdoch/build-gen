@@ -13,8 +13,7 @@ class InternalLibrariesBuilderTest {
     fun canBeEmpty() {
         assertEquals(0, builder.currentSize)
 
-        builder.finalize()
-        assertTrue(builder.exportedInternalLibraries.libraries.isEmpty())
+        assertTrue(builder.exportedLibraries.libraries.isEmpty())
         assertTrue(builder.contents.isEmpty())
     }
 
@@ -23,8 +22,7 @@ class InternalLibrariesBuilderTest {
         builder.add()
         assertEquals(1, builder.currentSize)
 
-        builder.finalize()
-        assertEquals(1, builder.exportedInternalLibraries.libraries.size)
+        assertEquals(1, builder.exportedLibraries.libraries.size)
         assertEquals(1, builder.contents.size)
     }
 
@@ -35,8 +33,7 @@ class InternalLibrariesBuilderTest {
         builder.add()
         assertEquals(3, builder.currentSize)
 
-        builder.finalize()
-        assertEquals(3, builder.exportedInternalLibraries.libraries.size)
+        assertEquals(3, builder.exportedLibraries.libraries.size)
         assertEquals(3, builder.contents.size)
     }
 }
