@@ -20,38 +20,58 @@ import kotlin.io.path.listDirectoryEntries
 fun main(args: Array<String>) {
     val parser = ArgParser("build-gen")
     val dirName by parser.option(ArgType.String, fullName = "dir", description = "Directory to generate build into").default(".")
-    val rerun by parser.option(ArgType.Boolean, fullName = "regen", description = "Re-generates a build").default(false)
+    val regen by parser.option(ArgType.Boolean, fullName = "regen", description = "Re-generates a build").default(false)
+    val generateAll by parser.option(ArgType.Boolean, fullName = "generate-all", description = "Generates all builds").default(false)
     parser.parse(args)
 
+    if (regen && generateAll) {
+        throw IllegalArgumentException("Cannot use --regen and --generate-all together")
+    }
+
     val rootDir = File(dirName).canonicalFile.toPath()
-    val synchronizer = GeneratedDirectoryContentsSynchronizer(rootDir)
-    if (rootDir.isRegularFile()) {
-        throw IllegalArgumentException("Target directory '$rootDir' already exists and is a file.")
-    }
-    if (rootDir.isDirectory() && !rootDir.listDirectoryEntries().isEmpty() && !synchronizer.isGenerated()) {
-        throw IllegalArgumentException("Target directory '$rootDir' is not empty and does not contain a generated build.")
-    }
-    if (rerun) {
-        if (!synchronizer.isGenerated()) {
-            throw IllegalArgumentException("Target directory '$rootDir' does not contain a generated build.")
-        }
-        regenerate(rootDir, synchronizer)
-    } else {
-        generate(rootDir, synchronizer)
+
+    when {
+        regen -> regenerate(rootDir)
+        generateAll -> generateAll(rootDir)
+        else -> promptAndGenerate(rootDir)
     }
 }
 
-fun regenerate(rootDir: Path, synchronizer: GeneratedDirectoryContentsSynchronizer) {
+fun generateAll(rootDir: Path) {
+    for (productionParameters in RootParameters().options) {
+        for (buildLogicParameters in productionParameters.options) {
+            var permutationParameters = buildLogicParameters.options.find { it.implementation == Implementation.Java }
+            if (permutationParameters == null) {
+                permutationParameters = buildLogicParameters.options.first()
+            }
+            val permutationDir = rootDir.resolve(permutationParameters.treeTemplate.productionTreeStructure.name + "-" + permutationParameters.treeTemplate.buildLogic.name)
+            val synchronizer = GeneratedDirectoryContentsSynchronizer(permutationDir)
+
+            println("Generating into $permutationDir")
+
+            checkCanGenerateInto(permutationDir, synchronizer)
+            generate(permutationDir, permutationParameters, synchronizer)
+        }
+    }
+}
+
+fun regenerate(rootDir: Path) {
+    val synchronizer = GeneratedDirectoryContentsSynchronizer(rootDir)
+    checkCanGenerateInto(rootDir, synchronizer)
+    if (!synchronizer.isGenerated()) {
+        throw IllegalArgumentException("Target directory '$rootDir' does not contain a generated build.")
+    }
+
     println("Regenerating $rootDir")
     val args = synchronizer.loadParameters()
-    for (loadParameter in args) {
-        println("${loadParameter.key} = ${loadParameter.value}")
-    }
     val parameters = Parameters.fromMap(args)
     generate(rootDir, parameters, synchronizer)
 }
 
-private fun generate(rootDir: Path, synchronizer: GeneratedDirectoryContentsSynchronizer) {
+private fun promptAndGenerate(rootDir: Path) {
+    val synchronizer = GeneratedDirectoryContentsSynchronizer(rootDir)
+    checkCanGenerateInto(rootDir, synchronizer)
+
     println("Generating into $rootDir")
 
     val terminals = Native.get(Terminals::class.java)
@@ -68,29 +88,12 @@ private fun generate(rootDir: Path, synchronizer: GeneratedDirectoryContentsSync
     generate(rootDir, parameters, synchronizer)
 }
 
-private sealed class OptionPrompt
-
-private class BooleanPrompt(val parameter: OptionalParameter<Boolean>, val enabled: Boolean) : OptionPrompt() {
-    override fun toString(): String {
-        return "$parameter - " + if (enabled) "enabled" else "disabled"
+private fun checkCanGenerateInto(rootDir: Path, synchronizer: GeneratedDirectoryContentsSynchronizer) {
+    if (rootDir.isRegularFile()) {
+        throw IllegalArgumentException("Target directory '$rootDir' already exists and is a file.")
     }
-}
-
-private class EnumPrompt<T : Enum<T>>(val parameter: EnumParameter<T>, val value: T) : OptionPrompt() {
-    override fun toString(): String {
-        return "$parameter - $value"
-    }
-
-    fun apply(parameters: Parameters): Parameters {
-        val candidates = parameter.candidates
-        val newValue = if (value == candidates.last()) candidates.first() else candidates.get(candidates.indexOf(value) + 1)
-        return parameter.apply(parameters, newValue)
-    }
-}
-
-private object Finished : OptionPrompt() {
-    override fun toString(): String {
-        return "No further changes"
+    if (rootDir.isDirectory() && !rootDir.listDirectoryEntries().isEmpty() && !synchronizer.isGenerated()) {
+        throw IllegalArgumentException("Target directory '$rootDir' is not empty and does not contain a generated build.")
     }
 }
 
@@ -119,6 +122,14 @@ fun generate(
     parameters: Parameters,
     synchronizer: GeneratedDirectoryContentsSynchronizer
 ) {
+    println("production structure: " + parameters.treeTemplate.productionTreeStructure.displayName)
+    println("build logic structure: " + parameters.treeTemplate.buildLogic.displayName)
+    println("implementation: " + parameters.implementation)
+    println("dsl: " + parameters.dsl)
+    for (option in parameters.enabledOptions) {
+        println("${option.displayName}: enabled")
+    }
+
     val builder = DefaultBuildTreeBuilder(rootDir, parameters.implementation)
     parameters.treeTemplate.applyTo(builder, parameters.enabledOptions)
     val buildTree = builder.build()
@@ -181,5 +192,31 @@ fun <T> Prompter.select(prompt: String, values: List<T>): T {
         values[0]
     } else {
         values.get(select(prompt, values.map { it.toString() }, 0))
+    }
+}
+
+private sealed class OptionPrompt
+
+private class BooleanPrompt(val parameter: OptionalParameter<Boolean>, val enabled: Boolean) : OptionPrompt() {
+    override fun toString(): String {
+        return "$parameter - " + if (enabled) "enabled" else "disabled"
+    }
+}
+
+private class EnumPrompt<T : Enum<T>>(val parameter: EnumParameter<T>, val value: T) : OptionPrompt() {
+    override fun toString(): String {
+        return "$parameter - $value"
+    }
+
+    fun apply(parameters: Parameters): Parameters {
+        val candidates = parameter.candidates
+        val newValue = if (value == candidates.last()) candidates.first() else candidates.get(candidates.indexOf(value) + 1)
+        return parameter.apply(parameters, newValue)
+    }
+}
+
+private object Finished : OptionPrompt() {
+    override fun toString(): String {
+        return "No further changes"
     }
 }

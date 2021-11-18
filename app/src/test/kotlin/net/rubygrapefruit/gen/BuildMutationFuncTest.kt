@@ -1,7 +1,6 @@
 package net.rubygrapefruit.gen
 
 import net.rubygrapefruit.gen.files.DslLanguage
-import net.rubygrapefruit.gen.files.GeneratedDirectoryContentsSynchronizer
 import net.rubygrapefruit.gen.templates.BuildLogic
 import net.rubygrapefruit.gen.templates.Implementation
 import net.rubygrapefruit.gen.templates.ProductionTreeStructure
@@ -35,7 +34,7 @@ class BuildMutationFuncTest : AbstractFuncTest() {
         appBefore.assertHasBuildSrc()
         runBuild(dir, "assemble")
 
-        regenerate(dir.toPath(), GeneratedDirectoryContentsSynchronizer(dir.toPath()))
+        regenerate(dir.toPath())
 
         val appAfter = application(dir, dsl = DslLanguage.KotlinDsl)
         appAfter.assertHasBuildSrc()
