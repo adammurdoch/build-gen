@@ -41,7 +41,7 @@ fun main(args: Array<String>) {
     }
 }
 
-private fun regenerate(rootDir: Path, synchronizer: GeneratedDirectoryContentsSynchronizer) {
+fun regenerate(rootDir: Path, synchronizer: GeneratedDirectoryContentsSynchronizer) {
     println("Regenerating $rootDir")
     val args = synchronizer.loadParameters()
     for (loadParameter in args) {
