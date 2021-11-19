@@ -18,7 +18,9 @@ class DefaultRootProjectBuilder(
 
     override fun <T> project(name: String, body: ProjectBuilder.() -> T): T {
         require(!name.contains(':') && !name.contains('/'))
-        val project = children.getOrPut(name) { ProjectBuilderImpl(name) }
+        require(!children.containsKey(name))
+        val project = ProjectBuilderImpl(name)
+        children[name] = project
         return body(project)
     }
 

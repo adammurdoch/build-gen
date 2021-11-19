@@ -7,7 +7,7 @@ interface RootProjectBuilder {
     fun root(body: ProjectBuilder.() -> Unit)
 
     /**
-     * Add or configure the given project.
+     * Adds the given project, failing if already defined.
      */
     fun <T> project(name: String, body: ProjectBuilder.() -> T): T
 }

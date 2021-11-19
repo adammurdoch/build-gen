@@ -16,26 +16,6 @@ interface PluginsSpec {
     }
 }
 
-class DefaultPluginsSpec : PluginsSpec {
-    private val contents = mutableListOf<PluginUseSpec>()
-    private var finalized = false
-
-    override val plugins: List<PluginUseSpec>
-        get() {
-            require(finalized)
-            return contents
-        }
-
-    fun finalize() {
-        finalized = true
-    }
-
-    fun add(plugin: PluginUseSpec) {
-        require(!finalized)
-        contents.add(plugin)
-    }
-}
-
 class CompositePluginsSpec : PluginsSpec {
     private val contents = mutableListOf<PluginsSpec>()
     private var finalized = false

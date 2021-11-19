@@ -5,8 +5,9 @@ class AppProductionSpec(
     val implementationSpec: AppImplementationSpec,
     usesPlugins: List<PluginUseSpec>,
     usesLibraries: List<ExternalLibraryUseSpec>,
+    usesLibrariesFromSameBuild: List<ExternalLibraryProductionSpec>,
     usesImplementationLibraries: List<InternalLibraryProductionSpec>
-) : BuildComponentProductionSpec(usesPlugins, usesLibraries, emptyList(), usesImplementationLibraries) {
+) : BuildComponentProductionSpec(usesPlugins, usesLibraries, usesLibrariesFromSameBuild, usesImplementationLibraries) {
     override fun accept(visitor: BuildComponentVisitor) {
         visitor.visitApp(this)
     }

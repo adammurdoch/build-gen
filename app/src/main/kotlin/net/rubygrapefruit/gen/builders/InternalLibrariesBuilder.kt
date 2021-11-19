@@ -1,8 +1,6 @@
 package net.rubygrapefruit.gen.builders
 
-import net.rubygrapefruit.gen.specs.BaseName
-import net.rubygrapefruit.gen.specs.InternalLibraryProductionSpec
-import net.rubygrapefruit.gen.specs.NameProvider
+import net.rubygrapefruit.gen.specs.*
 
 /**
  * Builds a set of zero or more internal libraries.
@@ -10,9 +8,7 @@ import net.rubygrapefruit.gen.specs.NameProvider
 class InternalLibrariesBuilder(
     private var projectNames: NameProvider,
     private val librarySpecFactory: LibrarySpecFactory,
-) : AbstractComponentsBuilder<InternalLibraryProductionSpec>() {
-    private val plugins = CompositePluginsSpec()
-
+) : AbstractBuildComponentsBuilder<InternalLibraryProductionSpec>() {
     val exportedLibraries: InternalLibrariesSpec = object : InternalLibrariesSpec {
         override val libraries: List<InternalLibraryProductionSpec>
             get() {
@@ -20,20 +16,14 @@ class InternalLibrariesBuilder(
             }
     }
 
-    fun usesPlugins(spec: PluginsSpec) {
-        assertNotFinalized()
-        plugins.add(spec)
-    }
-
-    override fun calculateContents(count: Int): List<InternalLibraryProductionSpec> {
-        plugins.finalize()
-        val allPlugins = plugins.plugins
-        val result = mutableListOf<InternalLibraryProductionSpec>()
-        for (i in 0 until count) {
-            val libraryName = BaseName(projectNames.next())
-            val spec = librarySpecFactory.library(libraryName)
-            result.add(InternalLibraryProductionSpec(libraryName, spec, allPlugins))
-        }
-        return result
+    override fun createComponent(
+        plugins: List<PluginUseSpec>,
+        externalLibraries: List<ExternalLibraryProductionSpec>,
+        internalLibraries: List<InternalLibraryProductionSpec>,
+        incomingLibraries: List<ExternalLibraryUseSpec>
+    ): InternalLibraryProductionSpec {
+        val libraryName = BaseName(projectNames.next())
+        val spec = librarySpecFactory.library(libraryName)
+        return InternalLibraryProductionSpec(libraryName, spec, plugins, incomingLibraries, externalLibraries, internalLibraries)
     }
 }
