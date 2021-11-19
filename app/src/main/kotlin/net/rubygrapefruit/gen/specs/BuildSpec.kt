@@ -24,7 +24,7 @@ class BuildSpec(
     val producesPlugins: List<PluginProductionSpec>
         get() {
             val plugins = mutableListOf<PluginProductionSpec>()
-            components.visit { spec -> if (spec is PluginProductionSpec) plugins.add(spec) }
+            components.visit { spec -> if (spec is PluginBundleProductionSpec) plugins.addAll(spec.plugins) }
             return plugins
         }
 

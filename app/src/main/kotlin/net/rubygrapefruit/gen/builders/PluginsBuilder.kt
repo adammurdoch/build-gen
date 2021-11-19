@@ -6,10 +6,10 @@ class PluginsBuilder(
     private val projectNames: NameProvider,
     private val artifactType: String,
     private val pluginSpecFactory: PluginSpecFactory
-) : AbstractBuildComponentsBuilder<PluginProductionSpec>() {
+) : AbstractBuildComponentsBuilder<PluginBundleProductionSpec>() {
     val useSpec: PluginsSpec = object : PluginsSpec {
         override val plugins: List<PluginUseSpec>
-            get() = contents.map { it.toUseSpec() }
+            get() = contents.flatMap { it.useSpec }
     }
 
     override fun createComponent(
@@ -17,11 +17,12 @@ class PluginsBuilder(
         externalLibraries: List<ExternalLibraryProductionSpec>,
         internalLibraries: List<InternalLibraryProductionSpec>,
         incomingLibraries: List<ExternalLibraryUseSpec>
-    ): PluginProductionSpec {
+    ): PluginBundleProductionSpec {
         require(externalLibraries.isEmpty())
         require(internalLibraries.isEmpty())
         require(incomingLibraries.isEmpty())
         val baseName = BaseName(projectNames.next())
-        return pluginSpecFactory.plugin(baseName, artifactType, "test.${baseName.lowerCaseDotSeparator}")
+        val spec = pluginSpecFactory.plugin(baseName, artifactType, "test.${baseName.lowerCaseDotSeparator}")
+        return PluginBundleProductionSpec(baseName, listOf(spec))
     }
 }

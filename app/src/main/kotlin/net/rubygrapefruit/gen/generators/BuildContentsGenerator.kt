@@ -44,12 +44,12 @@ class BuildContentsGenerator(
         return build.projects {
             val projectForInternalLib = mutableMapOf<InternalLibraryProductionSpec, LibraryUseSpec>()
             val projectForExternalLib = mutableMapOf<ExternalLibraryProductionSpec, LibraryUseSpec>()
-            val allPlugins = mutableListOf<PluginProductionSpec>()
+            val allPluginBundles = mutableListOf<PluginBundleProductionSpec>()
             var hasProductionCode = false
 
             build.visit(object : BuildComponentVisitor {
-                override fun visitPlugin(plugin: PluginProductionSpec) {
-                    allPlugins.add(plugin)
+                override fun visitPlugin(pluginBundle: PluginBundleProductionSpec) {
+                    allPluginBundles.add(pluginBundle)
                 }
 
                 override fun visitApp(app: AppProductionSpec) {
@@ -92,19 +92,24 @@ class BuildContentsGenerator(
                 }
             })
 
-            if (allPlugins.isNotEmpty() && !hasProductionCode) {
-                // Produces plugins and nothing else -> root project contains plugin
-                root {
-                    for (plugin in allPlugins) {
-                        producesPlugin(plugin)
-                        requiresPlugins(plugin.usesPlugins)
+            if (allPluginBundles.isNotEmpty()) {
+                if (allPluginBundles.size == 1 && !hasProductionCode) {
+                    // Produces plugins and nothing else -> root project contains plugin
+                    root {
+                        val pluginBundle = allPluginBundles.first()
+                        for (plugin in pluginBundle.plugins) {
+                            producesPlugin(plugin)
+                        }
+                        requiresPlugins(pluginBundle.usesPlugins)
                     }
-                }
-            } else if (allPlugins.isNotEmpty() && hasProductionCode) {
-                project("plugins") {
-                    for (plugin in allPlugins) {
-                        producesPlugin(plugin)
-                        requiresPlugins(plugin.usesPlugins)
+                } else {
+                    for (pluginBundle in allPluginBundles) {
+                        project(pluginBundle.baseName.camelCase) {
+                            for (plugin in pluginBundle.plugins) {
+                                producesPlugin(plugin)
+                            }
+                            requiresPlugins(pluginBundle.usesPlugins)
+                        }
                     }
                 }
             }

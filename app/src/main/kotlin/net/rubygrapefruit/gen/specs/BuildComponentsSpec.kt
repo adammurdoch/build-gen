@@ -10,7 +10,7 @@ sealed class BuildComponentsSpec {
 }
 
 class FixedComponentsSpec(
-    private val producesPlugins: List<PluginProductionSpec>,
+    private val producesPlugins: List<PluginBundleProductionSpec>,
     private val producesLibraries: List<ExternalLibraryProductionSpec>,
     private val producesApps: List<AppProductionSpec>,
     private val producesInternalLibraries: List<InternalLibraryProductionSpec>

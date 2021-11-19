@@ -2,10 +2,13 @@ package net.rubygrapefruit.gen.specs
 
 import net.rubygrapefruit.gen.extensions.capitalized
 
+/**
+ * Spec for production of a single plugin. Use [PluginBundleProductionSpec] to represent the component.
+ */
 sealed class PluginProductionSpec(
     protected val baseName: BaseName,
     val id: String,
-): BuildComponentProductionSpec(emptyList(), emptyList(), emptyList(), emptyList()) {
+) {
     abstract fun toUseSpec(): PluginUseSpec
 
     /**
@@ -18,10 +21,6 @@ sealed class PluginProductionSpec(
      */
     fun className(classNameSuffix: String): JvmClassName {
         return JvmClassName(baseName.lowerCaseDotSeparator + ".plugin." + classNameSuffix.capitalized())
-    }
-
-    override fun accept(visitor: BuildComponentVisitor) {
-        visitor.visitPlugin(this)
     }
 }
 

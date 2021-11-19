@@ -20,9 +20,13 @@ class ReportGenerator(
                 val id = ids.id(build)
                 println("  subgraph $id [${build.displayName}]")
                 build.visit(object : BuildComponentVisitor {
-                    override fun visitPlugin(plugin: PluginProductionSpec) {
-                        val pluginId = ids.id(plugin)
-                        println("  $pluginId([plugin ${plugin.id}])")
+                    override fun visitPlugin(pluginBundle: PluginBundleProductionSpec) {
+                        val bundleId = ids.id(pluginBundle)
+                        println("  $bundleId([plugin bundle ${pluginBundle.baseName.camelCase}])")
+                        for (plugin in pluginBundle.plugins) {
+                            val pluginId = ids.id(plugin)
+                            println("  $pluginId([plugin ${plugin.id}])")
+                        }
                     }
 
                     override fun visitApp(app: AppProductionSpec) {
@@ -49,8 +53,8 @@ class ReportGenerator(
             }
             for (build in builds) {
                 build.visit(object : BuildComponentVisitor {
-                    override fun visitPlugin(plugin: PluginProductionSpec) {
-                        edgesForComponent(plugin, ids, this@ReportGenerator, builds)
+                    override fun visitPlugin(pluginBundle: PluginBundleProductionSpec) {
+                        edgesForComponent(pluginBundle, ids, this@ReportGenerator, builds)
                     }
 
                     override fun visitApp(app: AppProductionSpec) {
