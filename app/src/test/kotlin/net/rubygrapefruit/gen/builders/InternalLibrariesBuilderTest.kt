@@ -7,7 +7,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class InternalLibrariesBuilderTest {
-    val builder = InternalLibrariesBuilder(FixedNames(listOf("first"), "lib"), Implementation.Java.librarySpecFactory)
+    val builder = InternalLibrariesBuilder(FixedNames("lib"), Implementation.Java.librarySpecFactory)
 
     @Test
     fun canBeEmpty() {

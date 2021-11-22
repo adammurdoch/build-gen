@@ -75,7 +75,17 @@ interface BuildBuilder {
     fun includeComponents(componentCount: Int)
 
     /**
-     * Defines some project names to use for this build
+     * Defines the application project names to use for this build. Defaults to the build name.
      */
-    fun projectNames(names: List<String>)
+    fun appNames(vararg names: String)
+
+    /**
+     * Defines the library project names to use for this build. Defaults to the build name.
+     */
+    fun libraryNames(names: List<String>)
+
+    /**
+     * Defines the library project names to use for this build. Defaults to the build name.
+     */
+    fun libraryNames(vararg names: String) = libraryNames(names.toList())
 }

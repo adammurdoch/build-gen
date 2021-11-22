@@ -104,9 +104,12 @@ class DefaultBuildTreeBuilder(
         private val producesPlugins = mutableListOf<PluginsBuilder>()
         private val producesApps = mutableListOf<ApplicationsBuilder>()
         private val producesLibs = mutableListOf<ExternalLibrariesBuilder>()
-        private val projectNames = MutableNames(baseName.camelCase)
-        private val emptyComponents = EmptyComponentsBuilder(projectNames)
-        private val internalComponents = InternalLibrariesBuilder(projectNames, librarySpecFactory)
+        private val defaultNames = FixedNames(baseName.camelCase)
+        private val appNames = MutableNames(defaultNames)
+        private val pluginNames = MutableNames(defaultNames)
+        private val libraryNames = MutableNames(defaultNames)
+        private val emptyComponents = EmptyComponentsBuilder(libraryNames)
+        private val internalComponents = InternalLibrariesBuilder(libraryNames, librarySpecFactory)
         private var includeSelf = false
         private var targetComponentCount: Int? = null
 
@@ -148,14 +151,14 @@ class DefaultBuildTreeBuilder(
         }
 
         override fun producesPlugin(): PluginRef {
-            val plugin = PluginsBuilder(projectNames, artifactType, pluginSpecFactory)
+            val plugin = PluginsBuilder(pluginNames, artifactType, pluginSpecFactory)
             plugin.add()
             producesPlugins.add(plugin)
             return PluginRefImpl(this, plugin)
         }
 
         override fun producesApp() {
-            val app = ApplicationsBuilder(projectNames, applicationSpecFactory)
+            val app = ApplicationsBuilder(appNames, applicationSpecFactory)
             app.add()
             app.usesPlugins(usesPlugins)
             app.usesLibraries(implementationLibs())
@@ -164,7 +167,7 @@ class DefaultBuildTreeBuilder(
         }
 
         override fun producesToolingApiClient() {
-            val app = ApplicationsBuilder(projectNames, object : ApplicationSpecFactory {
+            val app = ApplicationsBuilder(appNames, object : ApplicationSpecFactory {
                 override fun application(baseName: BaseName): AppImplementationSpec {
                     return ToolingApiClientSpec(main.rootDir)
                 }
@@ -203,7 +206,7 @@ class DefaultBuildTreeBuilder(
         }
 
         private fun addLibrary(incomingLibraries: IncomingLibrariesSpec, implementationLibs: InternalLibrariesSpec, requiresLibrariesFromThisBuild: ExternalLibrariesSpec): ExternalLibrariesBuilder {
-            val library = ExternalLibrariesBuilder(projectNames, "test.${baseName.lowerCaseDotSeparator}", librarySpecFactory)
+            val library = ExternalLibrariesBuilder(libraryNames, "test.${baseName.lowerCaseDotSeparator}", librarySpecFactory)
             library.add()
             library.usesPlugins(usesPlugins)
             library.usesLibraries(requiresLibrariesFromThisBuild)
@@ -233,8 +236,12 @@ class DefaultBuildTreeBuilder(
             usesLibraries.add(refImpl.libraries.useSpec)
         }
 
-        override fun projectNames(names: List<String>) {
-            projectNames.replace(FixedNames(names, baseName.camelCase))
+        override fun appNames(vararg names: String) {
+            appNames.replace(ChainedNames(names.toList(), defaultNames))
+        }
+
+        override fun libraryNames(names: List<String>) {
+            libraryNames.replace(ChainedNames(names, defaultNames))
         }
 
         override fun includeComponents(componentCount: Int) {

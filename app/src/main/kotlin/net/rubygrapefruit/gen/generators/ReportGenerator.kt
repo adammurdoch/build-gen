@@ -22,11 +22,12 @@ class ReportGenerator(
                 build.visit(object : BuildComponentVisitor {
                     override fun visitPlugin(pluginBundle: PluginBundleProductionSpec) {
                         val bundleId = ids.id(pluginBundle)
-                        println("  $bundleId([plugin bundle ${pluginBundle.baseName.camelCase}])")
+                        println("  subgraph $bundleId [plugin bundle ${pluginBundle.baseName.camelCase}]")
                         for (plugin in pluginBundle.plugins) {
                             val pluginId = ids.id(plugin)
                             println("  $pluginId([plugin ${plugin.id}])")
                         }
+                        println("  end")
                     }
 
                     override fun visitApp(app: AppProductionSpec) {

@@ -1,6 +1,5 @@
 package net.rubygrapefruit.gen.builders
 
-private val mainBuildNames = listOf("app", "util")
 private val dataBuildNames = listOf("access", "store")
 private val uiBuildNames = listOf("entry", "render")
 
@@ -24,7 +23,8 @@ sealed class ProductionBuildTreeBuilder(val builder: BuildTreeBuilder) {
 
 sealed class ProductionBuildTreeBuilderWithSource(builder: BuildTreeBuilder) : ProductionBuildTreeBuilder(builder) {
     init {
-        main.projectNames(mainBuildNames)
+        main.appNames("app")
+        main.libraryNames("util")
         main.producesApp()
     }
 }
@@ -62,8 +62,8 @@ class ChildBuildsBuilder(builder: BuildTreeBuilder) : ProductionBuildTreeBuilder
     val child2 = main.build("data")
 
     init {
-        child1.projectNames(uiBuildNames)
-        child2.projectNames(dataBuildNames)
+        child1.libraryNames(uiBuildNames)
+        child2.libraryNames(dataBuildNames)
     }
 
     fun <T> child1(builder: BuildBuilder.() -> T): T {
@@ -134,8 +134,8 @@ class NestedChildBuildsBuilder(builder: BuildTreeBuilder) : ProductionBuildTreeB
     val nestedChild = child.build("data")
 
     init {
-        child.projectNames(uiBuildNames)
-        nestedChild.projectNames(dataBuildNames)
+        child.libraryNames(uiBuildNames)
+        nestedChild.libraryNames(dataBuildNames)
     }
 
     fun <T> child(builder: BuildBuilder.() -> T): T {

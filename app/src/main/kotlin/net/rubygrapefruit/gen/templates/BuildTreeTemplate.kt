@@ -37,7 +37,7 @@ abstract class BuildTreeTemplate(
 
         val childBuildsWithPluginChildBuildAndSharedLibrary = withChildBuilds(BuildLogic.ChildBuildAndSharedLibrary) {
             val sharedLibrary = childBuildPlugin {
-                projectNames(listOf("plugins", "generator", "common"))
+                libraryNames(listOf("generator", "common"))
                 producesLibrary()
             }
             mainBuildUsesLibrariesFromChildren()

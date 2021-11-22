@@ -4,9 +4,9 @@ sealed interface NameProvider {
     fun next(): String
 }
 
-class FixedNames(
+class ChainedNames(
     private val names: List<String>,
-    private val defaultName: String
+    private val next: NameProvider
 ) : NameProvider {
     private var counter = 0
 
@@ -14,18 +14,31 @@ class FixedNames(
         counter++
         return if (counter <= names.size) {
             names[counter - 1]
-        } else if (counter == names.size + 1) {
+        } else {
+            next.next()
+        }
+    }
+}
+
+class FixedNames(
+    private val defaultName: String
+) : NameProvider {
+    private var counter = 0
+
+    override fun next(): String {
+        counter++
+        return if (counter == 1) {
             defaultName
         } else {
-            "$defaultName${counter - names.size}"
+            "$defaultName${counter}"
         }
     }
 }
 
 class MutableNames(
-    defaultName: String
+    defaultNames: NameProvider
 ) : NameProvider {
-    private var delegate: NameProvider = FixedNames(emptyList(), defaultName)
+    private var delegate: NameProvider = defaultNames
 
     fun replace(provider: NameProvider) {
         delegate = provider
