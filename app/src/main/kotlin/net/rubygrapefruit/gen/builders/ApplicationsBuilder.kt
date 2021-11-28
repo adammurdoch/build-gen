@@ -5,7 +5,7 @@ import net.rubygrapefruit.gen.specs.*
 class ApplicationsBuilder(
     private val projectNames: NameProvider,
     private val applicationSpecFactory: ApplicationSpecFactory
-) : AbstractBuildComponentsBuilder<AppProductionSpec>() {
+) : FlatBuildComponentsBuilder<AppProductionSpec>() {
     override fun createComponent(
         plugins: List<PluginUseSpec>,
         externalLibraries: List<ExternalLibraryProductionSpec>,

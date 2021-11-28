@@ -2,7 +2,7 @@ package net.rubygrapefruit.gen.builders
 
 import net.rubygrapefruit.gen.specs.*
 
-abstract class AbstractBuildComponentsBuilder<T : BuildComponentProductionSpec> : AbstractComponentsBuilder<T>() {
+abstract class BuildComponentsBuilder<T : BuildComponentProductionSpec> : ComponentsBuilder<T>() {
     private val usesPlugins = CompositePluginsSpec()
     private val usesExternalLibraries = CompositeExternalLibrariesSpec()
     private val usesInternalLibraries = CompositeInternalLibrariesSpec()
@@ -28,19 +28,19 @@ abstract class AbstractBuildComponentsBuilder<T : BuildComponentProductionSpec> 
         usesIncomingLibraries.add(spec)
     }
 
-    override final fun calculateContents(count: Int): List<T> {
+    final override fun calculateContents(count: Int): List<T> {
         usesPlugins.finalize()
         usesExternalLibraries.finalize()
         usesInternalLibraries.finalize()
         usesIncomingLibraries.finalize()
-        val result = mutableListOf<T>()
-        for (i in 0 until count) {
-            val component = createComponent(usesPlugins.plugins, usesExternalLibraries.libraries, usesInternalLibraries.libraries, usesIncomingLibraries.libraries)
-            result.add(component)
-        }
-        return result
+        return createComponents(count, usesPlugins.plugins, usesExternalLibraries.libraries, usesInternalLibraries.libraries, usesIncomingLibraries.libraries)
     }
 
-    abstract fun createComponent(plugins: List<PluginUseSpec>, externalLibraries: List<ExternalLibraryProductionSpec>, internalLibraries: List<InternalLibraryProductionSpec>, incomingLibraries: List<ExternalLibraryUseSpec>): T
-
+    protected abstract fun createComponents(
+        count: Int,
+        plugins: List<PluginUseSpec>,
+        externalLibraries: List<ExternalLibraryProductionSpec>,
+        internalLibraries: List<InternalLibraryProductionSpec>,
+        incomingLibraries: List<ExternalLibraryUseSpec>
+    ): List<T>
 }

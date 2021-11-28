@@ -3,7 +3,7 @@ package net.rubygrapefruit.gen.builders
 /**
  * A container that builds zero or more elements of type T
  */
-abstract class AbstractComponentsBuilder<T> {
+abstract class ComponentsBuilder<T> {
     private var count = 0
     private var finalContents: List<T>? = null
     private var finalizing = false

@@ -6,7 +6,7 @@ class PluginsBuilder(
     private val projectNames: NameProvider,
     private val artifactType: String,
     private val pluginSpecFactory: PluginSpecFactory
-) : AbstractBuildComponentsBuilder<PluginBundleProductionSpec>() {
+) : FlatBuildComponentsBuilder<PluginBundleProductionSpec>() {
     val useSpec: PluginsSpec = object : PluginsSpec {
         override val plugins: List<PluginUseSpec>
             get() = contents.flatMap { it.useSpec }

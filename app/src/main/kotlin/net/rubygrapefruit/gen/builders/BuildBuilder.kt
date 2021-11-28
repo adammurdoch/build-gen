@@ -50,7 +50,8 @@ interface BuildBuilder {
     fun producesPlugin(): PluginRef
 
     /**
-     * Adds a library that this build should produce.
+     * Adds a library that this build should produce. All applications and plugins of this build will by default depend on this library, either directly
+     * or indirectly.
      */
     fun producesLibrary(): LibraryRef
 
@@ -65,7 +66,8 @@ interface BuildBuilder {
     fun requires(plugin: PluginRef)
 
     /**
-     * The projects of this build should use the given library.
+     * The projects of this build should use the given library. All applications, libraries and plugins of this build will by default depend on the given
+     * libraries, either directly or indirectly. Some internal components may not use the library.
      */
     fun requires(library: LibraryRef)
 

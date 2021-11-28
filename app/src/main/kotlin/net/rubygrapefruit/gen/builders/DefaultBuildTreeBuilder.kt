@@ -104,6 +104,7 @@ class DefaultBuildTreeBuilder(
         private val producesPlugins = mutableListOf<PluginsBuilder>()
         private val producesApps = mutableListOf<ApplicationsBuilder>()
         private val producesLibs = mutableListOf<ExternalLibrariesBuilder>()
+        private val topLibs = CompositeExternalLibrariesSpec()
         private val defaultNames = FixedNames(baseName.camelCase)
         private val appNames = MutableNames(defaultNames)
         private val pluginNames = MutableNames(defaultNames)
@@ -161,6 +162,7 @@ class DefaultBuildTreeBuilder(
             val app = ApplicationsBuilder(appNames, applicationSpecFactory)
             app.add()
             app.usesPlugins(usesPlugins)
+            app.usesLibraries(topLibs)
             app.usesLibraries(implementationLibs())
             app.usesLibraries(usesLibraries)
             producesApps.add(app)
@@ -196,12 +198,15 @@ class DefaultBuildTreeBuilder(
         }
 
         override fun producesLibrary(): LibraryRef {
-            return DefaultLibraryRef(this, addLibrary(usesLibraries, implementationLibs(), ExternalLibrariesSpec.empty))
+            val ref = DefaultLibraryRef(this, addLibrary(usesLibraries, implementationLibs(), ExternalLibrariesSpec.empty))
+            topLibs.add(ref.libraries.exportedLibraries)
+            return ref
         }
 
         override fun producesLibraries(): LibrariesRef {
             val bottom = addLibrary(IncomingLibrariesSpec.empty, implementationLibs(), ExternalLibrariesSpec.empty)
             val top = addLibrary(usesLibraries, InternalLibrariesSpec.empty, bottom.exportedLibraries)
+            topLibs.add(top.exportedLibraries)
             return LibrariesRefImpl(DefaultLibraryRef(this, top), DefaultLibraryRef(this, bottom))
         }
 
@@ -260,6 +265,7 @@ class DefaultBuildTreeBuilder(
                     addInternalComponent()
                 }
             }
+            topLibs.finalize()
 
             val components = FixedComponentsSpec(
                 producesPlugins.flatMap { it.contents },
@@ -280,6 +286,6 @@ class DefaultBuildTreeBuilder(
         }
     }
 
-    private val List<AbstractBuildComponentsBuilder<*>>.currentSize: Int
+    private val List<BuildComponentsBuilder<*>>.currentSize: Int
         get() = fold(0) { v, i -> v + i.currentSize }
 }

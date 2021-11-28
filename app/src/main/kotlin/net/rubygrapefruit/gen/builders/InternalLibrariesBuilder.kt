@@ -6,9 +6,9 @@ import net.rubygrapefruit.gen.specs.*
  * Builds a set of zero or more internal libraries.
  */
 class InternalLibrariesBuilder(
-    private var projectNames: NameProvider,
+    private val projectNames: NameProvider,
     private val librarySpecFactory: LibrarySpecFactory,
-) : AbstractBuildComponentsBuilder<InternalLibraryProductionSpec>() {
+) : FlatBuildComponentsBuilder<InternalLibraryProductionSpec>() {
     val exportedLibraries: InternalLibrariesSpec = object : InternalLibrariesSpec {
         override val libraries: List<InternalLibraryProductionSpec>
             get() {

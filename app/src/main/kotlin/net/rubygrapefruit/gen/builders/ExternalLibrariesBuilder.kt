@@ -6,7 +6,7 @@ class ExternalLibrariesBuilder(
     private val projectNames: NameProvider,
     private val group: String,
     private val librarySpecFactory: LibrarySpecFactory,
-) : AbstractBuildComponentsBuilder<ExternalLibraryProductionSpec>() {
+) : FlatBuildComponentsBuilder<ExternalLibraryProductionSpec>() {
     val exportedLibraries: ExternalLibrariesSpec = object : ExternalLibrariesSpec {
         override val libraries: List<ExternalLibraryProductionSpec>
             get() = contents
