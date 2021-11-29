@@ -7,8 +7,13 @@ abstract class SingleComponentBuilder<T : BuildComponentProductionSpec>(
     override val currentSize: Int
         get() = 1
 
-    override fun createComponents(plugins: List<PluginUseSpec>, externalLibraries: List<ExternalLibraryProductionSpec>, internalLibraries: List<InternalLibraryProductionSpec>, incomingLibraries: List<ExternalLibraryUseSpec>): List<T> {
-        return listOf(createComponent(plugins, externalLibraries, internalLibraries, incomingLibraries))
+    override fun createComponents(
+        plugins: PluginsSpec,
+        externalLibraries: ExternalLibrariesSpec,
+        internalLibraries: InternalLibrariesSpec,
+        incomingLibraries: IncomingLibrariesSpec
+    ): List<T> {
+        return listOf(createComponent(plugins.plugins, externalLibraries.libraries, internalLibraries.libraries, incomingLibraries.libraries))
     }
 
     protected abstract fun createComponent(

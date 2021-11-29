@@ -86,7 +86,7 @@ class ReportGenerator(
         val pluginsById = builds.flatMap { it.producesPlugins }.associateBy { it.id }
         val librariesByCoords = builds.flatMap { it.producesLibraries }.associateBy { it.coordinates }
         for (plugin in component.usesPlugins) {
-            println("  ${ids.id(component)}-->${ids.id(reportGenerator.findProducer(pluginsById, plugin))}")
+            println("  ${ids.id(component)}-.->${ids.id(reportGenerator.findProducer(pluginsById, plugin))}")
         }
         for (required in component.usesLibraries) {
             println("  ${ids.id(component)}-->${ids.id(reportGenerator.findProducer(librariesByCoords, required))}")

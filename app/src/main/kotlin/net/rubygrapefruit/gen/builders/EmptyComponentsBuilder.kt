@@ -12,9 +12,9 @@ class EmptyComponentsBuilder(
     override val currentSize: Int
         get() = count
 
-    fun add() {
+    fun add(extra: Int) {
         assertNotFinalized()
-        count++
+        count += extra
     }
 
     override fun calculateContents(): List<EmptyComponentProductionSpec> {

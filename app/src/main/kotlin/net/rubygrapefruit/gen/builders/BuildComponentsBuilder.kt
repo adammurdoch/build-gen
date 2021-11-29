@@ -1,6 +1,6 @@
 package net.rubygrapefruit.gen.builders
 
-import net.rubygrapefruit.gen.specs.*
+import net.rubygrapefruit.gen.specs.BuildComponentProductionSpec
 
 abstract class BuildComponentsBuilder<T : BuildComponentProductionSpec> : ComponentsBuilder<T>() {
     private val usesPlugins = CompositePluginsSpec()
@@ -33,13 +33,13 @@ abstract class BuildComponentsBuilder<T : BuildComponentProductionSpec> : Compon
         usesExternalLibraries.finalize()
         usesInternalLibraries.finalize()
         usesIncomingLibraries.finalize()
-        return createComponents(usesPlugins.plugins, usesExternalLibraries.libraries, usesInternalLibraries.libraries, usesIncomingLibraries.libraries)
+        return createComponents(usesPlugins, usesExternalLibraries, usesInternalLibraries, usesIncomingLibraries)
     }
 
     protected abstract fun createComponents(
-        plugins: List<PluginUseSpec>,
-        externalLibraries: List<ExternalLibraryProductionSpec>,
-        internalLibraries: List<InternalLibraryProductionSpec>,
-        incomingLibraries: List<ExternalLibraryUseSpec>
+        plugins: PluginsSpec,
+        externalLibraries: ExternalLibrariesSpec,
+        internalLibraries: InternalLibrariesSpec,
+        incomingLibraries: IncomingLibrariesSpec
     ): List<T>
 }

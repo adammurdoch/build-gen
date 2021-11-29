@@ -172,16 +172,16 @@ class DefaultBuildTreeBuilder(
 
         private fun implementationLibs(): InternalLibrariesSpec {
             if (internalComponents.currentSize == 0) {
-                internalComponents.add()
+                internalComponents.add(1)
             }
             return internalComponents.exportedLibraries
         }
 
-        private fun addInternalComponent() {
+        private fun addInternalComponents(extra: Int) {
             if (librarySpecFactory.canCreate) {
-                internalComponents.add()
+                internalComponents.add(extra)
             } else {
-                emptyComponents.add()
+                emptyComponents.add(extra)
             }
         }
 
@@ -248,8 +248,9 @@ class DefaultBuildTreeBuilder(
         override fun toSpec(mapper: Mapper<BuildSpec>): BuildSpec {
             val targetComponents = targetComponentCount
             if (targetComponents != null) {
-                while (currentComponentCount < targetComponents) {
-                    addInternalComponent()
+                val diff = targetComponents - currentComponentCount
+                if (diff > 0) {
+                    addInternalComponents(diff)
                 }
             }
 
