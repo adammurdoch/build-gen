@@ -10,6 +10,10 @@ sealed class ProductionBuildTreeBuilder(val builder: BuildTreeBuilder) {
         return builder(main)
     }
 
+    fun requireHeap(heapSize: String) {
+        builder.requireHeap(heapSize)
+    }
+
     fun includeConfigurationCacheProblems() {
         builder.includeConfigurationCacheProblems = true
     }

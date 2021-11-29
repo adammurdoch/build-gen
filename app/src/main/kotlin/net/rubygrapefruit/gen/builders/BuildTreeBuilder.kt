@@ -6,6 +6,8 @@ package net.rubygrapefruit.gen.builders
 interface BuildTreeBuilder {
     var includeConfigurationCacheProblems: Boolean
 
+    fun requireHeap(heapSize: String)
+
     val mainBuild: BuildBuilder
 
     fun <T> mainBuild(body: BuildBuilder.() -> T): T

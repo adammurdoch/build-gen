@@ -15,6 +15,7 @@ class DefaultBuildTreeBuilder(
     private val applicationSpecFactory = implementation.applicationSpecFactory
     private val builds = mutableListOf<BuildBuilderImpl>()
     private val main = BuildBuilderImpl(null, "main build", BaseName("main"), "main", rootDir)
+    private var heapSize: String? = null
 
     override val mainBuild: BuildBuilder
         get() = main
@@ -24,6 +25,10 @@ class DefaultBuildTreeBuilder(
     }
 
     override var includeConfigurationCacheProblems = false
+
+    override fun requireHeap(heapSize: String) {
+        this.heapSize = heapSize
+    }
 
     override fun <T> mainBuild(body: BuildBuilder.() -> T): T {
         return body(mainBuild)
@@ -40,7 +45,7 @@ class DefaultBuildTreeBuilder(
         for (build in builds) {
             build.finalizeIncoming()
         }
-        return BuildTreeSpecImpl(rootDir, mapper.map(builds))
+        return BuildTreeSpecImpl(rootDir, mapper.map(builds), heapSize)
     }
 
     private fun buildBaseName(name: String): BaseName {
@@ -49,7 +54,9 @@ class DefaultBuildTreeBuilder(
     }
 
     private class BuildTreeSpecImpl(
-        override val rootDir: Path, override val builds: List<BuildSpec>
+        override val rootDir: Path,
+        override val builds: List<BuildSpec>,
+        override val heapSize: String?
     ) : BuildTreeSpec
 
     private class PluginRefImpl(

@@ -10,7 +10,10 @@ class BuildTreeAdditionalFilesGenerator(
         textFileGenerator.file(rootDir.resolve("gradle.properties")) {
             println("# Generated file")
             println()
-            println("#org.gradle.parallel=true")
+            println("org.gradle.parallel=true")
+            if (heapSize != null) {
+                println("org.gradle.jvmargs=-Xmx${heapSize}")
+            }
         }
         textFileGenerator.file(rootDir.resolve(".gitignore")) {
             println("# Generated file")
