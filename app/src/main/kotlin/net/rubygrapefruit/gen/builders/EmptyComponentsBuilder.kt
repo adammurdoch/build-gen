@@ -7,7 +7,17 @@ import net.rubygrapefruit.gen.specs.NameProvider
 class EmptyComponentsBuilder(
     private val projectNames: NameProvider
 ) : ComponentsBuilder<EmptyComponentProductionSpec>() {
-    override fun calculateContents(count: Int): List<EmptyComponentProductionSpec> {
+    private var count = 0
+
+    override val currentSize: Int
+        get() = count
+
+    fun add() {
+        assertNotFinalized()
+        count++
+    }
+
+    override fun calculateContents(): List<EmptyComponentProductionSpec> {
         val result = mutableListOf<EmptyComponentProductionSpec>()
         for (i in 0 until count) {
             result.add(EmptyComponentProductionSpec(BaseName(projectNames.next())))

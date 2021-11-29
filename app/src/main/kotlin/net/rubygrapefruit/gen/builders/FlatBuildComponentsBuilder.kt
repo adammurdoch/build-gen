@@ -3,8 +3,17 @@ package net.rubygrapefruit.gen.builders
 import net.rubygrapefruit.gen.specs.*
 
 abstract class FlatBuildComponentsBuilder<T : BuildComponentProductionSpec> : BuildComponentsBuilder<T>() {
+    private var count = 0
+
+    override val currentSize: Int
+        get() = count
+
+    fun add() {
+        assertNotFinalized()
+        count++
+    }
+
     override fun createComponents(
-        count: Int,
         plugins: List<PluginUseSpec>,
         externalLibraries: List<ExternalLibraryProductionSpec>,
         internalLibraries: List<InternalLibraryProductionSpec>,

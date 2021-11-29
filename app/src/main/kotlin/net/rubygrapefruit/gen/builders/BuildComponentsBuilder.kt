@@ -28,16 +28,15 @@ abstract class BuildComponentsBuilder<T : BuildComponentProductionSpec> : Compon
         usesIncomingLibraries.add(spec)
     }
 
-    final override fun calculateContents(count: Int): List<T> {
+    final override fun calculateContents(): List<T> {
         usesPlugins.finalize()
         usesExternalLibraries.finalize()
         usesInternalLibraries.finalize()
         usesIncomingLibraries.finalize()
-        return createComponents(count, usesPlugins.plugins, usesExternalLibraries.libraries, usesInternalLibraries.libraries, usesIncomingLibraries.libraries)
+        return createComponents(usesPlugins.plugins, usesExternalLibraries.libraries, usesInternalLibraries.libraries, usesIncomingLibraries.libraries)
     }
 
     protected abstract fun createComponents(
-        count: Int,
         plugins: List<PluginUseSpec>,
         externalLibraries: List<ExternalLibraryProductionSpec>,
         internalLibraries: List<InternalLibraryProductionSpec>,

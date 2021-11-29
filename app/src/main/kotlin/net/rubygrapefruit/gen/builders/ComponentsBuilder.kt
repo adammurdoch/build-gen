@@ -4,23 +4,16 @@ package net.rubygrapefruit.gen.builders
  * A container that builds zero or more elements of type T
  */
 abstract class ComponentsBuilder<T> {
-    private var count = 0
     private var finalContents: List<T>? = null
     private var finalizing = false
 
-    val currentSize: Int
-        get() = count
+    abstract val currentSize: Int
 
     val contents: List<T>
         get() {
             finalize()
             return finalContents!!
         }
-
-    fun add() {
-        assertNotFinalized()
-        count++
-    }
 
     protected fun assertFinalized() {
         require(finalContents != null)
@@ -34,11 +27,11 @@ abstract class ComponentsBuilder<T> {
         if (finalContents == null) {
             require(!finalizing)
             finalizing = true
-            finalContents = calculateContents(count)
+            finalContents = calculateContents()
             finalizing = false
         }
     }
 
-    protected abstract fun calculateContents(count: Int): List<T>
+    protected abstract fun calculateContents(): List<T>
 
 }

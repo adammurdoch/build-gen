@@ -46,8 +46,8 @@ class BuildSpec(
         while (queue.isNotEmpty()) {
             val component = queue.first()
             if (seen.add(component)) {
-                queue.addAll(component.usesLibrariesFromSameBuild)
-                queue.addAll(component.usesImplementationLibraries)
+                queue.addAll(0, component.usesLibrariesFromSameBuild)
+                queue.addAll(0, component.usesImplementationLibraries)
             } else {
                 queue.removeFirst()
                 if (visited.add(component)) {

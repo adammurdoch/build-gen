@@ -1,38 +1,31 @@
 package net.rubygrapefruit.gen.builders
 
-import net.rubygrapefruit.gen.specs.*
+import net.rubygrapefruit.gen.specs.ExternalLibraryProductionSpec
+import net.rubygrapefruit.gen.specs.NameProvider
 
 class ExternalLibrariesBuilder(
     private val projectNames: NameProvider,
     private val group: String,
     private val librarySpecFactory: LibrarySpecFactory,
-) : FlatBuildComponentsBuilder<ExternalLibraryProductionSpec>() {
+) : ComponentsBuilder<ExternalLibraryProductionSpec>() {
+    private val builders = mutableListOf<SingleExternalLibraryBuilder>()
+
+    override val currentSize: Int
+        get() = builders.fold(0) { i, v -> i + v.currentSize }
+
     val exportedLibraries: ExternalLibrariesSpec = object : ExternalLibrariesSpec {
         override val libraries: List<ExternalLibraryProductionSpec>
             get() = contents
     }
 
-    val useSpec: IncomingLibrariesSpec = object : IncomingLibrariesSpec {
-        override val libraries: List<ExternalLibraryUseSpec>
-            get() = contents.map { ExternalLibraryUseSpec(it.coordinates, it.spec.toApiSpec()) }
+    fun add(): SingleExternalLibraryBuilder {
+        assertNotFinalized()
+        val library = SingleExternalLibraryBuilder(projectNames, group, librarySpecFactory)
+        builders.add(library)
+        return library
     }
 
-    override fun createComponent(
-        plugins: List<PluginUseSpec>,
-        externalLibraries: List<ExternalLibraryProductionSpec>,
-        internalLibraries: List<InternalLibraryProductionSpec>,
-        incomingLibraries: List<ExternalLibraryUseSpec>
-    ): ExternalLibraryProductionSpec {
-        val name = BaseName(projectNames.next())
-        val coordinates = ExternalLibraryCoordinates(group, name.camelCase, "1.0")
-        val libraryApi = librarySpecFactory.library(name)
-        return ExternalLibraryProductionSpec(
-            coordinates,
-            libraryApi,
-            plugins,
-            incomingLibraries,
-            externalLibraries,
-            internalLibraries
-        )
+    override fun calculateContents(): List<ExternalLibraryProductionSpec> {
+        return builders.flatMap { it.contents }
     }
 }

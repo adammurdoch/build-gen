@@ -87,7 +87,7 @@ class DefaultBuildTreeBuilder(
 
     private class DefaultLibraryRef(
         val owner: BuildBuilderImpl,
-        val libraries: ExternalLibrariesBuilder
+        val libraries: SingleExternalLibraryBuilder
     ) : LibraryRef
 
     private class LibrariesRefImpl(
@@ -103,19 +103,19 @@ class DefaultBuildTreeBuilder(
         private val usesLibraries = CompositeIncomingLibrariesSpec()
         private val producesPlugins = mutableListOf<PluginsBuilder>()
         private val producesApps = mutableListOf<ApplicationsBuilder>()
-        private val producesLibs = mutableListOf<ExternalLibrariesBuilder>()
-        private val topLibs = CompositeExternalLibrariesSpec()
         private val defaultNames = FixedNames(baseName.camelCase)
         private val appNames = MutableNames(defaultNames)
         private val pluginNames = MutableNames(defaultNames)
         private val libraryNames = MutableNames(defaultNames)
+        private val topLibs = ExternalLibrariesBuilder(libraryNames, "test.${baseName.lowerCaseDotSeparator}", librarySpecFactory)
+        private val bottomLibs = ExternalLibrariesBuilder(libraryNames, "test.${baseName.lowerCaseDotSeparator}", librarySpecFactory)
         private val emptyComponents = EmptyComponentsBuilder(libraryNames)
         private val internalComponents = InternalLibrariesBuilder(libraryNames, librarySpecFactory)
         private var includeSelf = false
         private var targetComponentCount: Int? = null
 
         private val currentComponentCount
-            get() = producesPlugins.currentSize + producesApps.currentSize + producesLibs.currentSize + internalComponents.currentSize + emptyComponents.currentSize
+            get() = producesPlugins.currentSize + producesApps.currentSize + topLibs.currentSize + bottomLibs.currentSize + internalComponents.currentSize + emptyComponents.currentSize
 
         init {
             internalComponents.usesPlugins(usesPlugins)
@@ -162,7 +162,8 @@ class DefaultBuildTreeBuilder(
             val app = ApplicationsBuilder(appNames, applicationSpecFactory)
             app.add()
             app.usesPlugins(usesPlugins)
-            app.usesLibraries(topLibs)
+            app.usesLibraries(topLibs.exportedLibraries)
+            app.usesLibraries(bottomLibs.exportedLibraries)
             app.usesLibraries(implementationLibs())
             app.usesLibraries(usesLibraries)
             producesApps.add(app)
@@ -198,26 +199,22 @@ class DefaultBuildTreeBuilder(
         }
 
         override fun producesLibrary(): LibraryRef {
-            val ref = DefaultLibraryRef(this, addLibrary(usesLibraries, implementationLibs(), ExternalLibrariesSpec.empty))
-            topLibs.add(ref.libraries.exportedLibraries)
-            return ref
+            val library = addLibrary(topLibs, usesLibraries, implementationLibs(), ExternalLibrariesSpec.empty)
+            return DefaultLibraryRef(this, library)
         }
 
         override fun producesLibraries(): LibrariesRef {
-            val bottom = addLibrary(IncomingLibrariesSpec.empty, implementationLibs(), ExternalLibrariesSpec.empty)
-            val top = addLibrary(usesLibraries, InternalLibrariesSpec.empty, bottom.exportedLibraries)
-            topLibs.add(top.exportedLibraries)
+            val bottom = addLibrary(bottomLibs, IncomingLibrariesSpec.empty, implementationLibs(), ExternalLibrariesSpec.empty)
+            val top = addLibrary(topLibs, usesLibraries, InternalLibrariesSpec.empty, bottom.exportedLibraries)
             return LibrariesRefImpl(DefaultLibraryRef(this, top), DefaultLibraryRef(this, bottom))
         }
 
-        private fun addLibrary(incomingLibraries: IncomingLibrariesSpec, implementationLibs: InternalLibrariesSpec, requiresLibrariesFromThisBuild: ExternalLibrariesSpec): ExternalLibrariesBuilder {
-            val library = ExternalLibrariesBuilder(libraryNames, "test.${baseName.lowerCaseDotSeparator}", librarySpecFactory)
-            library.add()
+        private fun addLibrary(container: ExternalLibrariesBuilder, incomingLibraries: IncomingLibrariesSpec, implementationLibs: InternalLibrariesSpec, requiresLibrariesFromThisBuild: ExternalLibrariesSpec): SingleExternalLibraryBuilder {
+            val library = container.add()
             library.usesPlugins(usesPlugins)
             library.usesLibraries(requiresLibrariesFromThisBuild)
             library.usesLibraries(implementationLibs)
             library.usesLibraries(incomingLibraries)
-            producesLibs.add(library)
             return library
         }
 
@@ -265,11 +262,10 @@ class DefaultBuildTreeBuilder(
                     addInternalComponent()
                 }
             }
-            topLibs.finalize()
 
             val components = FixedComponentsSpec(
                 producesPlugins.flatMap { it.contents },
-                producesLibs.flatMap { it.contents },
+                topLibs.contents + bottomLibs.contents,
                 producesApps.flatMap { it.contents },
                 internalComponents.contents
             )
