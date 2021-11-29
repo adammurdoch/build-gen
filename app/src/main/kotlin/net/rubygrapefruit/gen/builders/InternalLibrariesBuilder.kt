@@ -1,6 +1,8 @@
 package net.rubygrapefruit.gen.builders
 
 import net.rubygrapefruit.gen.specs.*
+import java.lang.Integer.max
+import kotlin.math.min
 
 /**
  * Builds a set of zero or more internal libraries.
@@ -33,25 +35,28 @@ class InternalLibrariesBuilder(
             val top = FlatBuilder(projectNames, librarySpecFactory)
             val middle = InternalLibrariesBuilder(projectNames, librarySpecFactory)
             val bottom = InternalLibrariesBuilder(projectNames, librarySpecFactory)
-            val perComponent = count / 3
-            val remainder = count % 3
 
-            top.add(perComponent + if (remainder > 0) 1 else 0)
+            // top is 1/4 of total items, rounding up, up to 10
+            val topSize = min(10, max(1, count / 4))
+            top.add(topSize)
             top.usesPlugins(plugins)
             top.usesLibraries(externalLibraries)
             top.usesLibraries(internalLibraries)
             top.usesLibraries(incomingLibraries)
 
-            middle.add(perComponent + if (remainder > 1) 1 else 0)
+            // middle is 1/2 of remaining items, rounding down
+            val middleSize = (count - topSize) / 2
+            middle.add(middleSize)
             middle.usesPlugins(plugins)
             middle.usesLibraries(externalLibraries)
             middle.usesLibraries(internalLibraries)
             middle.usesLibraries(incomingLibraries)
 
-            bottom.add(perComponent)
+            val bottomSize = count - topSize - middleSize
+            bottom.add(bottomSize)
             bottom.usesPlugins(plugins)
 
-            // TODO - distribute dependencies across top libraries
+            // TODO - distribute incoming dependencies across top and middle libraries
 
             val bottomExported = PartitioningSpec(bottom.exportedLibraries)
             top.usesLibraries(middle.exportedLibraries)
