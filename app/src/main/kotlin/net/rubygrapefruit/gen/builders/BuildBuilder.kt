@@ -56,9 +56,10 @@ interface BuildBuilder {
     fun producesLibrary(): LibraryRef
 
     /**
-     * Adds multiple libraries that this build should produce.
+     * Adds a library that this build should produce. Does not depend on any incoming libraries, so can be used to define cycles between builds. All applications, plugins and other libraries
+     * will by default depend on this library, either directly or indirectly.
      */
-    fun producesLibraries(): LibrariesRef
+    fun producesBottomLibrary(): LibraryRef
 
     /**
      * The projects of this build should use the given plugin.

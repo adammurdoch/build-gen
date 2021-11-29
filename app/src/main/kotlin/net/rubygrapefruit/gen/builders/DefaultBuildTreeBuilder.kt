@@ -90,10 +90,6 @@ class DefaultBuildTreeBuilder(
         val libraries: ExternalLibraryBuilder
     ) : LibraryRef
 
-    private class LibrariesRefImpl(
-        override val top: DefaultLibraryRef, override val bottom: DefaultLibraryRef
-    ) : LibrariesRef
-
     private inner class BuildBuilderImpl(
         val owner: BuildBuilderImpl?, val displayName: String, val baseName: BaseName, artifactType: String, val rootDir: Path
     ) : BuildBuilder, Mappable<BuildSpec> {
@@ -194,14 +190,13 @@ class DefaultBuildTreeBuilder(
         }
 
         override fun producesLibrary(): LibraryRef {
-            val library = addLibrary(topLibs, usesLibraries, implementationLibs(), ExternalLibrariesSpec.empty)
+            val library = addLibrary(topLibs, usesLibraries, implementationLibs(), bottomLibs.exportedLibraries)
             return DefaultLibraryRef(this, library)
         }
 
-        override fun producesLibraries(): LibrariesRef {
+        override fun producesBottomLibrary(): LibraryRef {
             val bottom = addLibrary(bottomLibs, IncomingLibrariesSpec.empty, implementationLibs(), ExternalLibrariesSpec.empty)
-            val top = addLibrary(topLibs, usesLibraries, InternalLibrariesSpec.empty, bottom.exportedLibraries)
-            return LibrariesRefImpl(DefaultLibraryRef(this, top), DefaultLibraryRef(this, bottom))
+            return DefaultLibraryRef(this, bottom)
         }
 
         private fun addLibrary(container: ExternalLibrariesBuilder, incomingLibraries: IncomingLibrariesSpec, implementationLibs: InternalLibrariesSpec, requiresLibrariesFromThisBuild: ExternalLibrariesSpec): ExternalLibraryBuilder {

@@ -65,29 +65,32 @@ abstract class BuildTreeTemplate(
             val child1Library = child1 {
                 producesLibrary()
             }
-            val child2Library = child2 {
-                producesLibraries()
+            val child2TopLibrary = child2 {
+                producesLibrary()
+            }
+            val child2BottomLibrary = child2 {
+                producesBottomLibrary()
             }
             child1 {
-                requires(child2Library.bottom)
+                requires(child2BottomLibrary)
             }
             child2 {
                 requires(child1Library)
             }
             main {
-                requires(child2Library.top)
+                requires(child2TopLibrary)
             }
         }
 
         val childBuildsUseMainBuildAndWithPluginChildBuild = withChildBuilds(ProductionTreeStructure.ChildBuildsUsesMainBuild, BuildLogic.ChildBuild) {
             childBuildPlugin()
-            val mainLibraries = main.producesLibraries()
+            val mainLibrary = main.producesBottomLibrary()
             val child1Library = child1 {
-                requires(mainLibraries.bottom)
+                requires(mainLibrary)
                 producesLibrary()
             }
             val child2Library = child2 {
-                requires(mainLibraries.bottom)
+                requires(mainLibrary)
                 producesLibrary()
             }
             main {
