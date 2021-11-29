@@ -1,6 +1,7 @@
 package net.rubygrapefruit.gen.generators
 
 import net.rubygrapefruit.gen.builders.BuildContentsBuilder
+import net.rubygrapefruit.gen.builders.ProjectBuilder
 import net.rubygrapefruit.gen.files.FileGenerationContext
 import net.rubygrapefruit.gen.files.ScriptGenerator
 import net.rubygrapefruit.gen.specs.*
@@ -56,11 +57,7 @@ class BuildContentsGenerator(
                     hasProductionCode = true
                     project(app.baseName.camelCase) {
                         producesApp(app.implementationSpec)
-                        requiresPlugins(app.usesPlugins)
-                        requiresExternalLibraries(app.usesLibraries)
-                        for (required in app.usesImplementationLibraries) {
-                            requiresLibrary(projectForInternalLib.getValue(required))
-                        }
+                        connectDependencies(app, projectForExternalLib, projectForInternalLib)
                     }
                 }
 
@@ -68,22 +65,15 @@ class BuildContentsGenerator(
                     hasProductionCode = true
                     project(library.coordinates.name) {
                         projectForExternalLib[library] = producesLibrary(library)
-                        requiresPlugins(library.usesPlugins)
-                        requiresExternalLibraries(library.usesLibraries)
-                        for (required in library.usesLibrariesFromSameBuild) {
-                            requiresLibrary(projectForExternalLib.getValue(required))
-                        }
-                        for (required in library.usesImplementationLibraries) {
-                            requiresLibrary(projectForInternalLib.getValue(required))
-                        }
+                        connectDependencies(library, projectForExternalLib, projectForInternalLib)
                     }
                 }
 
                 override fun visitInternalLibrary(library: InternalLibraryProductionSpec) {
                     hasProductionCode = true
                     project(library.baseName.camelCase) {
-                        requiresPlugins(library.usesPlugins)
                         projectForInternalLib[library] = producesLibrary(library.spec)
+                        connectDependencies(library, projectForExternalLib, projectForInternalLib)
                     }
                 }
 
@@ -100,7 +90,7 @@ class BuildContentsGenerator(
                         for (plugin in pluginBundle.plugins) {
                             producesPlugin(plugin)
                         }
-                        requiresPlugins(pluginBundle.usesPlugins)
+                        connectDependencies(pluginBundle, projectForExternalLib, projectForInternalLib)
                     }
                 } else {
                     for (pluginBundle in allPluginBundles) {
@@ -108,11 +98,26 @@ class BuildContentsGenerator(
                             for (plugin in pluginBundle.plugins) {
                                 producesPlugin(plugin)
                             }
-                            requiresPlugins(pluginBundle.usesPlugins)
+                            connectDependencies(pluginBundle, projectForExternalLib, projectForInternalLib)
                         }
                     }
                 }
             }
+        }
+    }
+
+    private fun ProjectBuilder.connectDependencies(
+        component: BuildComponentProductionSpec,
+        projectForExternalLib: Map<ExternalLibraryProductionSpec, LibraryUseSpec>,
+        projectForInternalLib: Map<InternalLibraryProductionSpec, LibraryUseSpec>
+    ) {
+        requiresPlugins(component.usesPlugins)
+        requiresExternalLibraries(component.usesLibraries)
+        for (required in component.usesLibrariesFromSameBuild) {
+            requiresLibrary(projectForExternalLib.getValue(required))
+        }
+        for (required in component.usesImplementationLibraries) {
+            requiresLibrary(projectForInternalLib.getValue(required))
         }
     }
 }
