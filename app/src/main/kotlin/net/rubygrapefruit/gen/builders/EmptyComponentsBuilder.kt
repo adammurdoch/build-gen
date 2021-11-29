@@ -13,11 +13,11 @@ class EmptyComponentsBuilder(
         get() = count
 
     fun add(extra: Int) {
-        assertNotFinalized()
+        assertCanMutate()
         count += extra
     }
 
-    override fun calculateContents(): List<EmptyComponentProductionSpec> {
+    override fun calculateValue(): List<EmptyComponentProductionSpec> {
         val result = mutableListOf<EmptyComponentProductionSpec>()
         for (i in 0 until count) {
             result.add(EmptyComponentProductionSpec(BaseName(projectNames.next())))

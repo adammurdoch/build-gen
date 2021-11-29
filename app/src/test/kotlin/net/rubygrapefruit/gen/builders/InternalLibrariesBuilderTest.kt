@@ -49,7 +49,16 @@ class InternalLibrariesBuilderTest {
         builder.add(4)
         assertEquals(4, builder.currentSize)
 
-        assertEquals(1, builder.exportedLibraries.libraries.size)
+        assertEquals(2, builder.exportedLibraries.libraries.size)
         assertEquals(4, builder.contents.size)
+    }
+
+    @Test
+    fun canContainNine() {
+        builder.add(9)
+        assertEquals(9, builder.currentSize)
+
+        assertEquals(3, builder.exportedLibraries.libraries.size)
+        assertEquals(9, builder.contents.size)
     }
 }

@@ -16,22 +16,22 @@ interface InternalLibrariesSpec {
     }
 }
 
-class CompositeInternalLibrariesSpec : InternalLibrariesSpec {
+class CompositeInternalLibrariesSpec : FinalizableBuilder<List<InternalLibraryProductionSpec>>(), InternalLibrariesSpec {
     private val contents = mutableListOf<InternalLibrariesSpec>()
-    private var finalized = false
 
     override val libraries: List<InternalLibraryProductionSpec>
-        get() {
-            require(finalized)
-            return contents.flatMap { it.libraries }
-        }
+        get() = value
+
+    override fun calculateValue(): List<InternalLibraryProductionSpec> {
+        return contents.flatMap { it.libraries }
+    }
 
     fun finalize() {
-        finalized = true
+        finalizeOnRead()
     }
 
     fun add(library: InternalLibrariesSpec) {
-        require(!finalized)
+        assertCanMutate()
         contents.add(library)
     }
 }

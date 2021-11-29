@@ -16,22 +16,22 @@ interface IncomingLibrariesSpec {
     }
 }
 
-class CompositeIncomingLibrariesSpec : IncomingLibrariesSpec {
+class CompositeIncomingLibrariesSpec : FinalizableBuilder<List<ExternalLibraryUseSpec>>(), IncomingLibrariesSpec {
     private val contents = mutableListOf<IncomingLibrariesSpec>()
-    private var finalized = false
 
     override val libraries: List<ExternalLibraryUseSpec>
-        get() {
-            require(finalized)
-            return contents.flatMap { it.libraries }
-        }
+        get() = value
+
+    override fun calculateValue(): List<ExternalLibraryUseSpec> {
+        return contents.flatMap { it.libraries }
+    }
 
     fun finalize() {
-        finalized = true
+        finalizeOnRead()
     }
 
     fun add(library: IncomingLibrariesSpec) {
-        require(!finalized)
+        assertCanMutate()
         contents.add(library)
     }
 }

@@ -16,22 +16,22 @@ interface PluginsSpec {
     }
 }
 
-class CompositePluginsSpec : PluginsSpec {
+class CompositePluginsSpec : FinalizableBuilder<List<PluginUseSpec>>(), PluginsSpec {
     private val contents = mutableListOf<PluginsSpec>()
-    private var finalized = false
 
     override val plugins: List<PluginUseSpec>
-        get() {
-            require(finalized)
-            return contents.flatMap { it.plugins }.distinct()
-        }
+        get() = value
+
+    override fun calculateValue(): List<PluginUseSpec> {
+        return contents.flatMap { it.plugins }.distinct()
+    }
 
     fun finalize() {
-        finalized = true
+        finalizeOnRead()
     }
 
     fun add(plugin: PluginsSpec) {
-        require(!finalized)
+        assertCanMutate()
         contents.add(plugin)
     }
 }

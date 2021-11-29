@@ -7,7 +7,7 @@ class ApplicationBuilder(
     private var applicationSpecFactory: ApplicationSpecFactory
 ) : SingleComponentBuilder<AppProductionSpec>() {
     fun withFactory(applicationSpecFactory: ApplicationSpecFactory) {
-        assertNotFinalized()
+        assertCanMutate()
         this.applicationSpecFactory = applicationSpecFactory
     }
 

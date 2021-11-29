@@ -9,26 +9,26 @@ abstract class BuildComponentsBuilder<T : BuildComponentProductionSpec> : Compon
     private val usesIncomingLibraries = CompositeIncomingLibrariesSpec()
 
     fun usesPlugins(spec: PluginsSpec) {
-        assertNotFinalized()
+        assertCanMutate()
         usesPlugins.add(spec)
     }
 
     fun usesLibraries(spec: ExternalLibrariesSpec) {
-        assertNotFinalized()
+        assertCanMutate()
         usesExternalLibraries.add(spec)
     }
 
     fun usesLibraries(spec: InternalLibrariesSpec) {
-        assertNotFinalized()
+        assertCanMutate()
         usesInternalLibraries.add(spec)
     }
 
     fun usesLibraries(spec: IncomingLibrariesSpec) {
-        assertNotFinalized()
+        assertCanMutate()
         usesIncomingLibraries.add(spec)
     }
 
-    final override fun calculateContents(): List<T> {
+    final override fun calculateValue(): List<T> {
         usesPlugins.finalize()
         usesExternalLibraries.finalize()
         usesInternalLibraries.finalize()

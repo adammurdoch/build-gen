@@ -29,12 +29,8 @@ class InternalLibrariesBuilder(
         if (count == 0) {
             exported = emptyList()
             return emptyList()
-        } else if (count == 1) {
-            val library = nextLibrary(plugins.plugins, externalLibraries.libraries, internalLibraries.libraries, incomingLibraries.libraries)
-            exported = listOf(library)
-            return listOf(library)
         } else {
-            val top = InternalLibrariesBuilder(projectNames, librarySpecFactory)
+            val top = FlatBuilder(projectNames, librarySpecFactory)
             val middle = InternalLibrariesBuilder(projectNames, librarySpecFactory)
             val bottom = InternalLibrariesBuilder(projectNames, librarySpecFactory)
             val perComponent = count / 3
@@ -55,25 +51,60 @@ class InternalLibrariesBuilder(
             bottom.add(perComponent)
             bottom.usesPlugins(plugins)
 
-            // TODO - split the bottom between top and middle
-            top.usesLibraries(middle.exportedLibraries)
-            top.usesLibraries(bottom.exportedLibraries)
-            middle.usesLibraries(bottom.exportedLibraries)
+            // TODO - distribute dependencies across top libraries
 
-            exported = top.exportedLibraries.libraries
+            val bottomExported = PartitioningSpec(bottom.exportedLibraries)
+            top.usesLibraries(middle.exportedLibraries)
+            top.usesLibraries(bottomExported.left)
+            middle.usesLibraries(bottomExported.right)
+
+            exported = top.contents
 
             return top.contents + middle.contents + bottom.contents
         }
     }
 
-    private fun nextLibrary(
-        plugins: List<PluginUseSpec>,
-        externalLibraries: List<ExternalLibraryProductionSpec>,
-        internalLibraries: List<InternalLibraryProductionSpec>,
-        incomingLibraries: List<ExternalLibraryUseSpec>
-    ): InternalLibraryProductionSpec {
-        val libraryName = BaseName(projectNames.next())
-        val spec = librarySpecFactory.library(libraryName)
-        return InternalLibraryProductionSpec(libraryName, spec, plugins, incomingLibraries, externalLibraries, internalLibraries)
+    private class PartitioningSpec(val from: InternalLibrariesSpec) {
+        val left: InternalLibrariesSpec = object : InternalLibrariesSpec {
+            override val libraries: List<InternalLibraryProductionSpec>
+                get() {
+                    val allLibraries = from.libraries
+                    val count = allLibraries.size / 2 + allLibraries.size % 2
+                    return allLibraries.take(count)
+                }
+        }
+
+        val right: InternalLibrariesSpec = object : InternalLibrariesSpec {
+            override val libraries: List<InternalLibraryProductionSpec>
+                get() {
+                    val allLibraries = from.libraries
+                    val count = allLibraries.size / 2 + allLibraries.size % 2
+                    return allLibraries.drop(count)
+                }
+        }
+    }
+
+    private class FlatBuilder(
+        private val projectNames: NameProvider,
+        private val librarySpecFactory: LibrarySpecFactory,
+    ) : ZeroOrMoreBuildComponentsBuilder<InternalLibraryProductionSpec>() {
+        override fun createComponents(count: Int, plugins: PluginsSpec, externalLibraries: ExternalLibrariesSpec, internalLibraries: InternalLibrariesSpec, incomingLibraries: IncomingLibrariesSpec): List<InternalLibraryProductionSpec> {
+            val results = mutableListOf<InternalLibraryProductionSpec>()
+            for (i in 0 until count) {
+                results.add(nextLibrary(plugins.plugins, externalLibraries.libraries, internalLibraries.libraries, incomingLibraries.libraries))
+            }
+            return results
+        }
+
+        private fun nextLibrary(
+            plugins: List<PluginUseSpec>,
+            externalLibraries: List<ExternalLibraryProductionSpec>,
+            internalLibraries: List<InternalLibraryProductionSpec>,
+            incomingLibraries: List<ExternalLibraryUseSpec>
+        ): InternalLibraryProductionSpec {
+            val libraryName = BaseName(projectNames.next())
+            val spec = librarySpecFactory.library(libraryName)
+            return InternalLibraryProductionSpec(libraryName, spec, plugins, incomingLibraries, externalLibraries, internalLibraries)
+        }
     }
 }

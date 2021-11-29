@@ -2,7 +2,7 @@ package net.rubygrapefruit.gen.builders
 
 import net.rubygrapefruit.gen.specs.BuildComponentProductionSpec
 
-abstract class MultipleComponentsBuilder<T : BuildComponentProductionSpec, B : ComponentsBuilder<T>>(
+abstract class CompositeComponentsBuilder<T : BuildComponentProductionSpec, B : ComponentsBuilder<T>>(
 ) : ComponentsBuilder<T>() {
     private val builders = mutableListOf<B>()
 
@@ -10,7 +10,7 @@ abstract class MultipleComponentsBuilder<T : BuildComponentProductionSpec, B : C
         get() = builders.fold(0) { i, v -> i + v.currentSize }
 
     fun add(): B {
-        assertNotFinalized()
+        assertCanMutate()
         val builder = createBuilder()
         builders.add(builder)
         return builder
@@ -18,7 +18,7 @@ abstract class MultipleComponentsBuilder<T : BuildComponentProductionSpec, B : C
 
     protected abstract fun createBuilder(): B
 
-    override fun calculateContents(): List<T> {
+    override fun calculateValue(): List<T> {
         return builders.flatMap { it.contents }
     }
 }

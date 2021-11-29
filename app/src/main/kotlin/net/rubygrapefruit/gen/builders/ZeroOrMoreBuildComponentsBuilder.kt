@@ -9,7 +9,7 @@ abstract class ZeroOrMoreBuildComponentsBuilder<T : BuildComponentProductionSpec
         get() = count
 
     fun add(extra: Int) {
-        assertNotFinalized()
+        assertCanMutate()
         count += extra
     }
 
