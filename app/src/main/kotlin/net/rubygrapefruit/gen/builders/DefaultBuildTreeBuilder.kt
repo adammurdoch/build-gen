@@ -54,7 +54,7 @@ class DefaultBuildTreeBuilder(
 
     private class PluginRefImpl(
         val owner: BuildBuilderImpl,
-        val plugin: PluginsBuilder
+        val plugin: PluginBuilder
     ) : PluginRef
 
     private interface Mappable<T> {
@@ -87,7 +87,7 @@ class DefaultBuildTreeBuilder(
 
     private class DefaultLibraryRef(
         val owner: BuildBuilderImpl,
-        val libraries: SingleExternalLibraryBuilder
+        val libraries: ExternalLibraryBuilder
     ) : LibraryRef
 
     private class LibrariesRefImpl(
@@ -95,18 +95,18 @@ class DefaultBuildTreeBuilder(
     ) : LibrariesRef
 
     private inner class BuildBuilderImpl(
-        val owner: BuildBuilderImpl?, val displayName: String, val baseName: BaseName, val artifactType: String, val rootDir: Path
+        val owner: BuildBuilderImpl?, val displayName: String, val baseName: BaseName, artifactType: String, val rootDir: Path
     ) : BuildBuilder, Mappable<BuildSpec> {
         private val children = mutableListOf<BuildBuilderImpl>()
         private var pluginBuilds = 0
         private val usesPlugins = CompositePluginsSpec()
         private val usesLibraries = CompositeIncomingLibrariesSpec()
-        private val producesPlugins = mutableListOf<PluginsBuilder>()
-        private val producesApps = mutableListOf<ApplicationsBuilder>()
         private val defaultNames = FixedNames(baseName.camelCase)
         private val appNames = MutableNames(defaultNames)
         private val pluginNames = MutableNames(defaultNames)
         private val libraryNames = MutableNames(defaultNames)
+        private val producesPlugins = PluginsBuilder(pluginNames, artifactType, pluginSpecFactory)
+        private val producesApps = ApplicationsBuilder(appNames, applicationSpecFactory)
         private val topLibs = ExternalLibrariesBuilder(libraryNames, "test.${baseName.lowerCaseDotSeparator}", librarySpecFactory)
         private val bottomLibs = ExternalLibrariesBuilder(libraryNames, "test.${baseName.lowerCaseDotSeparator}", librarySpecFactory)
         private val emptyComponents = EmptyComponentsBuilder(libraryNames)
@@ -152,31 +152,26 @@ class DefaultBuildTreeBuilder(
         }
 
         override fun producesPlugin(): PluginRef {
-            val plugin = PluginsBuilder(pluginNames, artifactType, pluginSpecFactory)
-            plugin.add()
-            producesPlugins.add(plugin)
+            val plugin = producesPlugins.add()
             return PluginRefImpl(this, plugin)
         }
 
         override fun producesApp() {
-            val app = ApplicationsBuilder(appNames, applicationSpecFactory)
-            app.add()
+            val app = producesApps.add()
             app.usesPlugins(usesPlugins)
             app.usesLibraries(topLibs.exportedLibraries)
             app.usesLibraries(bottomLibs.exportedLibraries)
             app.usesLibraries(implementationLibs())
             app.usesLibraries(usesLibraries)
-            producesApps.add(app)
         }
 
         override fun producesToolingApiClient() {
-            val app = ApplicationsBuilder(appNames, object : ApplicationSpecFactory {
+            val app = producesApps.add()
+            app.withFactory(object : ApplicationSpecFactory {
                 override fun application(baseName: BaseName): AppImplementationSpec {
                     return ToolingApiClientSpec(main.rootDir)
                 }
             })
-            app.add()
-            producesApps.add(app)
         }
 
         private fun implementationLibs(): InternalLibrariesSpec {
@@ -209,7 +204,7 @@ class DefaultBuildTreeBuilder(
             return LibrariesRefImpl(DefaultLibraryRef(this, top), DefaultLibraryRef(this, bottom))
         }
 
-        private fun addLibrary(container: ExternalLibrariesBuilder, incomingLibraries: IncomingLibrariesSpec, implementationLibs: InternalLibrariesSpec, requiresLibrariesFromThisBuild: ExternalLibrariesSpec): SingleExternalLibraryBuilder {
+        private fun addLibrary(container: ExternalLibrariesBuilder, incomingLibraries: IncomingLibrariesSpec, implementationLibs: InternalLibrariesSpec, requiresLibrariesFromThisBuild: ExternalLibrariesSpec): ExternalLibraryBuilder {
             val library = container.add()
             library.usesPlugins(usesPlugins)
             library.usesLibraries(requiresLibrariesFromThisBuild)
@@ -264,9 +259,9 @@ class DefaultBuildTreeBuilder(
             }
 
             val components = FixedComponentsSpec(
-                producesPlugins.flatMap { it.contents },
+                producesPlugins.contents,
                 topLibs.contents + bottomLibs.contents,
-                producesApps.flatMap { it.contents },
+                producesApps.contents,
                 internalComponents.contents
             )
             return BuildSpec(
@@ -281,7 +276,4 @@ class DefaultBuildTreeBuilder(
             )
         }
     }
-
-    private val List<BuildComponentsBuilder<*>>.currentSize: Int
-        get() = fold(0) { v, i -> v + i.currentSize }
 }

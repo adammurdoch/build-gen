@@ -1,19 +1,13 @@
 package net.rubygrapefruit.gen.builders
 
-import net.rubygrapefruit.gen.specs.*
+import net.rubygrapefruit.gen.specs.AppProductionSpec
+import net.rubygrapefruit.gen.specs.NameProvider
 
 class ApplicationsBuilder(
     private val projectNames: NameProvider,
     private val applicationSpecFactory: ApplicationSpecFactory
-) : FlatBuildComponentsBuilder<AppProductionSpec>() {
-    override fun createComponent(
-        plugins: List<PluginUseSpec>,
-        externalLibraries: List<ExternalLibraryProductionSpec>,
-        internalLibraries: List<InternalLibraryProductionSpec>,
-        incomingLibraries: List<ExternalLibraryUseSpec>
-    ): AppProductionSpec {
-        val baseName = BaseName(projectNames.next())
-        val spec = applicationSpecFactory.application(baseName)
-        return AppProductionSpec(baseName, spec, plugins, incomingLibraries, externalLibraries, internalLibraries)
+) : MultipleComponentsBuilder<AppProductionSpec, ApplicationBuilder>() {
+    override fun createBuilder(): ApplicationBuilder {
+        return ApplicationBuilder(projectNames, applicationSpecFactory)
     }
 }

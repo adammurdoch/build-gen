@@ -2,6 +2,9 @@ package net.rubygrapefruit.gen.builders
 
 import net.rubygrapefruit.gen.specs.*
 
+/**
+ * Creates zero or more components in a flat structure.
+ */
 abstract class FlatBuildComponentsBuilder<T : BuildComponentProductionSpec> : BuildComponentsBuilder<T>() {
     private var count = 0
 
