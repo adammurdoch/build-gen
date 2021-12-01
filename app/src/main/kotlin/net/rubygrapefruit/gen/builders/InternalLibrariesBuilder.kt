@@ -8,7 +8,7 @@ import kotlin.math.min
  * Builds a set of zero or more internal libraries.
  */
 class InternalLibrariesBuilder(
-    private val projectNames: NameProvider,
+    private val projectNames: TypedNameProvider,
     private val librarySpecFactory: LibrarySpecFactory,
 ) : ZeroOrMoreBuildComponentsBuilder<InternalLibraryProductionSpec>() {
     private lateinit var exported: List<InternalLibraryProductionSpec>
@@ -32,27 +32,32 @@ class InternalLibrariesBuilder(
             exported = emptyList()
             return emptyList()
         } else {
-            val top = FlatBuilder(projectNames, librarySpecFactory)
-            val middle = InternalLibrariesBuilder(projectNames, librarySpecFactory)
-            val bottom = InternalLibrariesBuilder(projectNames, librarySpecFactory)
-
             // top is 1/4 of total items, rounding up, up to 10
             val topSize = min(10, max(1, count / 4))
+
+            // middle is 1/2 of remaining items, rounding down
+            val middleSize = (count - topSize) / 2
+            val bottomSize = count - topSize - middleSize
+
+            // If middle and bottom are empty, use "bottom" names
+            val topNames = if (topSize == count) projectNames.bottom.names else projectNames.top.names
+
+            val top = FlatBuilder(topNames, librarySpecFactory)
+            val middle = InternalLibrariesBuilder(projectNames.middle, librarySpecFactory)
+            val bottom = InternalLibrariesBuilder(projectNames.bottom, librarySpecFactory)
+
             top.add(topSize)
             top.usesPlugins(plugins)
             top.usesLibraries(externalLibraries)
             top.usesLibraries(internalLibraries)
             top.usesLibraries(incomingLibraries)
 
-            // middle is 1/2 of remaining items, rounding down
-            val middleSize = (count - topSize) / 2
             middle.add(middleSize)
             middle.usesPlugins(plugins)
             middle.usesLibraries(externalLibraries)
             middle.usesLibraries(internalLibraries)
             middle.usesLibraries(incomingLibraries)
 
-            val bottomSize = count - topSize - middleSize
             bottom.add(bottomSize)
             bottom.usesPlugins(plugins)
 

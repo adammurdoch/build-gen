@@ -20,6 +20,7 @@ sealed class ProductionBuildTreeBuilder(val builder: BuildTreeBuilder) {
 
     fun toolingApiClient() {
         builder.build("tooling-api") {
+            appNames("client")
             producesToolingApiClient()
         }
     }
@@ -28,8 +29,18 @@ sealed class ProductionBuildTreeBuilder(val builder: BuildTreeBuilder) {
 sealed class ProductionBuildTreeBuilderWithSource(builder: BuildTreeBuilder) : ProductionBuildTreeBuilder(builder) {
     init {
         main.appNames("app")
-        main.libraryNames("util")
+        main.internalLibraryNames("api", "main", "util")
         main.producesApp()
+    }
+
+    fun pluginBuild(): BuildBuilder {
+        return main {
+            pluginBuild("plugins") {
+                libraryNames("generator")
+                internalLibraryNames("common", "common", "common")
+                this
+            }
+        }
     }
 }
 
@@ -48,9 +59,7 @@ class MainBuildOnlyBuilder(builder: BuildTreeBuilder) : ProductionBuildTreeBuild
 
     fun childBuildPlugin() {
         main {
-            val plugin = pluginBuild("plugins") {
-                producesPlugin()
-            }
+            val plugin = pluginBuild().producesPlugin()
             requires(plugin)
         }
     }
@@ -100,7 +109,7 @@ class ChildBuildsBuilder(builder: BuildTreeBuilder) : ProductionBuildTreeBuilder
     }
 
     fun childBuildPlugin(): BuildBuilder {
-        val pluginBuild = main.pluginBuild("plugins")
+        val pluginBuild = pluginBuild()
         val plugin = pluginBuild.producesPlugin()
         main {
             requires(plugin)
@@ -151,9 +160,7 @@ class NestedChildBuildsBuilder(builder: BuildTreeBuilder) : ProductionBuildTreeB
     }
 
     fun childBuildPlugin() {
-        val plugin = main.pluginBuild("plugins") {
-            producesPlugin()
-        }
+        val plugin = pluginBuild().producesPlugin()
         main {
             requires(plugin)
         }

@@ -13,6 +13,7 @@ class DefaultBuildTreeBuilder(
     private val pluginSpecFactory = implementation.pluginSpecFactory
     private val librarySpecFactory = implementation.librarySpecFactory
     private val applicationSpecFactory = implementation.applicationSpecFactory
+    private val names = Names()
     private val builds = mutableListOf<BuildBuilderImpl>()
     private val main = BuildBuilderImpl(null, "main build", BaseName("main"), "main", rootDir)
     private var heapSize: String? = null
@@ -104,16 +105,19 @@ class DefaultBuildTreeBuilder(
         private var pluginBuilds = 0
         private val usesPlugins = CompositePluginsSpec()
         private val usesLibraries = CompositeIncomingLibrariesSpec()
-        private val defaultNames = FixedNames(baseName.camelCase)
+        private val pluginNames = Names().names(baseName.camelCase)
+        private val defaultNames = names.names(baseName.camelCase)
         private val appNames = MutableNames(defaultNames)
-        private val pluginNames = MutableNames(defaultNames)
         private val libraryNames = MutableNames(defaultNames)
+        private val topInternalLibraryNames = MutableNames(defaultNames)
+        private val middleInternalLibraryNames = MutableNames(defaultNames)
+        private val bottomInternalLibraryNames = MutableNames(defaultNames)
         private val producesPlugins = PluginsBuilder(pluginNames, artifactType, pluginSpecFactory)
         private val producesApps = ApplicationsBuilder(appNames, applicationSpecFactory)
         private val topLibs = ExternalLibrariesBuilder(libraryNames, "test.${baseName.lowerCaseDotSeparator}", librarySpecFactory)
         private val bottomLibs = ExternalLibrariesBuilder(libraryNames, "test.${baseName.lowerCaseDotSeparator}", librarySpecFactory)
         private val emptyComponents = EmptyComponentsBuilder(libraryNames)
-        private val internalComponents = InternalLibrariesBuilder(libraryNames, librarySpecFactory)
+        private val internalComponents = InternalLibrariesBuilder(TypedNameProvider.of(topInternalLibraryNames, middleInternalLibraryNames, bottomInternalLibraryNames), librarySpecFactory)
         private var includeSelf = false
         private var targetComponentCount: Int? = null
 
@@ -236,11 +240,17 @@ class DefaultBuildTreeBuilder(
         }
 
         override fun appNames(vararg names: String) {
-            appNames.replace(ChainedNames(names.toList(), defaultNames))
+            appNames.replace(defaultNames.push(names.toList()))
         }
 
         override fun libraryNames(names: List<String>) {
-            libraryNames.replace(ChainedNames(names, defaultNames))
+            libraryNames.replace(defaultNames.push(names))
+        }
+
+        override fun internalLibraryNames(topName: String, middleName: String, bottomName: String) {
+            topInternalLibraryNames.replace(names.names(topName))
+            middleInternalLibraryNames.replace(names.names(middleName))
+            bottomInternalLibraryNames.replace(names.names(bottomName))
         }
 
         override fun includeComponents(componentCount: Int) {

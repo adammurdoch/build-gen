@@ -2,9 +2,11 @@ package net.rubygrapefruit.gen.specs
 
 sealed interface NameProvider {
     fun next(): String
+
+    fun push(names: List<String>): NameProvider = ChainedNames(names, this)
 }
 
-class ChainedNames(
+private class ChainedNames(
     private val names: List<String>,
     private val next: NameProvider
 ) : NameProvider {
@@ -20,17 +22,17 @@ class ChainedNames(
     }
 }
 
-class FixedNames(
-    private val defaultName: String
+private class FixedNames(
+    private val baseName: String
 ) : NameProvider {
     private var counter = 0
 
     override fun next(): String {
         counter++
         return if (counter == 1) {
-            defaultName
+            baseName
         } else {
-            "$defaultName${counter}"
+            "$baseName${counter}"
         }
     }
 }
@@ -47,4 +49,10 @@ class MutableNames(
     override fun next(): String {
         return delegate.next()
     }
+}
+
+class Names {
+    private val providers = mutableMapOf<String, FixedNames>()
+
+    fun names(baseName: String): NameProvider = providers.getOrPut(baseName) { FixedNames(baseName) }
 }
